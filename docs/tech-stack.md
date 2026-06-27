@@ -10,8 +10,8 @@ multi-tenant SaaS, offline-first, India data residency (DPDP).*
 
 | Layer | Choice | Why (1-liner) | Notable alternative |
 |---|---|---|---|
-| **Primary backend** | **Java 21 + Spring Boot 3** (Spring Modulith for clean boundaries) | Healthcare-grade: HAPI FHIR + HL7v2, Spring Security, native OTel/Micrometer | **NestJS (TypeScript)** if the team is JS-first |
-| **Performance/edge services** | **Go** (Device Gateway, Sync Engine) | High-concurrency sockets + small edge binary | Rust (Sync Engine) |
+| **Primary backend** | **NestJS (TypeScript)** — modular, DI, hexagonal-friendly | One language across FE+BE, shared types, fast India hiring, clean-architecture out of the box | Java 21 + Spring Boot for the V2 Interop/FHIR service if HAPI maturity is needed |
+| **Performance/edge services** | **Go** (Device Gateway, Sync Engine) | High-concurrency analyzer sockets + small edge binary | Rust (Sync Engine) |
 | **API Gateway (edge)** | **Kong Gateway (OSS)** | Mature plugins: OIDC, rate-limit, OTel, mTLS | **Apache APISIX** (OSS-native) |
 | **Internal comms** | **gRPC** (sync) + **Kafka/Redpanda** (async events) | Typed contracts + event backbone with outbox/CDC | RabbitMQ / NATS (lighter) |
 | **Workflow/saga** | **Temporal** | Durable sagas, scheduled jobs (payouts, recalls, home-collection) | Camunda / app-level sagas |
@@ -117,11 +117,16 @@ PITR and obtain a written BAA + India-region commitment** before signing.
 
 ---
 
-## Decisions to confirm
-1. **Primary backend language** — **Java/Spring Boot** (max healthcare-integration maturity & durability)
-   vs **NestJS/TypeScript** (single language across FE+BE, fastest India hiring, shared types). Default
-   leans NestJS for a modern small startup; choose Java if FHIR/HL7 depth and enterprise durability dominate.
-2. **Hosting provider** — **E2E Networks** (default) vs **Yotta** (compliance/HIPAA/enterprise) vs **ESDS**.
-3. **Managed vs self-hosted** for Keycloak/Temporal/observability (all self-hosted under the no-hyperscaler
-   rule) — accept the ops cost or buy a managed-services engagement from the chosen CSP.
-4. **Repo strategy** — Nx monorepo (recommended) vs polyrepo.
+## Decisions — LOCKED (senior-architect call)
+1. **Backend language: NestJS (TypeScript)** primary + **Go** for device gateway & sync engine. (Java/Spring
+   Boot reserved as a per-service option for the V2 ABDM/FHIR Interop service only, if HAPI proves necessary —
+   per-service polyglot is allowed by the architecture.)
+2. **Hosting: E2E Networks** (primary). **Yotta/Yntraa** is the regulated-workload/HIPAA/GovCloud tier if/when
+   a public-sector or HIPAA contract requires it.
+3. **Platform components self-hosted** on the managed K8s (Keycloak, Temporal, Vault, observability) — budget a
+   platform/SRE owner; lean on E2E's managed Kafka/Valkey to reduce toil.
+4. **Repo: Nx monorepo.**
+5. **Testing: Playwright-led** — see [testing-strategy.md](testing-strategy.md) for the full toolchain.
+
+> These are the recommended defaults to build on. They remain reversible at build-planning if the team's
+> hiring or a contract requirement changes the calculus (esp. #1 and #2).
