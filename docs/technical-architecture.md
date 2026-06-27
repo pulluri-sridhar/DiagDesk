@@ -38,7 +38,7 @@ graph TB
     Doctor[Referring doctor / B2B]
     Admin[Lab owner / admin]
   end
-  subgraph DiagDesk[DiagDesk Platform - AWS Mumbai]
+  subgraph DiagDesk[DiagDesk Platform - India Sovereign Cloud]
     GW[API Gateway]
     SVC[Microservices]
     Edge[Branch Edge Nodes - offline-first]
@@ -106,7 +106,7 @@ graph LR
     ESync[Sync Agent - Go]
     EDev[Device Gateway - Go]
   end
-  subgraph Cloud[Cloud - AWS Mumbai - K8s]
+  subgraph Cloud[Cloud - India Sovereign CSP - Managed K8s]
     KONG[Kong API Gateway]
     IAM[Identity & Access]
     TEN[Tenant & Org]
@@ -235,6 +235,7 @@ sequenceDiagram
 | **Edge / network** | Zero-trust, private subnets, **WAF** at the edge (Kong/Cloudflare); branch nodes hold minimal data, encrypted, remotely revocable |
 | **Audit** | Immutable hash-chained audit log (DPDP + NABL); access logging on PHI |
 | **DPDP** | Consent service (multilingual notices), purpose-based retention, **72-hr breach workflow**, data-subject access/erasure APIs, **India-only data residency** |
+| **CERT-In** | **180-day logs retained within India** (the self-hosted Grafana/Loki stack satisfies this), **6-hour incident reporting** runbook |
 | **Supply chain** | CI gates: Semgrep (SAST), OWASP ZAP (DAST), Trivy (image/deps), **SBOM via Syft**, **cosign image signing**, gitleaks, Dependabot; least-privilege IAM |
 | **App hardening** | Input validation at boundaries, output encoding, parameterized queries (no string SQL), rate limiting, idempotency, OWASP ASVS as the checklist |
 
@@ -260,12 +261,20 @@ sequenceDiagram
 
 ## 9. Infrastructure & delivery
 
-- **Cloud/region:** **AWS Mumbai (ap-south-1)** (or Azure Central India) for DPDP residency. Multi-AZ.
-- **Compute:** **Kubernetes (EKS)** in cloud; **k3s** on branch edge nodes.
-- **Data services:** managed **RDS/Aurora PostgreSQL** (Multi-AZ) per service group; **ElastiCache Redis**;
-  **MSK/Redpanda** (Kafka); **S3** (+ MinIO at edge); **OpenSearch**; **Temporal** (managed or self-host).
-- **IaC:** **Terraform**. **GitOps:** **ArgoCD**. **CI/CD:** **GitHub Actions** (build → test → scan → sign →
-  deploy), trunk-based with feature flags.
+> Hosting is **India-only, no hyperscaler** — see [hosting-india.md](hosting-india.md) for the provider
+> evaluation and compliance basis. Recommended: **E2E Networks** (primary) or **Yotta/Yntraa** (compliance/
+> enterprise tier).
+
+- **Cloud/region:** **India-sovereign, MeitY-empanelled CSP** (E2E Networks default; Yotta/ESDS/Jio
+  alternatives), pinned to an India region for DPDP residency + CERT-In in-India logs.
+- **Compute:** **CSP-managed Kubernetes** in cloud; **k3s** on branch edge nodes.
+- **Managed from the CSP:** **managed PostgreSQL** (per service); **S3-compatible object storage** (E2E EOS /
+  Yotta S3) + **MinIO** at edge; on **E2E/Jio** also **managed Kafka** and **managed Redis/Valkey**.
+- **Self-hosted on the managed K8s** (no India-resident managed option without a hyperscaler):
+  **Keycloak, Temporal, Vault**, the **Grafana/Loki/Tempo/Mimir** observability stack, and **Kafka/Redis**
+  where the CSP doesn't manage them. **OpenSearch** self-hosted for search.
+- **IaC:** **Terraform** (CSP provider/API). **GitOps:** **ArgoCD**. **CI/CD:** **GitHub Actions**
+  (build → test → scan → sign → deploy), trunk-based with feature flags.
 - **Repo:** **Nx monorepo** holding shared OpenAPI/AsyncAPI/proto contracts, the service template, and shared
   libs (auth, telemetry, tenancy) so every new service inherits security + observability by default.
 - **Environments:** dev → staging → prod, ephemeral PR preview envs; blue-green/canary deploys.

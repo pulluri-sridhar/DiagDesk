@@ -34,8 +34,8 @@ multi-tenant SaaS, offline-first, India data residency (DPDP).*
 | **Interop** | **HL7 v2 (HAPI)**, **FHIR R4 (HAPI FHIR)**, **DICOM (V2)** | ABDM HIP, analyzer & EHR integration | — |
 | **Payments** | **Razorpay / PhonePe** (UPI-first) | India rails, UPI/cards/netbanking | Cashfree |
 | **Messaging** | **WhatsApp Business API (BSP)** + SMS (DLT-compliant) + email | Report delivery, reminders | — |
-| **Cloud / region** | **AWS Mumbai (ap-south-1)** [or Azure Central India] | DPDP India residency, managed services | Self-managed India DC |
-| **Orchestration** | **Kubernetes (EKS)** in cloud; **k3s** at branch edge | Standard; lightweight edge | — |
+| **Cloud / region** | **E2E Networks** (India-sovereign, NSE-listed, MeitY-empanelled) — Mumbai/Delhi-NCR | DPDP residency + **no hyperscaler**; genuine managed Postgres DBaaS, managed K8s, S3-compatible object store | **Yotta (Yntraa)** or **ESDS** (both India-sovereign, MeitY) |
+| **Orchestration** | **E2E Managed Kubernetes** in cloud; **k3s** at branch edge | India-resident managed K8s; lightweight edge | Yotta/ESDS managed K8s |
 | **IaC / GitOps / CI-CD** | **Terraform** + **ArgoCD** + **GitHub Actions** | Reproducible infra, declarative deploys | Flux |
 | **Repo strategy** | **Nx monorepo** (shared contracts/libs) | Contract sharing for a small team | Polyrepo + shared lib pkgs |
 | **Supply-chain security** | Trivy + Syft (SBOM) + cosign (signing) + Semgrep (SAST) + OWASP ZAP (DAST) + gitleaks + Dependabot | "Secure from day 1" in CI | Snyk |
@@ -44,13 +44,84 @@ multi-tenant SaaS, offline-first, India data residency (DPDP).*
 
 ## Polyglot policy (keep it minimal)
 
-Start **single-language (Java/Spring Boot)** for all domain services. Introduce **Go only** for the two
-services where it earns its keep:
+Start **single-language** for all domain services. Introduce **Go only** for the two services where it earns
+its keep:
 - **Device Integration Gateway** — many concurrent persistent TCP sockets to analyzers (HL7/ASTM).
 - **Sync Engine** — small static binary deployed to every branch edge node.
 
 Everything else stays in the primary language to protect a small team's velocity and hiring.
 
-> **Decision to confirm:** primary backend language. **Java/Spring Boot** is recommended for healthcare
-> integration maturity and durability. If your team is JS-first and hiring JS in India, swap the primary to
-> **NestJS (TypeScript)** — the architecture below is language-agnostic; only the framework column changes.
+---
+
+## Database decision — PostgreSQL, not MongoDB (ADR)
+
+**Decision: PostgreSQL is the system of record everywhere. MongoDB is not adopted.**
+
+DiagDesk's core is **transactional, relational, and financial** — orders, billing, referral commissions,
+B2B receivables, rate cards, audit. That demands what Postgres gives natively and MongoDB does not:
+
+| Need | Postgres | MongoDB |
+|---|---|---|
+| **Multi-row ACID** (a bill + its line items + a commission accrual must commit atomically) | First-class | Weaker; multi-document txns exist but are not the model's strength |
+| **Multi-tenant isolation** via **Row-Level Security** | Built-in (`tenant_id` RLS) | No equivalent — enforced only in app code |
+| **Relational integrity** (FKs across patient/order/result/invoice) | Enforced | App-enforced |
+| **Reporting / MIS** (joins, window functions, BI tools) | SQL ecosystem | Aggregation pipeline, weaker BI fit |
+| **Schema-flexible data** (FHIR bundles, variable result payloads, report templates, audit metadata) | **JSONB** — document flexibility without losing relational guarantees | Native, but you give up the above |
+| **Compliance primitives** | pgcrypto field encryption, hash-chained audit, PITR, RLS | Bolt-on |
+| **India-resident MANAGED option (no hyperscaler)** | **Yes** — E2E, Yotta (SutraDB), ESDS offer managed Postgres | **MongoDB Atlas runs on AWS/GCP Mumbai → excluded by the no-hyperscaler rule**; self-hosting Mongo HA is pure ops toil |
+
+**JSONB closes the only real gap** ("we need flexible schemas"): store FHIR resources, device payloads, and
+template definitions as JSONB columns inside Postgres and keep one operational datastore. A document store is
+revisited only if a *specific* future bounded context proves it — and even then, given the no-hyperscaler
+constraint, Postgres JSONB or object storage is preferred. **Standardize on Postgres to minimize a small
+team's operational surface.**
+
+---
+
+## Frontend stack (detail)
+
+- **Language/build:** React 18 + **TypeScript** + Vite.
+- **UI:** Tailwind CSS + **shadcn/ui** (or Mantine if you prefer batteries-included) — clean, modern,
+  accessible, data-dense-friendly.
+- **Data/state:** **TanStack Query** (server state) + Zustand (local UI state); **React Hook Form + Zod**
+  (typed forms/validation); **TanStack Table** (grids); **Recharts/visx** (L-J charts, MIS dashboards).
+- **Offline (counter app):** **PWA** + service worker + **IndexedDB (Dexie)** for the local working set,
+  backed by the branch edge node; optional **Tauri** wrapper for native printing/peripherals.
+- **Mobile:** **React Native (Expo)** for patient + phlebotomist apps (offline maps/routing for phlebotomists).
+- **Shared types:** the **Nx monorepo** shares TypeScript contracts (and, if backend is NestJS, end-to-end
+  types) between FE and BE.
+
+---
+
+## India hosting (no hyperscaler) — managed building blocks
+
+With the **no-AWS/Azure/GCP** rule, anchor on a **MeitY-empanelled India-sovereign cloud**. The independent
+"India-region" managed services (Aiven, Redpanda Cloud, Temporal Cloud, Grafana Cloud) all run on AWS/GCP
+Mumbai under the hood and are therefore **excluded**. See [hosting-india.md](hosting-india.md) for the full
+comparison and compliance basis (DPDP, CERT-In, MeitY).
+
+| Building block | Managed on India-sovereign cloud? |
+|---|---|
+| PostgreSQL | **Yes** — E2E DBaaS; **Yotta SutraDB** (auto-failover, PITR, 99.95% SLA); ESDS |
+| Kubernetes | **Yes** — E2E / Yotta / ESDS managed K8s |
+| Object storage (S3-compatible) | **Yes** — E2E EOS, Yotta S3 |
+| Kafka | **Yes on E2E** (managed Apache Kafka); self-host elsewhere |
+| Redis | **Yes on E2E** (managed **Valkey**); self-host elsewhere |
+| Keycloak, Temporal, Grafana/Prometheus stack, Vault | **Self-host** on the managed K8s (no India-resident managed option) |
+
+**Recommendation:** **E2E Networks** as the primary (most complete managed set — Postgres + Kafka + Valkey +
+K8s + object store — plus transparent INR pricing; NSE-listed, MeitY+STQC). **Yotta (Yntraa)** as the
+compliance/enterprise alternative and the pick if you need explicit **HIPAA** attestation, fuller managed-PG
+HA/PITR, Tier IV, or GovCloud for public-sector lab contracts. Run a short **POC to validate DBaaS failover +
+PITR and obtain a written BAA + India-region commitment** before signing.
+
+---
+
+## Decisions to confirm
+1. **Primary backend language** — **Java/Spring Boot** (max healthcare-integration maturity & durability)
+   vs **NestJS/TypeScript** (single language across FE+BE, fastest India hiring, shared types). Default
+   leans NestJS for a modern small startup; choose Java if FHIR/HL7 depth and enterprise durability dominate.
+2. **Hosting provider** — **E2E Networks** (default) vs **Yotta** (compliance/HIPAA/enterprise) vs **ESDS**.
+3. **Managed vs self-hosted** for Keycloak/Temporal/observability (all self-hosted under the no-hyperscaler
+   rule) — accept the ops cost or buy a managed-services engagement from the chosen CSP.
+4. **Repo strategy** — Nx monorepo (recommended) vs polyrepo.
