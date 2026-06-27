@@ -17,8 +17,9 @@ the web admin **and** the Lab owner app ([features.md](features.md) §19 app por
   conversion of enquiries/bookings to billed orders.
 - **Where patients come from:** **geographic/pincode heatmap**, walk-in vs home-collection vs B2B, online vs
   offline, channel (website/app/WhatsApp/referral), new vs repeat patients.
-- **Who refers most:** **top referring doctors & B2B partners** by volume, revenue, and growth; doctors
-  slipping (declining referrals) for win-back; commission paid vs revenue generated (ROI per doctor).
+- **Who refers most:** **top referring doctors & B2B partners** by volume, **revenue *generated***, and growth;
+  doctors slipping (declining referrals) for win-back. *Analytics only — never a commission paid to a referrer*
+  (anti-kickback; see [compliance-anti-kickback.md](compliance-anti-kickback.md)).
 - **Seasonality & trends:** day-of-week / month / seasonal demand patterns; test-mix shifts (e.g., dengue/flu
   season); trend lines and forecasts for capacity & inventory planning.
 - **Operations health:** TAT (and breaches), sample rejection rate & reasons, productivity per tech/branch,
@@ -33,7 +34,7 @@ the web admin **and** the Lab owner app ([features.md](features.md) §19 app por
 1. **Executive summary** — headline KPIs + alerts ("revenue down 8% WoW", "Dr. X referrals dropped 40%",
    "TAT breaches up").
 2. **Revenue & collections** — trends, breakdowns, cash vs credit, outstanding.
-3. **Referrals & doctors** — leaderboard, growth/decline, commission ROI, win-back list.
+3. **Referral sources & doctors** — leaderboard by volume & revenue *generated*, growth/decline, win-back list (no payouts).
 4. **Patient acquisition & geography** — pincode heatmap, source channels, new vs repeat, acquisition cost.
 5. **Test & department performance** — volume/revenue/margin mix, top/bottom movers.
 6. **Operations** — TAT, rejections, productivity, pending work.

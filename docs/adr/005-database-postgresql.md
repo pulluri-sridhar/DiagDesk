@@ -7,8 +7,8 @@
 ---
 
 ## Context
-DiagDesk's core is **transactional, relational, and financial** — orders, bills + line items + commission
-accruals, B2B receivables, rate cards, audit — where atomicity and integrity are non-negotiable. We also have
+DiagDesk's core is **transactional, relational, and financial** — orders, bills + line items, B2B
+receivables, rate cards, audit — where atomicity and integrity are non-negotiable. We also have
 **schema-flexible** data (FHIR bundles, variable result payloads, report templates). The question: one
 relational store, a document store, or both.
 

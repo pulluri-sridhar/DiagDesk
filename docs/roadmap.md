@@ -8,7 +8,7 @@
 
 A lab won't switch software for a single differentiating module — it must first **run daily operations** on
 DiagDesk. So the MVP is the operational core (table stakes done well + offline-first), and the India-specific
-**Referral & B2B engine** and **compliance** modules — what makes labs *stay* and what we *market* — land in
+**B2B & partner management** and **compliance** modules — what makes labs *stay* and what we *market* — land in
 V1. Radiology and the ABDM/ecosystem layer are V2.
 
 ---
@@ -37,8 +37,10 @@ register → collect → run (analyzer) → validate → report (WhatsApp) → b
 
 ## V1 (4–8 months) — "Win on India-specific money + compliance"
 
-- **Referral & B2B revenue engine** (the differentiating wedge): doctor commission tracking & statements
-  (per-test % or flat, TDS-aware), B2B credit ledger + receivables aging with overdue alerts.
+- **B2B & Partner management** (the differentiating wedge — *compliant, no commissions*): institutional rate
+  contracts, B2B credit ledger + receivables aging with overdue alerts, reference-lab outsourcing,
+  referral-source analytics (no payout), and a doctor/B2B engagement portal. (Paying referral commissions is
+  illegal — see [compliance-anti-kickback.md](compliance-anti-kickback.md).)
 - **Rate-card manager:** per-branch, per-B2B-partner, per-scheme rate lists, including **CGHS TMS 2.0 tiered
   rates** and **TPA pre-auth** empanelment billing.
 - **NABL QC module:** auto **Levey-Jennings charts**, Westgard rules, IQC/EQAS logs, sample-rejection tracking

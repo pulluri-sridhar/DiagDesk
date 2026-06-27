@@ -21,7 +21,7 @@ offline-first healthcare platform. Quality gates run in CI on every PR. Companio
 
 | Layer | Scope | Tooling |
 |---|---|---|
-| **Unit** | Pure logic, domain rules, calculations (result formulas, commission accrual, GST) | **Vitest** (frontend, shared libs, NestJS) — Jest acceptable for Nest |
+| **Unit** | Pure logic, domain rules, calculations (result formulas, B2B billing, GST) | **Vitest** (frontend, shared libs, NestJS) — Jest acceptable for Nest |
 | **Component (FE)** | React components/screens in isolation | **React Testing Library** + **Storybook** interaction tests; **MSW** to mock APIs |
 | **Integration (BE)** | A service against real Postgres/Kafka/Redis; repository + RLS + outbox | **Testcontainers** + **Supertest** (Nest HTTP) |
 | **Contract** | Service-to-service & API compatibility | **Pact** (consumer-driven) + **Spectral** lint on OpenAPI/AsyncAPI |
@@ -32,7 +32,7 @@ offline-first healthcare platform. Quality gates run in CI on every PR. Companio
 | **Accessibility** | WCAG on key screens | **axe-core** via Playwright |
 | **Visual regression** | Catch unintended UI changes | Playwright screenshots / **Chromatic** (with Storybook) |
 | **Resilience / chaos** | Network faults, offline↔online sync | **Toxiproxy** + custom sync harness |
-| **Mutation (selective)** | Test-suite effectiveness on critical modules | **Stryker** (billing, validation, commission only) |
+| **Mutation (selective)** | Test-suite effectiveness on critical modules | **Stryker** (billing, validation, B2B receivables only) |
 
 ---
 
@@ -40,7 +40,8 @@ offline-first healthcare platform. Quality gates run in CI on every PR. Companio
 - **Critical journeys as the E2E suite** (kept small and stable):
   1. Walk-in: register → bill (partial cash) → barcode → result → validate → WhatsApp report.
   2. Home collection: book → assign/route → collect → process → deliver → online pay.
-  3. Referral settlement: referrals → auto-commission → statement → receivables aging.
+  3. B2B settlement: institutional order → contract rate → account statement → receivables aging. (Plus a
+     guardrail test: attaching a payout to a referral source is blocked — anti-kickback compliance.)
   4. Compliance: IQC plotted on L-J → immutable audit → consent captured.
 - **Practices:** role-based fixtures & storage-state auth (skip login per test), per-test **tenant isolation**
   (fresh tenant + RLS), API-seeded setup (arrange via API, act via UI), `data-testid` selectors, network

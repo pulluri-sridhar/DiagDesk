@@ -12,5 +12,6 @@ place; the linked source doc holds the fuller rationale.
 | [004](004-hosting-and-data-residency.md) | Hosting & data residency — India-only, no hyperscaler (E2E primary) | Accepted | hosting-india |
 | [005](005-database-postgresql.md) | Database — PostgreSQL (not MongoDB) | Accepted | tech-stack |
 | [006](006-backend-language.md) | Backend language — NestJS (TypeScript) + Go for edge services | Accepted | tech-stack |
+| [007](007-no-referral-commission-tooling.md) | No referral-commission tooling (anti-kickback compliance) | Accepted | compliance-anti-kickback |
 
 > New decisions: add a numbered file, set Status (Proposed → Accepted → Superseded), and link it here.

@@ -9,6 +9,7 @@ Part C for sources and detail.*
 
 | Item | Status | Software wedge | DiagDesk phase |
 |---|---|---|---|
+| **Anti-kickback — referral commissions** (IMC 2002 Clause 6.4.1; NMC; *Apex Laboratories* SC 2022) | **MANDATORY** — binds the lab as payer | **Do NOT build a commission engine.** Compliant B2B billing (institution = buyer), referral-source analytics (no payout), guardrail that blocks payouts attached to referrers | **MVP** (design constraint) — see [compliance-anti-kickback.md](compliance-anti-kickback.md) |
 | **DPDP Act 2023 + Rules 2025** | **MANDATORY** (all health data) | Consent mgmt, India data residency, 72-hr breach workflow, audit logs | **MVP** (foundation) |
 | **PC-PNDT Form F** (radiology/USG) | **MANDATORY** where ultrasound present | Online Form-F generation/filing | **V2** (with radiology) |
 | **Biomedical Waste Rules 2016** | **MANDATORY** for BMW generators | Barcode/waste-bag logs, annual-report (digital from 2026) | **V2** |

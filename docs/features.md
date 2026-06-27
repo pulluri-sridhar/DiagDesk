@@ -120,14 +120,21 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 12.4 Teleradiology (remote reporting workflow) — **[V2]**
 12.5 PC-PNDT Form-F generation & online filing (ultrasound) — **[V2]**
 
-## 13. Referral & B2B revenue engine
-13.1 Referral commission setup (per-test %, flat, slab) — **[V1]**
-13.2 Automatic commission accrual & doctor-wise statements — **[V1]**
-13.3 TDS handling on payouts — **[V1]**
-13.4 B2B credit accounts & credit limits — **[V1]**
-13.5 B2B billing cycles, statements & receivables aging — **[V1]**
-13.6 Outstanding/overdue alerts & collection follow-up — **[V1]**
-13.7 Franchise / collection-center settlement & revenue share — **[V2]**
+## 13. B2B & Partner management — compliant, no commissions
+> ⚠️ **No referral-commission engine.** Paying referring doctors a cut is illegal in India and binds the lab
+> as payer (IMC 2002 Clause 6.4.1; *Apex Laboratories*, SC 2022). See
+> [compliance-anti-kickback.md](compliance-anti-kickback.md). Money flows only to the institution that *buys*
+> the test — never to a person for *sending* a patient.
+
+13.1 B2B/institutional **rate contracts** (hospital, clinic, corporate, TPA, reference lab — the buyer pays) — **[V1]**
+13.2 B2B **credit accounts & credit limits** — **[V1]**
+13.3 B2B **billing cycles, statements & receivables aging** (statements = account-as-buyer, not earnings) — **[V1]**
+13.4 Outstanding/overdue alerts & collection follow-up — **[V1]**
+13.5 **Reference-lab / outsourcing** workflow with transparent per-test pricing, billed to the ordering institution — **[V1]**
+13.6 **Referral-source analytics (no payout)** — volume by source doctor/clinic for marketing & capacity, read-only — **[V1]**
+13.7 **Doctor / B2B engagement portal** — report delivery, communications, account statements; no commission — **[V1]**
+13.8 **Compliance guardrail** — separates "customer billing" from "referral source"; blocks/warns if a payout is attached to a referrer; audit-logged — **[V1]**
+13.9 Franchise / collection-center settlement (legitimate inter-entity invoicing, not referral cuts) — **[V2]**
 
 ## 14. Inventory & procurement
 14.1 Reagent & consumable master + stock ledger — **[V1]**
@@ -150,7 +157,7 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 ## 16. Finance & accounting
 16.1 Revenue ledger & collections summary — **[MVP]**
 16.2 Expense & petty-cash tracking — **[V1]**
-16.3 Doctor payout & B2B settlement accounting — **[V1]**
+16.3 B2B settlement & reference-lab payables accounting (institutional, not referral payouts) — **[V1]**
 16.4 GST reports & filing exports — **[V1]**
 16.5 Accounting-software export/integration (Tally/Zoho/etc.) — **[V2]**
 16.6 P&L / financial MIS by branch — **[V1]**
@@ -160,7 +167,7 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 17.2 Revenue & collections dashboard (branch/doctor/test) — **[V1]**
 17.3 TAT & productivity analytics — **[V1]**
 17.4 QC & rejection analytics — **[V1]**
-17.5 Referral / doctor performance analytics (top referrers, decline/win-back, commission ROI) — **[V1]**
+17.5 Referral-source analytics (top referring doctors/clinics by volume & revenue *generated*, decline/win-back) — informational only, never tied to a payout — **[V1]**
 17.6 Patient-acquisition & **geographic/pincode** analytics (source channels, new vs repeat) — **[V1]**
 17.7 **Seasonality & trend** analysis + period-over-period comparison + forecasts — **[V1→V2]**
 17.8 Executive summary + **alerts/anomaly detection** + actionable nudges — **[V1]**
@@ -198,7 +205,7 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
   the go**, alerts/anomalies, approvals (e.g. discounts), result sign-off — **[V1]**
 - **Phlebotomist app** — home-collection visits, routing, doorstep capture — **[V1]**
 - **Patient app** — booking, reports, payments, history — **[V1]**
-- **Doctor / B2B app/portal** — referrals, reports, commission & credit statements — **[V1]**
+- **Doctor / B2B app/portal** — referral order status, reports, and B2B account/credit statements (no commissions) — **[V1]**
 
 ### Phase summary
 - **[MVP]** — run a single lab end-to-end, offline-resilient: §§1,2,3,6,7,8,9,10,11 (core), 15 (audit/DPDP), 17.1, 19.

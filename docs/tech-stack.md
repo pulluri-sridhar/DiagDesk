@@ -57,12 +57,12 @@ Everything else stays in the primary language to protect a small team's velocity
 
 **Decision: PostgreSQL is the system of record everywhere. MongoDB is not adopted.**
 
-DiagDesk's core is **transactional, relational, and financial** — orders, billing, referral commissions,
-B2B receivables, rate cards, audit. That demands what Postgres gives natively and MongoDB does not:
+DiagDesk's core is **transactional, relational, and financial** — orders, billing, B2B receivables,
+rate cards, audit. That demands what Postgres gives natively and MongoDB does not:
 
 | Need | Postgres | MongoDB |
 |---|---|---|
-| **Multi-row ACID** (a bill + its line items + a commission accrual must commit atomically) | First-class | Weaker; multi-document txns exist but are not the model's strength |
+| **Multi-row ACID** (a bill + its line items + a B2B receivable entry must commit atomically) | First-class | Weaker; multi-document txns exist but are not the model's strength |
 | **Multi-tenant isolation** via **Row-Level Security** | Built-in (`tenant_id` RLS) | No equivalent — enforced only in app code |
 | **Relational integrity** (FKs across patient/order/result/invoice) | Enforced | App-enforced |
 | **Reporting / MIS** (joins, window functions, BI tools) | SQL ecosystem | Aggregation pipeline, weaker BI fit |

@@ -29,6 +29,7 @@ platform that natively handles the doctor-referral economy at the heart of India
 | [docs/features.md](docs/features.md) | Full feature catalogue in logical order, phase-tagged (MVP/V1/V2) |
 | [docs/mvp-backlog.md](docs/mvp-backlog.md) | Phase-0 foundation + MVP epics → user stories with acceptance criteria, sprint sequence |
 | [docs/compliance-matrix.md](docs/compliance-matrix.md) | Mandatory-vs-incentivized compliance map (DPDP, PC-PNDT, BMW, NABL, CGHS, ABDM, GST) |
+| [docs/compliance-anti-kickback.md](docs/compliance-anti-kickback.md) | **Anti-kickback law** — why DiagDesk builds no referral-commission tooling (IMC 2002, Apex SC 2022) |
 | [docs/tech-stack.md](docs/tech-stack.md) | Decisive tech-stack reference (microservices, Postgres, API gateway, observability, security) |
 | [docs/technical-architecture.md](docs/technical-architecture.md) | Full technical architecture: service decomposition, data, comms, offline sync, security, observability, infra (with diagrams) |
 | [docs/testing-strategy.md](docs/testing-strategy.md) | Testing & quality strategy: Playwright-led E2E + full pyramid, CI gates |

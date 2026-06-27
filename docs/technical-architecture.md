@@ -90,7 +90,7 @@ module inside a neighboring service and split out when justified.
 | **Device Integration Gateway** (Go) | HL7/ASTM analyzer interfacing, result ingest | MVP |
 | **Reporting** | Report templates, PDF render, digital signature, delivery orchestration | MVP |
 | **Billing & Invoicing** | Invoices, partial/cash/dues, GST mixed exempt/taxable, payments | MVP |
-| **Referral & B2B** | Doctor commissions/statements, B2B credit ledger, receivables aging | V1 |
+| **B2B & Partner Billing** | Institutional rate contracts, B2B credit ledger & receivables aging, reference-lab outsourcing, referral-source analytics (no payouts — anti-kickback compliant) | V1 |
 | **Quality & Compliance** | NABL QC, L-J charts, Westgard, IQC/EQAS, rejection tracking | V1 |
 | **Inventory** | Reagents/consumables, expiry alerts, auto-reorder | V1 |
 | **Booking & Home-Collection** | Scheduling, phlebotomist assignment + routing (Temporal) | V1 |
@@ -116,7 +116,7 @@ graph LR
     RES[Result & Validation]
     REP[Reporting]
     BIL[Billing]
-    REF[Referral & B2B]
+    REF[B2B & Partner Billing]
     QC[Quality & Compliance]
     INV[Inventory]
     BOOK[Booking & Home Collection]
@@ -248,7 +248,7 @@ sequenceDiagram
 - **Traces:** distributed tracing with a **correlation/trace ID** stamped at the gateway and propagated
   through gRPC/Kafka (incl. across the edge sync boundary).
 - **Metrics:** **RED** (rate/errors/duration) per service + **USE** for resources; business metrics
-  (TAT, samples rejected, reports delivered, payout accuracy).
+  (TAT, samples rejected, reports delivered, B2B receivables accuracy).
 - **Logs:** structured JSON, trace-correlated, PII-scrubbed.
 - **SLOs & error budgets** per critical journey (registration, result delivery, billing); alerting via
   **Alertmanager / Grafana OnCall**.
@@ -300,7 +300,7 @@ sequenceDiagram
    Kafka, OTel→Grafana, CI/CD with security scans, edge-node + Sync Engine skeleton.
 2. **MVP services:** Identity, Tenant, Patient, Catalog/Rate-Card, Order/Workflow (+sample), Result,
    Device Gateway, Reporting, Billing, Notification, Audit/Consent — all offline-capable at the edge.
-3. **V1:** Referral & B2B, Quality & Compliance, Inventory, Booking & Home-Collection (Temporal), MIS.
+3. **V1:** B2B & Partner Billing, Quality & Compliance, Inventory, Booking & Home-Collection (Temporal), MIS.
 4. **V2:** Interop (ABDM HIP/FHIR/NHCX), Radiology (RIS) + PACS/DICOM.
 
 ---
