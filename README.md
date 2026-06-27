@@ -26,6 +26,8 @@ platform that natively handles the doctor-referral economy at the heart of India
 | [docs/market-research.md](docs/market-research.md) | Sourced research: pain points, competitive teardown, regulatory & market context |
 | [docs/roadmap.md](docs/roadmap.md) | Phased roadmap (MVP → V1 → V2) and the architecture sketch |
 | [docs/compliance-matrix.md](docs/compliance-matrix.md) | Mandatory-vs-incentivized compliance map (DPDP, PC-PNDT, BMW, NABL, CGHS, ABDM, GST) |
+| [docs/tech-stack.md](docs/tech-stack.md) | Decisive tech-stack reference (microservices, Postgres, API gateway, observability, security) |
+| [docs/technical-architecture.md](docs/technical-architecture.md) | Full technical architecture: service decomposition, data, comms, offline sync, security, observability, infra (with diagrams) |
 
 ## Open strategic decisions
 
