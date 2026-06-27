@@ -160,9 +160,14 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 17.2 Revenue & collections dashboard (branch/doctor/test) — **[V1]**
 17.3 TAT & productivity analytics — **[V1]**
 17.4 QC & rejection analytics — **[V1]**
-17.5 Referral / doctor performance analytics — **[V1]**
-17.6 Custom report builder (self-serve) — **[V2]**
-17.7 Owner mobile MIS app — **[V1]**
+17.5 Referral / doctor performance analytics (top referrers, decline/win-back, commission ROI) — **[V1]**
+17.6 Patient-acquisition & **geographic/pincode** analytics (source channels, new vs repeat) — **[V1]**
+17.7 **Seasonality & trend** analysis + period-over-period comparison + forecasts — **[V1→V2]**
+17.8 Executive summary + **alerts/anomaly detection** + actionable nudges — **[V1]**
+17.9 **Scheduled insight digests** (daily/weekly via email/WhatsApp) — **[V1]**
+17.10 Custom report builder (self-serve) + embedded BI (Metabase/Superset) — **[V2]**
+17.11 Owner/manager mobile insights (in the Lab owner app) — **[V1]**
+> See [analytics-insights.md](analytics-insights.md) for the full insights spec.
 
 ## 18. Interoperability & ecosystem
 18.1 ABDM HIP integration (ABHA linking, FHIR care-context) — **[V2]**
@@ -179,11 +184,21 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 19.4 India data residency (DPDP) + CERT-In in-India log retention — **[MVP]**
 19.5 Observability: traces/metrics/logs, SLOs, alerting — **[MVP]**
 19.6 Notification/communication infrastructure (multi-channel providers) — **[MVP]**
-19.7 Mobile apps (patient, phlebotomist, owner) — **[V1]**
+19.7 **App portfolio** (see note below) — **[MVP→V1]**
+19.10 **Rate limiting, WAF & DDoS / bot protection** (per IP/user/tenant/endpoint; OTP/login hardening) — **[MVP]** · see [security-hardening.md](security-hardening.md)
+19.11 Anomaly-based auto-blocking, per-API-key quotas, VAPT — **[V1]**
 19.8 Localization / multi-language UI — **[V1]**
 19.9 Backup, disaster recovery & data export — **[MVP]**
 
 ---
+
+### App & client portfolio
+- **Counter / Admin web (PWA)** — front-desk + lab operations, offline-capable — **[MVP]**
+- **DiagDesk Lab app (diagnostic-center mobile app)** — for owner/manager: live ops, **revenue & insights on
+  the go**, alerts/anomalies, approvals (e.g. discounts), result sign-off — **[V1]**
+- **Phlebotomist app** — home-collection visits, routing, doorstep capture — **[V1]**
+- **Patient app** — booking, reports, payments, history — **[V1]**
+- **Doctor / B2B app/portal** — referrals, reports, commission & credit statements — **[V1]**
 
 ### Phase summary
 - **[MVP]** — run a single lab end-to-end, offline-resilient: §§1,2,3,6,7,8,9,10,11 (core), 15 (audit/DPDP), 17.1, 19.
