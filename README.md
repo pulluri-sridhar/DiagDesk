@@ -34,7 +34,7 @@ platform that natively handles the doctor-referral economy at the heart of India
 | [docs/testing-strategy.md](docs/testing-strategy.md) | Testing & quality strategy: Playwright-led E2E + full pyramid, CI gates |
 | [docs/security-hardening.md](docs/security-hardening.md) | Rate limiting, DDoS/WAF, bot & OTP-abuse defense, layered hardening |
 | [docs/analytics-insights.md](docs/analytics-insights.md) | Revenue/ops/growth insights: dashboards, referral & geographic analytics, trends |
-| [docs/adr/authentication.md](docs/adr/authentication.md) | ADR-001: authentication (Keycloak, OTP channels, per-user policy, offline tokens) |
+| [docs/adr/](docs/adr/README.md) | **Architecture Decision Records** — auth, multi-tenancy/RLS, offline-sync, hosting, database, language |
 | [docs/hosting-india.md](docs/hosting-india.md) | India-only hosting decision (no hyperscaler): provider evaluation + DPDP/CERT-In/MeitY basis |
 
 ## Open strategic decisions
