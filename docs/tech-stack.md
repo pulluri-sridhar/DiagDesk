@@ -33,7 +33,7 @@ multi-tenant SaaS, offline-first, India data residency (DPDP).*
 | **Frontend — mobile (patient + phlebotomist)** | **React Native** | Shared skills; offline routing for phlebotomist | Flutter |
 | **Interop** | **HL7 v2 (HAPI)**, **FHIR R4 (HAPI FHIR)**, **DICOM (V2)** | ABDM HIP, analyzer & EHR integration | — |
 | **Payments** | **Razorpay / PhonePe** (UPI-first) | India rails, UPI/cards/netbanking | Cashfree |
-| **Messaging** | **WhatsApp Business API (BSP)** + SMS (DLT-compliant) + email | Report delivery, reminders | — |
+| **Messaging** | **Email: Resend** · **WhatsApp Business API (BSP)** · **SMS (DLT-compliant Indian provider)** | Transactional email + email OTP (Resend, low cost); report delivery, reminders, OTP across channels | Swappable behind the Notification service |
 | **Cloud / region** | **E2E Networks** (India-sovereign, NSE-listed, MeitY-empanelled) — Mumbai/Delhi-NCR | DPDP residency + **no hyperscaler**; genuine managed Postgres DBaaS, managed K8s, S3-compatible object store | **Yotta (Yntraa)** or **ESDS** (both India-sovereign, MeitY) |
 | **Orchestration** | **E2E Managed Kubernetes** in cloud; **k3s** at branch edge | India-resident managed K8s; lightweight edge | Yotta/ESDS managed K8s |
 | **IaC / GitOps / CI-CD** | **Terraform** + **ArgoCD** + **GitHub Actions** | Reproducible infra, declarative deploys | Flux |
@@ -96,6 +96,21 @@ team's operational surface.**
 - **Mobile:** **React Native (Expo)** for patient + phlebotomist apps (offline maps/routing for phlebotomists).
 - **Shared types:** the **Nx monorepo** shares TypeScript contracts (and NestJS end-to-end types) between FE
   and BE.
+
+## Notifications & email (providers + data-residency guardrail)
+
+- **Email — Resend** for all transactional email **and email OTP** (low cost, good DX). **SMS** via a
+  DLT-registered Indian provider (MSG91/Gupshup/Kaleyra). **WhatsApp** via a BSP using authentication-category
+  templates for OTP. All sit **behind one Notification service**, so providers are swappable and OTP delivery
+  (any channel) reuses this layer.
+- **Data-residency guardrail (important):** Resend is a **US/AWS-based processor**. DPDP doesn't currently
+  forbid this (negative-list model, no restricted list notified), but health data is sensitive, so:
+  - **Email OTP is fine** — the payload is just a code, no PHI.
+  - **Do NOT put PHI in report-delivery emails** (no patient reports as attachments, no diagnoses in the body).
+    Email a **secure, authenticated, expiring link** to the patient portal; the **report itself stays on
+    India-resident object storage**. Good security practice regardless of residency.
+  - Sign a **DPA** with Resend; data minimization (email address + code/link only); keep the option to swap to
+    an India-resident SMTP relay if a future DPDP notification restricts health-data transfer.
 
 ### Design workflow (design → code)
 - **Google Stitch** (Google Labs) for **AI-assisted UI design** — rapidly generate screen designs/flows from
