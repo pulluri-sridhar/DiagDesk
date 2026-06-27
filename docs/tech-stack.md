@@ -81,15 +81,32 @@ team's operational surface.**
 ## Frontend stack (detail)
 
 - **Language/build:** React 18 + **TypeScript** + Vite.
-- **UI:** Tailwind CSS + **shadcn/ui** (or Mantine if you prefer batteries-included) — clean, modern,
-  accessible, data-dense-friendly.
+- **UI foundation:** Tailwind CSS + **shadcn/ui** — clean, modern, accessible, data-dense-friendly, and the
+  base that the component sources below build on.
+- **Component sources:** **21st.dev** — a registry of shadcn/Tailwind-compatible React components — for faster
+  UI assembly (drops straight into our shadcn base). Treat it as an accelerator: **vet each component for
+  accessibility, offline behavior, and bundle size** before adopting in clinical/data-dense screens.
+- **Animation/motion:** **Framer Motion** for micro-interactions and polish. Use **judiciously** — rich on
+  patient-facing portal/app, restrained on the lab counter (performance + no distraction in clinical flows;
+  honor `prefers-reduced-motion`).
 - **Data/state:** **TanStack Query** (server state) + Zustand (local UI state); **React Hook Form + Zod**
   (typed forms/validation); **TanStack Table** (grids); **Recharts/visx** (L-J charts, MIS dashboards).
 - **Offline (counter app):** **PWA** + service worker + **IndexedDB (Dexie)** for the local working set,
   backed by the branch edge node; optional **Tauri** wrapper for native printing/peripherals.
 - **Mobile:** **React Native (Expo)** for patient + phlebotomist apps (offline maps/routing for phlebotomists).
-- **Shared types:** the **Nx monorepo** shares TypeScript contracts (and, if backend is NestJS, end-to-end
-  types) between FE and BE.
+- **Shared types:** the **Nx monorepo** shares TypeScript contracts (and NestJS end-to-end types) between FE
+  and BE.
+
+### Design workflow (design → code)
+- **Google Stitch** (Google Labs) for **AI-assisted UI design** — rapidly generate screen designs/flows from
+  prompts, iterate, and export to Figma/markup.
+- **Pipeline:** Stitch for ideation/mockups → normalize into a **shared design system** (Tailwind design
+  tokens: color, spacing, type, components) → implement with shadcn/ui + **21st.dev** components + **Framer
+  Motion** → document in **Storybook**.
+- **Guardrail:** Stitch output and 21st.dev components are **accelerators, not the source of production truth** —
+  everything passes through our design tokens, accessibility checks (axe), and Storybook so the UI stays
+  consistent, accessible, and offline/performance-safe. This keeps "modern & user-friendly" without
+  fragmenting the design language.
 
 ---
 
