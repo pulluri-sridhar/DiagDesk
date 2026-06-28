@@ -27,6 +27,7 @@ platform that natively handles the doctor-referral economy at the heart of India
 | [docs/rbac-permissions.md](docs/rbac-permissions.md) | Owner-defined **granular RBAC** — user types + per-feature permission catalogue + overrides |
 | [docs/medicircle-vision.md](docs/medicircle-vision.md) | **MediCircle** V3 north star — per-participant build for Doctors/Hospitals · Pharmacies · Home-Care · Patients (DiagDesk = lab node) |
 | [docs/medicircle-reconciliation.md](docs/medicircle-reconciliation.md) | **DiagDesk ⇄ MediCircle reconciliation** — how the lab build fits the 5-sided platform; conflict resolutions (anti-kickback, hosting, architecture) |
+| [docs/medicircle/](docs/medicircle/README.md) | **MediCircle design package** — microservices list, HLD, LLD, full DB schema + ERD, tech stack, features, roadmap, compliance (all five sides, at DiagDesk depth) |
 | [docs/product-strategy.md](docs/product-strategy.md) | Positioning, target segment, differentiators, module map, business thesis |
 | [docs/market-research.md](docs/market-research.md) | Sourced research: pain points, competitive teardown, regulatory & market context |
 | [docs/roadmap.md](docs/roadmap.md) | Phased roadmap (MVP → V1 → V2) and the architecture sketch |
