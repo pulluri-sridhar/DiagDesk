@@ -45,6 +45,45 @@ commissions**. The two were designed independently and still converged on the co
 
 ---
 
+## 3a. Unified tech stack (one program, one stack)
+
+All five sides (lab · doctors/hospitals · pharmacies · home-care · patients) run on **one TypeScript/NestJS/
+PostgreSQL backbone** — a deliberate choice for shared types, one team, and lower ops. The differences are not
+different *stacks*; they are how the architecture is **composed** and which **add-ons** each surface pulls in.
+
+### Shared core — identical across all five sides
+| Layer | Choice |
+|---|---|
+| Language | TypeScript end-to-end |
+| Backend | NestJS (Node 22) |
+| Database | PostgreSQL 16 (+ pgvector, pg_trgm) |
+| Identity | **Keycloak OIDC** (canonical — ADR-001) |
+| Cache / queue | Redis / Valkey |
+| Object store | **S3-compatible** (sovereign, not AWS S3) |
+| Payments | Razorpay |
+| Notifications | **Resend** (email) · WhatsApp (Gupshup/Meta) · MSG91 (SMS-DLT) · FCM (push) |
+| Records / interop | ABDM/ABHA + FHIR R4 |
+| Conventions | UUIDv7 · **integer paise** money · transactional outbox · DPDP consent-first |
+| Observability | OpenTelemetry → Grafana LGTM + Sentry + PostHog |
+| Hosting | **India-sovereign, no hyperscaler** (E2E / Yotta) |
+
+### Differs by surface — composition + add-ons, not a different stack
+- **Architecture:** lab node = right-sized microservices + db-per-service + **Kafka** + Temporal + **offline-first
+  edge** (k3s + local Postgres + **Go** sync agent + **Go** device gateway); connective layer (doctor/pharmacy/
+  patient/home-care) = cloud **modular monolith** + **BullMQ**, extract services later. *Go is lab-edge-only;
+  everything else is TypeScript.*
+- **Frontend:** **Next.js** provider portals · React + **Vite PWA** offline lab counter · **React Native (Expo)**
+  patient + care-pro apps (all React + TS + Tailwind + shadcn).
+- **Add-ons pulled in only where relevant:** 100ms (teleconsult) · Google/OLA Maps (home-care matching + pharmacy
+  delivery) · Anthropic Claude (AI cues, doctor sign-off) · sovereign/alt OCR (report parsing) · HL7/ASTM Go device
+  gateway (lab only) · OpenSearch (discovery, later phase).
+
+> **Through-line:** DiagDesk and the prior MediCircle stacks were already ~90% the same (NestJS · PostgreSQL · TS ·
+> React Native). Reconciliation only had to unify **hosting** (sovereign), **identity** (Keycloak), **money**
+> (integer paise), and **remove the commission engine** — see §3.
+
+---
+
 ## 4. Compliant monetization (unified)
 
 No RMP referral commissions anywhere. The program monetizes via:

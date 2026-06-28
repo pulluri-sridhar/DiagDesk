@@ -4,6 +4,11 @@
 *Constraints honored: microservices, PostgreSQL, API Gateway, clean code, observability + security from day 1,
 multi-tenant SaaS, offline-first, India data residency (DPDP).*
 
+> **Scope:** this is the **lab node** (DiagDesk) stack. The program-wide *"one program, one stack across all five
+> sides"* view (lab · doctors/hospitals · pharmacies · home-care · patients) lives in
+> [medicircle-reconciliation.md](medicircle-reconciliation.md) §3a — same TypeScript/NestJS/PostgreSQL/Keycloak/
+> sovereign backbone, with surface-specific add-ons.
+
 ---
 
 ## At a glance
