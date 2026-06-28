@@ -25,7 +25,8 @@ platform that natively handles the doctor-referral economy at the heart of India
 | [docs/stakeholder-plan.md](docs/stakeholder-plan.md) | **Start here** — consolidated plan for stakeholder/end-user review & sign-off |
 | [docs/stakeholder-call-2026-06-28.md](docs/stakeholder-call-2026-06-28.md) | **Latest owner call** — 22 requirements + traceability matrix (inventory, RBAC, letterhead, handover, referral economics, MediCircle…) |
 | [docs/rbac-permissions.md](docs/rbac-permissions.md) | Owner-defined **granular RBAC** — user types + per-feature permission catalogue + overrides |
-| [docs/medicircle-vision.md](docs/medicircle-vision.md) | **MediCircle** V3 north star — Doctors · Pharmacies · Diagnostic Centers · Home-Care ecosystem |
+| [docs/medicircle-vision.md](docs/medicircle-vision.md) | **MediCircle** V3 north star — per-participant build for Doctors/Hospitals · Pharmacies · Home-Care · Patients (DiagDesk = lab node) |
+| [docs/medicircle-reconciliation.md](docs/medicircle-reconciliation.md) | **DiagDesk ⇄ MediCircle reconciliation** — how the lab build fits the 5-sided platform; conflict resolutions (anti-kickback, hosting, architecture) |
 | [docs/product-strategy.md](docs/product-strategy.md) | Positioning, target segment, differentiators, module map, business thesis |
 | [docs/market-research.md](docs/market-research.md) | Sourced research: pain points, competitive teardown, regulatory & market context |
 | [docs/roadmap.md](docs/roadmap.md) | Phased roadmap (MVP → V1 → V2) and the architecture sketch |
