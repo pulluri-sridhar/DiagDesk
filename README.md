@@ -6,8 +6,15 @@ DiagDesk aims to win India's large, fragmented, rapidly-formalizing diagnostic-l
 Tier 2/3 standalone labs and small chains an **affordable, complete, offline-resilient, ABDM/NABL-ready**
 platform that natively handles the doctor-referral economy at the heart of Indian diagnostics.
 
-> **Status:** Planning phase. This repository currently holds market research and product strategy only —
-> no application code yet.
+DiagDesk is also the **diagnostic-center (lab) node of [MediCircle](docs/medicircle/README.md)** — a five-sided
+India healthcare platform (Diagnostic Centers · Doctors/Hospitals · Pharmacies · On-Demand Home-Care · Patients).
+DiagDesk ships first; MediCircle is the program it grows into.
+
+> **Status:** Planning & design phase — **no application code yet**. The repository now holds the full pre-build
+> package: market research, product strategy, roadmap & feature catalogue, MVP backlog, ADRs, a complete **design
+> package** (HLD, LLD, data model + ERD, scalability, capacity & load testing, diagrams, a rich Design-Document
+> PDF), security/testing/hosting/analytics references, **stakeholder & team brochures**, **UI mockups**, and the
+> full **MediCircle program design** (microservices, HLD/LLD, DB schema, tech stack, features, compliance).
 
 ## Why DiagDesk
 
@@ -41,14 +48,24 @@ platform that natively handles the doctor-referral economy at the heart of India
 | [docs/security-hardening.md](docs/security-hardening.md) | Rate limiting, DDoS/WAF, bot & OTP-abuse defense, layered hardening |
 | [docs/analytics-insights.md](docs/analytics-insights.md) | Revenue/ops/growth insights: dashboards, referral & geographic analytics, trends |
 | [docs/adr/](docs/adr/README.md) | **Architecture Decision Records** — auth, multi-tenancy/RLS, offline-sync, hosting, database, language, anti-kickback, granular RBAC, MediCircle, compliant referral economics |
-| [docs/design/](docs/design/HLD.md) | **Design package** — HLD, LLD, data-model (ERD + dictionary), scalability, diagrams, and a rich Design-Document PDF |
+| [docs/design/](docs/design/HLD.md) | **Design package** — HLD, LLD, data-model (ERD + dictionary), scalability, capacity & load testing, diagrams, and a rich Design-Document PDF |
 | [docs/hosting-india.md](docs/hosting-india.md) | India-only hosting decision (no hyperscaler): provider evaluation + DPDP/CERT-In/MeitY basis |
+| [docs/brochures/](docs/brochures/) | Visually rich **stakeholder** & **technical** brochure PDFs |
+| [docs/mockups/](docs/mockups/) | Rendered DiagDesk UI mockups (portal + mobile apps) |
+
+## Decisions locked (see [docs/adr/](docs/adr/README.md))
+
+Authentication (Keycloak OIDC + OTP/passkeys/biometric) · multi-tenancy (db-per-service + `tenant_id` + Postgres
+RLS) · offline-first sync · **hosting** (India-sovereign, no hyperscaler — E2E/Yotta) · **database** (PostgreSQL,
+not MongoDB) · backend language (NestJS + Go) · **anti-kickback** (no referral-commission tooling) · granular
+owner-defined RBAC · compliant referral economics · **MediCircle** platform direction (V3).
 
 ## Open strategic decisions
 
-These defaults are adopted in the strategy docs and are open for revision:
+These defaults are adopted in the strategy docs and are open for revision (sign-off in
+[docs/stakeholder-plan.md](docs/stakeholder-plan.md)):
 
 1. **Beachhead** — Tier 2/3 standalone & small chains (default).
-2. **MVP wedge** — Core LIS + billing + report delivery (default); Referral/B2B engine as fast-follow.
+2. **MVP wedge** — Core LIS + billing + report delivery (default); B2B/partner management as fast-follow.
 3. **Differentiators** — offline-first + transparent pricing + ABDM/NABL-native.
 4. **Path + Radiology** — pathology LIS first; radiology RIS/PACS in V2.
