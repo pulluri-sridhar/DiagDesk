@@ -20,6 +20,7 @@ tracking, analyzer interfacing, validation, reporting, B2B & patient experience 
 | **Privacy/residency** | DPDP (consent, retention, 72-hr breach); **India-only data + CERT-In 180-day in-India logs** |
 | **Compliance** | NABL QC artifacts, PC-PNDT (V2), ABDM (V2); **no referral-commission tooling** (see [ADR-007](../adr/007-no-referral-commission-tooling.md)) |
 | **Observability** | OTel traces/metrics/logs; SLOs on the four golden journeys |
+| **Capacity** | Sized & load-tested per throughput tier (k6) — see [capacity-and-load-testing.md](capacity-and-load-testing.md) |
 
 ## 3. Architecture overview
 - **Right-sized microservices** on DDD bounded contexts (~12 at MVP), **hexagonal** per service.
