@@ -1,0 +1,23 @@
+flowchart TB
+  classDef sys fill:#00685f,stroke:#00514a,color:#ffffff;
+  classDef ext fill:#e5eeff,stroke:#bcc9c6,color:#0b1c30;
+  classDef person fill:#4b41e1,stroke:#3323cc,color:#ffffff;
+  staff([Lab staff / counter]):::person
+  phleb([Phlebotomist]):::person
+  patient([Patient]):::person
+  doctor([Referring doctor / B2B partner]):::person
+  owner([Lab owner / admin]):::person
+  sys["DiagDesk<br/>All-in-One Diagnostic Lab SaaS<br/>offline-first · multi-tenant · India-resident"]:::sys
+  analyzers[("Lab analyzers<br/>HL7 / ASTM")]:::ext
+  abdm["ABDM / NHCX"]:::ext
+  pay["Payment gateway<br/>Razorpay / UPI"]:::ext
+  msg["WhatsApp / SMS / Email"]:::ext
+  staff --> sys
+  phleb --> sys
+  patient --> sys
+  doctor --> sys
+  owner --> sys
+  analyzers <--> sys
+  sys <--> abdm
+  sys --> pay
+  sys --> msg

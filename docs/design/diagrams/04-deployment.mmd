@@ -1,0 +1,39 @@
+flowchart TB
+  classDef node fill:#ffffff,stroke:#00685f,color:#0b1c30;
+  classDef mgd fill:#d3efe9,stroke:#00685f,color:#0b1c30;
+  classDef self fill:#e5eeff,stroke:#4b41e1,color:#0b1c30;
+  classDef edge fill:#fff3e0,stroke:#b45309,color:#0b1c30;
+
+  subgraph BR["Lab Branch (on-prem edge)"]
+    k3s["k3s node"]:::edge
+    lpg[("Local Postgres")]:::edge
+    prn["Barcode printer / analyzers"]:::edge
+  end
+
+  subgraph CSP["India Sovereign Cloud (E2E Networks / Yotta) — India region"]
+    subgraph K8S["Managed Kubernetes"]
+      svcs["Microservices (pods)"]:::node
+      kc["Keycloak"]:::self
+      tmp["Temporal"]:::self
+      vault["Vault"]:::self
+      otel["OTel Collector + Grafana LGTM"]:::self
+    end
+    mpg[("Managed PostgreSQL<br/>per-service, HA")]:::mgd
+    mkafka{{"Managed Kafka"}}:::mgd
+    mredis[("Managed Valkey")]:::mgd
+    s3[("S3-compatible object store")]:::mgd
+  end
+
+  cdn["WAF / CDN (Indusface AppTrana)"]:::self
+  users(("Web / mobile clients"))
+
+  users --> cdn --> svcs
+  k3s <-->|"sync (TLS, resumable)"| svcs
+  lpg --- k3s
+  prn --- k3s
+  svcs --> mpg
+  svcs --> mkafka
+  svcs --> mredis
+  svcs --> s3
+  svcs --> kc & tmp & vault
+  svcs --> otel

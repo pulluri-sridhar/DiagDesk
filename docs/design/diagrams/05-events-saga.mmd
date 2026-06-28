@@ -1,0 +1,17 @@
+flowchart LR
+  classDef svc fill:#ffffff,stroke:#00685f,color:#0b1c30;
+  classDef topic fill:#e5eeff,stroke:#4b41e1,color:#0b1c30;
+  classDef saga fill:#d3efe9,stroke:#00685f,color:#0b1c30;
+  ord["Order svc"]:::svc -->|outbox| t1[["order.created"]]:::topic
+  res["Result svc"]:::svc -->|outbox| t2[["result.validated"]]:::topic
+  bil["Billing svc"]:::svc -->|outbox| t3[["invoice.paid"]]:::topic
+  t1 --> res
+  t2 --> rep["Reporting svc"]:::svc
+  rep -->|outbox| t4[["report.ready"]]:::topic
+  t4 --> noti["Notification svc"]:::svc
+  t1 & t2 & t3 & t4 --> aud["Audit svc"]:::svc
+  t1 & t2 & t3 & t4 --> mis["MIS read-models"]:::svc
+  subgraph SAGA["Temporal — order-to-report saga"]
+    s1["accession"]:::saga --> s2["await results"]:::saga --> s3["validate"]:::saga --> s4["render + sign"]:::saga --> s5["deliver"]:::saga
+  end
+  ord -. starts .-> SAGA
