@@ -48,14 +48,18 @@
   [SagePub](https://journals.sagepub.com/doi/10.1177/09685332231194199)
 
 ### A3. Financial (the India money center of gravity)
-- **Doctor-referral commissions erode margins** — cited 20–40% up to 40–60% of the test fee; ~30% of test
-  cost can flow to doctors. B2B/referral net margins fall to ~10–30% vs ~40–60% on direct B2C, yet the
-  business is referral-dependent.
+- **Doctor-referral commissions are widespread — and ILLEGAL.** Cuts are cited at 20–40% up to 40–60% of the
+  test fee; the practice is rampant, but paying a referring doctor a commission **violates IMC 2002 Clause
+  6.4.1** (which explicitly covers diagnostics) and, per the Supreme Court's *Apex Laboratories* (2022),
+  **binds the lab as the payer** (non-deductible, abetment exposure). **Product implication: DiagDesk must NOT
+  build commission/payout tooling** — it instead provides compliant B2B billing + referral *analytics* + doctor
+  engagement. See [compliance-anti-kickback.md](compliance-anti-kickback.md).
   [drlogy](https://www.drlogy.com/plus/faq/what-is-the-commission-paid-to-doctors) ·
-  [coveryou](https://www.coveryou.in/blog/profitable-pathology-lab-business-model-india/) ·
-  [LocalCircles](https://www.localcircles.com/a/press/page/survey-corruption-in-pathology-labs)
-- **Commission tracking is manual & leaks revenue** — per-doctor, per-test payout reconciliation is
-  paperwork-heavy; untracked it produces disputes and overpayment.
+  [LocalCircles](https://www.localcircles.com/a/press/page/survey-corruption-in-pathology-labs) ·
+  [NMC 2002 Regs](https://www.nmc.org.in/wp-content/uploads/2017/10/Ethics-Regulations-2002.pdf)
+- **Legitimate B2B revenue is under-managed** — genuine institutional billing (hospitals/clinics/corporates/
+  TPAs/reference labs as the *buyer*) and per-partner rate lists are manual and dispute-prone. This is the
+  compliant money workflow DiagDesk targets — distinct from illegal per-referral kickbacks.
   [medigrowdigital](https://medigrowdigital.in/referral-program-for-pathology-labs-india/)
 - **B2B credit & slow receivables** — B2B accounts negotiate lower prices AND pay on extended cycles;
   **~52% of B2B payments in Tier-2 metros (Hyderabad, Kolkata, Chennai) are 90+ days overdue.**
@@ -105,8 +109,9 @@
   [labsmartlis](https://www.labsmartlis.com/whatsapp-sms-email-lab-report)
 
 ### Cross-cutting themes (most product-relevant)
-1. The **doctor-referral economy** is the financial center of gravity — commission tracking, B2B credit, and
-   per-partner rate lists are where money leaks.
+1. **Institutional relationships drive the business** — but the compliant levers are **B2B credit/receivables,
+   per-partner rate lists, reference-lab outsourcing and referral *analytics***, not commission payouts (which
+   are illegal — see A3). DiagDesk monetizes the legal side and refuses the kickback tooling.
 2. **~75% of TAT and most errors are non-analytical** — barcoding + analyzer integration + auto-reporting
    attack the biggest pool.
 3. **Cash + manual front office = revenue leakage** and a patient-experience problem at once.
@@ -147,8 +152,10 @@
 Cloud LIS core (registration → order → barcode → multi-level validation → configurable reports w/ digital
 signatures); analyzer interfacing (HL7/ASTM, 50+ brands); multi-channel report delivery (WhatsApp/SMS/email/
 portal, white-labeled); NABL tooling (audit trails, QC with L-J charts + Westgard, rejection tracking);
-multi-center/franchise MIS; inventory & referral/commission mgmt; radiology (RIS+PACS) for full centers; and
-increasingly ABDM/ABHA + HL7 FHIR, online booking, payment gateway.
+multi-center/franchise MIS; inventory & **B2B/referral mgmt** (note: many incumbents ship **commission-payout
+modules — which are legally problematic**, see A3 / [compliance-anti-kickback.md](compliance-anti-kickback.md);
+DiagDesk deliberately ships compliant B2B billing + referral *analytics* instead); radiology (RIS+PACS) for
+full centers; and increasingly ABDM/ABHA + HL7 FHIR, online booking, payment gateway.
 
 ### B5. Gaps & opportunities for a new entrant
 - **A. The "missing middle"** — enterprise-grade depth at SMB pricing, with **transparent all-inclusive
@@ -158,7 +165,8 @@ increasingly ABDM/ABHA + HL7 FHIR, online booking, payment gateway.
 - **C. Genuinely unified Path + Radiology** in one portal (today labs stitch CrelioHealth/MocDoc + Medsynaptic).
 - **D. Transparent, predictable pricing** vs opaque/quote-based incumbents and add-on creep.
 - **E. Help small labs fight D2C aggregators** — built-in home-collection logistics, branded booking app,
-  fast-TAT dashboards, online payments, and a **referral-doctor-centric** module (the angle Healthians missed).
+  fast-TAT dashboards, online payments, and **compliant doctor engagement** (reports, portal, referral
+  *analytics* — the relationship angle Healthians missed, done the legal way without commissions).
 - **F. Deeper self-serve customization** — report/financial builders, not professional-services-gated.
 - **G. Reliability + consistent support** to win switchers.
 - **H. ABDM/ABHA + FHIR-native** rather than bolted-on.

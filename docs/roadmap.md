@@ -8,7 +8,7 @@
 
 A lab won't switch software for a single differentiating module — it must first **run daily operations** on
 DiagDesk. So the MVP is the operational core (table stakes done well + offline-first), and the India-specific
-**Referral & B2B engine** and **compliance** modules — what makes labs *stay* and what we *market* — land in
+**B2B & partner management** and **compliance** modules — what makes labs *stay* and what we *market* — land in
 V1. Radiology and the ABDM/ecosystem layer are V2.
 
 ---
@@ -23,12 +23,19 @@ V1. Radiology and the ABDM/ecosystem layer are V2.
   Siemens, etc. — to eliminate manual transcription.
 - **Billing:** cash/partial payments, dues tracking, discounts-with-approval, GST-aware invoicing
   (mixed exempt/taxable lines), day-end cash reconciliation.
-- **Report delivery:** white-labeled **WhatsApp + SMS + email** + a basic patient portal.
+- **Report delivery:** white-labeled **WhatsApp** (staff-initiated/manual) **+ SMS + email** + a basic patient
+  portal; **saved letterhead/stationery** with an **inline-editable print preview**; **review → owner/pathologist
+  sign-off**; **print-count** and **report-handover** (incl. **barcode scan at handover**).
 - **Offline-first sync** — the key differentiator; registration, barcode printing, and billing must work
   during outages.
-- **Basic multi-branch** support + **role-based access control**.
-- **DPDP-compliant foundation:** consent capture, India-region hosting, tamper-evident audit logging,
-  configurable retention.
+- **Basic multi-branch** support + **owner-defined granular RBAC** (per-feature permission catalogue set at
+  user creation — [rbac-permissions.md](rbac-permissions.md)) + **Email-OTP / TOTP / passkey-biometric MFA**.
+- **Master data incl. a NABL test-catalogue picker** (+ custom tests) and a **Departments** master.
+- **Inventory (owner's big pain):** reagent/kit master with **`tests_per_kit`** consumption + **reorder-threshold
+  low-stock alerts**; **expense management** (day-to-day, categorised); **discount at registration with mandatory
+  justification**.
+- **DPDP-compliant foundation:** consent capture, India-region hosting, tamper-evident audit logging
+  (per-patient/per-investigation views), configurable retention, and **local + cloud backup/DR**.
 
 **Exit criterion:** a Tier-2 standalone lab completes the full journey on DiagDesk —
 register → collect → run (analyzer) → validate → report (WhatsApp) → bill → collect payment — with no gap.
@@ -37,16 +44,22 @@ register → collect → run (analyzer) → validate → report (WhatsApp) → b
 
 ## V1 (4–8 months) — "Win on India-specific money + compliance"
 
-- **Referral & B2B revenue engine** (the differentiating wedge): doctor commission tracking & statements
-  (per-test % or flat, TDS-aware), B2B credit ledger + receivables aging with overdue alerts.
+- **B2B & Partner management** (the differentiating wedge — *compliant, no commissions*): institutional rate
+  contracts, B2B credit ledger + receivables aging with overdue alerts, reference-lab outsourcing,
+  referral-source analytics (no payout), and a doctor/B2B engagement portal. (Paying referral commissions is
+  illegal — see [compliance-anti-kickback.md](compliance-anti-kickback.md).)
+- **Compliant referral economics:** **professional-services contracts** (pay for genuine services rendered, on a
+  `fixed`/`per_service` basis — never per-referral) + **referral activity statements** (analytics, no payout) —
+  [ADR-010](adr/010-compliant-referral-economics.md).
 - **Rate-card manager:** per-branch, per-B2B-partner, per-scheme rate lists, including **CGHS TMS 2.0 tiered
   rates** and **TPA pre-auth** empanelment billing.
 - **NABL QC module:** auto **Levey-Jennings charts**, Westgard rules, IQC/EQAS logs, sample-rejection tracking
   with reason codes, controlled-document versioning.
-- **Inventory & reagents:** expiry alerts, auto-reorder, consumption tracking.
+- **Procurement & health packages:** supplier management + purchase orders (on top of the MVP inventory core);
+  **health-package creation**; **hardware fingerprint-scanner** integration.
 - **Patient experience:** online booking, **home-collection logistics** (phlebotomist assignment + routing),
   **online payments**, recall/follow-up reminders.
-- **MIS dashboards:** TAT, QC, and revenue across branches.
+- **MIS dashboards:** TAT, QC, and revenue **by branch and by department**.
 
 ---
 
@@ -60,6 +73,15 @@ register → collect → run (analyzer) → validate → report (WhatsApp) → b
 - **Self-serve report & financial builders** (attacks the customization complaint).
 - **Public API marketplace** + website booking widget.
 - **AI registration** from handwritten requisitions.
+
+---
+
+## V3 (north star) — "MediCircle ecosystem"
+
+Connect **Doctors · Pharmacies · Diagnostic Centers · Home-Care** around a consented patient record, with
+DiagDesk as node 1, built on the same India-sovereign, consent-first, **anti-kickback-clean** foundation. Begins
+only once DiagDesk is a clear category winner. See [medicircle-vision.md](medicircle-vision.md) and
+[ADR-009](adr/009-medicircle-platform-direction.md).
 
 ---
 

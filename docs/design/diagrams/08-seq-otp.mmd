@@ -1,0 +1,17 @@
+sequenceDiagram
+  autonumber
+  participant U as User (patient/doctor)
+  participant FE as App / Portal
+  participant KC as Keycloak (+ OTP authenticator)
+  participant NOTI as Notification svc
+  participant CH as WhatsApp / SMS / Email (Resend)
+  U->>FE: Enter phone / email
+  FE->>KC: Begin OIDC auth (PKCE)
+  KC->>KC: Rate-limit + anti-enumeration + risk check
+  KC->>NOTI: Request OTP delivery
+  NOTI->>CH: Send code (DLT/WA-template/Resend)
+  CH-->>U: One-time code
+  U->>FE: Enter code
+  FE->>KC: Verify
+  KC-->>FE: JWT (tenant_id, branch_id, roles) + refresh
+  Note over FE,KC: Staff/admin use password+TOTP or passkeys, not OTP-only

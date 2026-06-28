@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  participant C as Counter (Edge PWA)
+  participant ORD as Order svc
+  participant BIL as Billing svc
+  participant DEV as Device Gateway
+  participant RES as Result svc
+  participant REP as Reporting svc
+  participant NOTI as Notification
+  C->>ORD: Register patient + create order (offline-first)
+  C->>BIL: Generate invoice (cash/UPI/partial, GST)
+  C->>ORD: Accession + print barcode
+  ORD-->>RES: OrderCreated (event)
+  DEV->>RES: Analyzer result (HL7) for accession
+  RES->>RES: Auto-validate (range/delta/critical)
+  RES-->>REP: ResultValidated (event)
+  REP->>REP: Render PDF + pathologist sign-off + digital signature
+  REP-->>NOTI: ReportReady (event)
+  NOTI->>C: WhatsApp/SMS/email (secure link)

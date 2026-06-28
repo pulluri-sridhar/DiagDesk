@@ -4,14 +4,19 @@
 *Constraints honored: microservices, PostgreSQL, API Gateway, clean code, observability + security from day 1,
 multi-tenant SaaS, offline-first, India data residency (DPDP).*
 
+> **Scope:** this is the **lab node** (DiagDesk) stack. The program-wide *"one program, one stack across all five
+> sides"* view (lab · doctors/hospitals · pharmacies · home-care · patients) lives in
+> [medicircle-reconciliation.md](medicircle-reconciliation.md) §3a — same TypeScript/NestJS/PostgreSQL/Keycloak/
+> sovereign backbone, with surface-specific add-ons.
+
 ---
 
 ## At a glance
 
 | Layer | Choice | Why (1-liner) | Notable alternative |
 |---|---|---|---|
-| **Primary backend** | **Java 21 + Spring Boot 3** (Spring Modulith for clean boundaries) | Healthcare-grade: HAPI FHIR + HL7v2, Spring Security, native OTel/Micrometer | **NestJS (TypeScript)** if the team is JS-first |
-| **Performance/edge services** | **Go** (Device Gateway, Sync Engine) | High-concurrency sockets + small edge binary | Rust (Sync Engine) |
+| **Primary backend** | **NestJS (TypeScript)** — modular, DI, hexagonal-friendly | One language across FE+BE, shared types, fast India hiring, clean-architecture out of the box | Java 21 + Spring Boot for the V2 Interop/FHIR service if HAPI maturity is needed |
+| **Performance/edge services** | **Go** (Device Gateway, Sync Engine) | High-concurrency analyzer sockets + small edge binary | Rust (Sync Engine) |
 | **API Gateway (edge)** | **Kong Gateway (OSS)** | Mature plugins: OIDC, rate-limit, OTel, mTLS | **Apache APISIX** (OSS-native) |
 | **Internal comms** | **gRPC** (sync) + **Kafka/Redpanda** (async events) | Typed contracts + event backbone with outbox/CDC | RabbitMQ / NATS (lighter) |
 | **Workflow/saga** | **Temporal** | Durable sagas, scheduled jobs (payouts, recalls, home-collection) | Camunda / app-level sagas |
@@ -33,7 +38,7 @@ multi-tenant SaaS, offline-first, India data residency (DPDP).*
 | **Frontend — mobile (patient + phlebotomist)** | **React Native** | Shared skills; offline routing for phlebotomist | Flutter |
 | **Interop** | **HL7 v2 (HAPI)**, **FHIR R4 (HAPI FHIR)**, **DICOM (V2)** | ABDM HIP, analyzer & EHR integration | — |
 | **Payments** | **Razorpay / PhonePe** (UPI-first) | India rails, UPI/cards/netbanking | Cashfree |
-| **Messaging** | **WhatsApp Business API (BSP)** + SMS (DLT-compliant) + email | Report delivery, reminders | — |
+| **Messaging** | **Email: Resend** · **WhatsApp Business API (BSP)** · **SMS (DLT-compliant Indian provider)** | Transactional email + email OTP (Resend, low cost); report delivery, reminders, OTP across channels | Swappable behind the Notification service |
 | **Cloud / region** | **E2E Networks** (India-sovereign, NSE-listed, MeitY-empanelled) — Mumbai/Delhi-NCR | DPDP residency + **no hyperscaler**; genuine managed Postgres DBaaS, managed K8s, S3-compatible object store | **Yotta (Yntraa)** or **ESDS** (both India-sovereign, MeitY) |
 | **Orchestration** | **E2E Managed Kubernetes** in cloud; **k3s** at branch edge | India-resident managed K8s; lightweight edge | Yotta/ESDS managed K8s |
 | **IaC / GitOps / CI-CD** | **Terraform** + **ArgoCD** + **GitHub Actions** | Reproducible infra, declarative deploys | Flux |
@@ -57,12 +62,12 @@ Everything else stays in the primary language to protect a small team's velocity
 
 **Decision: PostgreSQL is the system of record everywhere. MongoDB is not adopted.**
 
-DiagDesk's core is **transactional, relational, and financial** — orders, billing, referral commissions,
-B2B receivables, rate cards, audit. That demands what Postgres gives natively and MongoDB does not:
+DiagDesk's core is **transactional, relational, and financial** — orders, billing, B2B receivables,
+rate cards, audit. That demands what Postgres gives natively and MongoDB does not:
 
 | Need | Postgres | MongoDB |
 |---|---|---|
-| **Multi-row ACID** (a bill + its line items + a commission accrual must commit atomically) | First-class | Weaker; multi-document txns exist but are not the model's strength |
+| **Multi-row ACID** (a bill + its line items + a B2B receivable entry must commit atomically) | First-class | Weaker; multi-document txns exist but are not the model's strength |
 | **Multi-tenant isolation** via **Row-Level Security** | Built-in (`tenant_id` RLS) | No equivalent — enforced only in app code |
 | **Relational integrity** (FKs across patient/order/result/invoice) | Enforced | App-enforced |
 | **Reporting / MIS** (joins, window functions, BI tools) | SQL ecosystem | Aggregation pipeline, weaker BI fit |
@@ -81,15 +86,47 @@ team's operational surface.**
 ## Frontend stack (detail)
 
 - **Language/build:** React 18 + **TypeScript** + Vite.
-- **UI:** Tailwind CSS + **shadcn/ui** (or Mantine if you prefer batteries-included) — clean, modern,
-  accessible, data-dense-friendly.
+- **UI foundation:** Tailwind CSS + **shadcn/ui** — clean, modern, accessible, data-dense-friendly, and the
+  base that the component sources below build on.
+- **Component sources:** **21st.dev** — a registry of shadcn/Tailwind-compatible React components — for faster
+  UI assembly (drops straight into our shadcn base). Treat it as an accelerator: **vet each component for
+  accessibility, offline behavior, and bundle size** before adopting in clinical/data-dense screens.
+- **Animation/motion:** **Framer Motion** for micro-interactions and polish. Use **judiciously** — rich on
+  patient-facing portal/app, restrained on the lab counter (performance + no distraction in clinical flows;
+  honor `prefers-reduced-motion`).
 - **Data/state:** **TanStack Query** (server state) + Zustand (local UI state); **React Hook Form + Zod**
   (typed forms/validation); **TanStack Table** (grids); **Recharts/visx** (L-J charts, MIS dashboards).
 - **Offline (counter app):** **PWA** + service worker + **IndexedDB (Dexie)** for the local working set,
   backed by the branch edge node; optional **Tauri** wrapper for native printing/peripherals.
 - **Mobile:** **React Native (Expo)** for patient + phlebotomist apps (offline maps/routing for phlebotomists).
-- **Shared types:** the **Nx monorepo** shares TypeScript contracts (and, if backend is NestJS, end-to-end
-  types) between FE and BE.
+- **Shared types:** the **Nx monorepo** shares TypeScript contracts (and NestJS end-to-end types) between FE
+  and BE.
+
+## Notifications & email (providers + data-residency guardrail)
+
+- **Email — Resend** for all transactional email **and email OTP** (low cost, good DX). **SMS** via a
+  DLT-registered Indian provider (MSG91/Gupshup/Kaleyra). **WhatsApp** via a BSP using authentication-category
+  templates for OTP. All sit **behind one Notification service**, so providers are swappable and OTP delivery
+  (any channel) reuses this layer.
+- **Data-residency guardrail (important):** Resend is a **US/AWS-based processor**. DPDP doesn't currently
+  forbid this (negative-list model, no restricted list notified), but health data is sensitive, so:
+  - **Email OTP is fine** — the payload is just a code, no PHI.
+  - **Do NOT put PHI in report-delivery emails** (no patient reports as attachments, no diagnoses in the body).
+    Email a **secure, authenticated, expiring link** to the patient portal; the **report itself stays on
+    India-resident object storage**. Good security practice regardless of residency.
+  - Sign a **DPA** with Resend; data minimization (email address + code/link only); keep the option to swap to
+    an India-resident SMTP relay if a future DPDP notification restricts health-data transfer.
+
+### Design workflow (design → code)
+- **Google Stitch** (Google Labs) for **AI-assisted UI design** — rapidly generate screen designs/flows from
+  prompts, iterate, and export to Figma/markup.
+- **Pipeline:** Stitch for ideation/mockups → normalize into a **shared design system** (Tailwind design
+  tokens: color, spacing, type, components) → implement with shadcn/ui + **21st.dev** components + **Framer
+  Motion** → document in **Storybook**.
+- **Guardrail:** Stitch output and 21st.dev components are **accelerators, not the source of production truth** —
+  everything passes through our design tokens, accessibility checks (axe), and Storybook so the UI stays
+  consistent, accessible, and offline/performance-safe. This keeps "modern & user-friendly" without
+  fragmenting the design language.
 
 ---
 
@@ -117,11 +154,16 @@ PITR and obtain a written BAA + India-region commitment** before signing.
 
 ---
 
-## Decisions to confirm
-1. **Primary backend language** — **Java/Spring Boot** (max healthcare-integration maturity & durability)
-   vs **NestJS/TypeScript** (single language across FE+BE, fastest India hiring, shared types). Default
-   leans NestJS for a modern small startup; choose Java if FHIR/HL7 depth and enterprise durability dominate.
-2. **Hosting provider** — **E2E Networks** (default) vs **Yotta** (compliance/HIPAA/enterprise) vs **ESDS**.
-3. **Managed vs self-hosted** for Keycloak/Temporal/observability (all self-hosted under the no-hyperscaler
-   rule) — accept the ops cost or buy a managed-services engagement from the chosen CSP.
-4. **Repo strategy** — Nx monorepo (recommended) vs polyrepo.
+## Decisions — LOCKED (senior-architect call)
+1. **Backend language: NestJS (TypeScript)** primary + **Go** for device gateway & sync engine. (Java/Spring
+   Boot reserved as a per-service option for the V2 ABDM/FHIR Interop service only, if HAPI proves necessary —
+   per-service polyglot is allowed by the architecture.)
+2. **Hosting: E2E Networks** (primary). **Yotta/Yntraa** is the regulated-workload/HIPAA/GovCloud tier if/when
+   a public-sector or HIPAA contract requires it.
+3. **Platform components self-hosted** on the managed K8s (Keycloak, Temporal, Vault, observability) — budget a
+   platform/SRE owner; lean on E2E's managed Kafka/Valkey to reduce toil.
+4. **Repo: Nx monorepo.**
+5. **Testing: Playwright-led** — see [testing-strategy.md](testing-strategy.md) for the full toolchain.
+
+> These are the recommended defaults to build on. They remain reversible at build-planning if the team's
+> hiring or a contract requirement changes the calculus (esp. #1 and #2).

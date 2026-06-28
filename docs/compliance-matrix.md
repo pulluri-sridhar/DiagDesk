@@ -9,10 +9,14 @@ Part C for sources and detail.*
 
 | Item | Status | Software wedge | DiagDesk phase |
 |---|---|---|---|
+| **Anti-kickback — referral commissions** (IMC 2002 Clause 6.4.1; NMC; *Apex Laboratories* SC 2022) | **MANDATORY** — binds the lab as payer | **Do NOT build a commission engine.** Compliant B2B billing (institution = buyer), **professional-services contracts** (`fixed`/`per_service`, never per-referral — [ADR-010](adr/010-compliant-referral-economics.md)), referral **activity** analytics (no payout), guardrail that blocks payouts attached to referrers | **MVP** (design constraint) — see [compliance-anti-kickback.md](compliance-anti-kickback.md) |
 | **DPDP Act 2023 + Rules 2025** | **MANDATORY** (all health data) | Consent mgmt, India data residency, 72-hr breach workflow, audit logs | **MVP** (foundation) |
 | **PC-PNDT Form F** (radiology/USG) | **MANDATORY** where ultrasound present | Online Form-F generation/filing | **V2** (with radiology) |
 | **Biomedical Waste Rules 2016** | **MANDATORY** for BMW generators | Barcode/waste-bag logs, annual-report (digital from 2026) | **V2** |
 | **NABL — ISO 15189:2022** | Voluntary, but **required for CGHS/insurance** | IQC/EQAS logs, auto L-J charts, Westgard, audit-ready controlled docs | **V1** (QC module) |
+| **NABL test standards & reference ranges** | Good-practice; underpins accreditation | **Global NABL test catalogue** seeds tests + age/sex/method reference & critical ranges; custom tests flagged | **MVP** (master data) |
+| **DPDP — biometric data (staff login)** | **MANDATORY** if biometrics used — *sensitive* personal data | Explicit consent, encryption, India-resident storage, never sole factor for money ops; passkeys avoid storing raw biometrics | **MVP** (#21) |
+| **Backup & disaster recovery** | Good-practice / continuity (DPDP integrity) | Local (edge) backups + cloud DBaaS **HA/PITR**, documented RPO/RTO, data export | **MVP** |
 | **CGHS / ECHS / TPA empanelment** | Optional but high-revenue; **NABL-gated** | Per-scheme rate cards (CGHS TMS 2.0 tiered), pre-auth tracking, NHCX claims | **V1** (rate cards) / **V2** (NHCX) |
 | **ABDM / HIP (M1–M4)** | **Voluntary**, incentivized (₹15/txn, up to ₹4 cr) | ABHA linking, FHIR care-context, NHCX | **V2** (certification) |
 | **GST e-invoicing** | Conditional (₹5 cr / ₹10 cr); core services **exempt** | Mixed exempt/taxable billing, conditional IRP reporting | **MVP** (basic) / scale later |
