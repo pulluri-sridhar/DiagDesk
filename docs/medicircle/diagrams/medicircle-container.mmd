@@ -1,0 +1,107 @@
+%% MediCircle — C4 Level 2 Container / Service View
+%% Hybrid: connective modular monolith (NestJS) + lab-node microservices + offline-first branch edge.
+%% India-sovereign datastores. No hyperscaler. No commission engine.
+%% Mermaid rules: no parentheses/commas inside node text or edge labels; short labels.
+flowchart TB
+    %% ---- Client apps ----
+    subgraph CLIENTS[Client apps]
+        PWA[Offline Lab Counter<br/>React Vite PWA]
+        PATAPP[Patient App<br/>React Native Expo]
+        CAREAPP[Care-Pro App<br/>React Native Expo]
+        PORTAL[Web Portals<br/>Next.js role-routed]
+    end
+
+    %% ---- Edge ----
+    GW[API Gateway and BFFs<br/>Kong plus OIDC validation]
+
+    subgraph EDGE[Branch Edge Node k3s offline-first]
+        EPG[Local Postgres<br/>per-branch]
+        DEVGW[Device Gateway Go<br/>HL7 ASTM analyzers]
+        SYNC[Sync Engine Go<br/>change-log and reconcile]
+    end
+
+    %% ---- Connective modular monolith ----
+    subgraph MONO[Connective Modular Monolith NestJS]
+        M_ASSOC[Associations and Contracts<br/>no commission]
+        M_CONS[Consultations and Prescriptions]
+        M_TELE[Teleconsultation]
+        M_RXI[Prescription Integrity]
+        M_MED[Medicine Master brand to generic]
+        M_PHAR[Pharmacy Fulfilment and Delivery]
+        M_ENG[Engagement]
+        M_INS[Insurance]
+        M_CRED[Credentialing and Verification]
+        M_CONSENT[Consent and Health Records FHIR]
+        M_SUB[Subscriptions and Entitlements]
+        M_ANA[Analytics MIS CQRS]
+        M_SEARCH[Search and Discovery]
+    end
+
+    %% ---- Microservices: platform + lab node + home-care ----
+    subgraph SVCS[Right-sized Microservices]
+        S_IAM[Identity and Access<br/>Keycloak-backed]
+        S_ORG[Organizations and Profiles MPI]
+        S_NOTIF[Notifications]
+        S_PAY[Payments and Settlement<br/>payouts no commission]
+        S_BILL[Billing and Invoicing GST]
+        S_AUDIT[Audit and Admin]
+        S_CAT[Catalog and Rate-Card]
+        S_ORD[Order and Workflow]
+        S_RES[Result and Validation]
+        S_REP[Reporting]
+        S_INV[Inventory FEFO]
+        S_EXP[Expenses]
+        S_QC[Lab Quality NABL]
+        S_AI[AI Decision Support<br/>assistive sign-off]
+        S_HC[Home Care and On-Demand<br/>matching dispatch]
+    end
+
+    %% ---- Workers ----
+    WRK[Async Workers and Scheduler<br/>BullMQ plus cron]
+
+    %% ---- Datastores ----
+    subgraph DATA[Datastores India-sovereign]
+        PG[(PostgreSQL<br/>db-per-service plus RLS)]
+        REDIS[(Redis Valkey<br/>cache queues pubsub)]
+        OBJ[(S3-compatible<br/>object store)]
+        OS[(OpenSearch<br/>discovery)]
+    end
+
+    %% ---- Event and saga backbone ----
+    KAFKA[[Kafka outbox plus CDC]]
+    TEMPORAL[[Temporal sagas]]
+
+    %% ---- Client to gateway ----
+    PATAPP --> GW
+    CAREAPP --> GW
+    PORTAL --> GW
+    PWA -->|online| GW
+    PWA -->|offline-first| EPG
+
+    %% ---- Gateway routing ----
+    GW --> MONO
+    GW --> SVCS
+    GW --> S_IAM
+
+    %% ---- Edge wiring ----
+    DEVGW --> EPG
+    EPG --> SYNC
+    SYNC -->|resumable sync| GW
+    SYNC --> KAFKA
+
+    %% ---- Backbone ----
+    SVCS --> KAFKA
+    MONO --> KAFKA
+    SVCS --> TEMPORAL
+    KAFKA --> WRK
+    MONO --> WRK
+
+    %% ---- Data access ----
+    SVCS --> PG
+    MONO --> PG
+    SVCS --> REDIS
+    MONO --> REDIS
+    S_REP --> OBJ
+    M_PHAR --> OBJ
+    M_SEARCH --> OS
+    M_ANA --> PG

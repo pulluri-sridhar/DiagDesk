@@ -1,0 +1,48 @@
+%% MediCircle — C4 Level 1 System Context
+%% Five-sided India healthcare platform. India-sovereign hosting, no hyperscaler.
+%% Mermaid rules: no parentheses/commas inside node text or edge labels; short labels.
+flowchart TB
+    %% ---- Actors (the five sides) ----
+    PAT[Patient<br/>mobile app]
+    DOC[Doctor or Hospital<br/>web and mobile]
+    LAB[Diagnostic Center<br/>lab staff edge counter]
+    PHA[Pharmacy<br/>web portal]
+    CARE[Home-Care Professional<br/>care-pro app]
+    ADMIN[Platform Admin<br/>web console]
+
+    %% ---- The platform ----
+    MC{{MediCircle Platform<br/>hybrid edge plus cloud<br/>lab microservices plus connective monolith}}
+
+    %% ---- Actor edges ----
+    PAT -->|books tests meds visits| MC
+    DOC -->|referrals e-prescriptions teleconsult| MC
+    LAB -->|orders results reports offline| MC
+    PHA -->|fulfilment delivery inventory| MC
+    CARE -->|availability visits check-in| MC
+    ADMIN -->|operations and moderation| MC
+
+    %% ---- External integrations (sovereign-aligned) ----
+    RZP[Razorpay<br/>payments and payouts]
+    WA[WhatsApp<br/>Gupshup or Meta]
+    SMS[MSG91<br/>SMS DLT]
+    FCM[FCM<br/>push]
+    MAIL[Resend<br/>email]
+    VID[100ms<br/>video teleconsult]
+    AI[Anthropic Claude<br/>assistive cues]
+    OCR[Sovereign OCR<br/>report parsing]
+    ABDM[ABDM and ABHA<br/>FHIR R4 records]
+    MAPS[Maps<br/>Google or OLA geo]
+
+    MC -->|checkout webhooks payouts| RZP
+    MC -->|templated messages| WA
+    MC -->|otp and alerts| SMS
+    MC -->|device push| FCM
+    MC -->|transactional email| MAIL
+    MC -->|rooms and tokens| VID
+    MC -->|structured prompts no raw PHI| AI
+    MC -->|async pdf parse| OCR
+    MC -->|consent-driven exchange| ABDM
+    MC -->|geocode and routing| MAPS
+
+    %% ---- Notes baked into design ----
+    %% No hyperscaler. No commission engine. Compliant economics only.
