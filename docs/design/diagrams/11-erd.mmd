@@ -3,13 +3,24 @@ erDiagram
   TENANT ||--o{ APP_USER : has
   APP_USER ||--o{ USER_ROLE : assigned
   ROLE ||--o{ USER_ROLE : grants
+  ROLE ||--o{ ROLE_PERMISSION : grants
+  PERMISSION ||--o{ ROLE_PERMISSION : in
+  APP_USER ||--o{ USER_PERMISSION : overrides
+  PERMISSION ||--o{ USER_PERMISSION : in
   TENANT ||--o{ PATIENT : registers
   TENANT ||--o{ REFERRING_DOCTOR : tracks
   TENANT ||--o{ B2B_PARTNER : contracts
   B2B_PARTNER ||--|| B2B_ACCOUNT : has
+  TENANT ||--o{ PROFESSIONAL_SERVICE_CONTRACT : engages
+  PROFESSIONAL_SERVICE_CONTRACT ||--o{ SERVICE_ENGAGEMENT : pays_for_service
+  TENANT ||--o{ DEPARTMENT : has
+  DEPARTMENT ||--o{ TEST : groups
+  NABL_TEST_CATALOG ||--o{ TEST : seeds
   TENANT ||--o{ TEST : defines
   TEST_PANEL ||--o{ PANEL_ITEM : contains
   TEST ||--o{ PANEL_ITEM : in
+  HEALTH_PACKAGE ||--o{ HEALTH_PACKAGE_ITEM : contains
+  TEST ||--o{ HEALTH_PACKAGE_ITEM : in
   TEST ||--o{ REFERENCE_RANGE : has
   RATE_CARD ||--o{ RATE_CARD_ITEM : has
   TEST ||--o{ RATE_CARD_ITEM : priced
@@ -24,13 +35,22 @@ erDiagram
   ORDER_ITEM ||--o{ RESULT : produces
   RESULT ||--o{ RESULT_VALUE : has
   RESULT ||--o{ VALIDATION : reviewed_by
+  REPORT_STATIONERY ||--o{ REPORT_TEMPLATE : letterhead
+  REPORT_TEMPLATE ||--o{ REPORT : renders
   ORDER ||--o{ REPORT : generates
   REPORT ||--o{ REPORT_DELIVERY : delivered_via
+  REPORT ||--o{ REPORT_PRINT_LOG : printed
+  REPORT ||--o{ REPORT_HANDOVER : handed_over
   ORDER ||--|| INVOICE : billed_by
   INVOICE ||--o{ INVOICE_LINE : has
   INVOICE ||--o{ PAYMENT : settled_by
   B2B_ACCOUNT ||--o{ B2B_RECEIVABLE : owes
   INVOICE ||--o{ B2B_RECEIVABLE : on
+  TENANT ||--o{ INVENTORY_ITEM : stocks
+  INVENTORY_ITEM ||--o{ STOCK_LEDGER : moves
+  INVENTORY_ITEM ||--o{ TEST_KIT : as_kit
+  TENANT ||--o{ EXPENSE_CATEGORY : defines
+  EXPENSE_CATEGORY ||--o{ EXPENSE : classifies
   PATIENT ||--o{ CONSENT : grants
 
   TENANT {
@@ -50,18 +70,38 @@ erDiagram
     uuid tenant_id FK
     text email
     text phone
+    text user_type "non_financial/financial/admin/owner"
+    int view_financial_reports_days
+    numeric discount_limit_pct
     text status
   }
   ROLE {
     uuid id PK
     uuid tenant_id FK
     text name
-    jsonb permissions
+    jsonb permissions "baseline"
   }
   USER_ROLE {
     uuid user_id FK
     uuid role_id FK
     uuid branch_id FK
+  }
+  PERMISSION {
+    text key PK
+    text label
+    text category
+    text value_type "bool/int/text"
+  }
+  ROLE_PERMISSION {
+    uuid role_id FK
+    text permission_key FK
+    text value "nullable"
+  }
+  USER_PERMISSION {
+    uuid user_id FK
+    text permission_key FK
+    text effect "grant/revoke"
+    text value "nullable"
   }
   PATIENT {
     uuid id PK
@@ -95,13 +135,45 @@ erDiagram
     numeric credit_limit
     int billing_cycle_days
   }
+  PROFESSIONAL_SERVICE_CONTRACT {
+    uuid id PK
+    uuid tenant_id FK
+    text party_name
+    text service_type "reporting/consulting/teleradiology"
+    text basis "fixed/per_service - NEVER per_referral"
+    numeric rate
+    boolean is_also_referrer "true = flagged for review"
+  }
+  SERVICE_ENGAGEMENT {
+    uuid id PK
+    uuid contract_id FK
+    text service_ref "report/study performed - not a referred patient"
+    numeric amount
+    timestamptz at
+  }
+  DEPARTMENT {
+    uuid id PK
+    uuid tenant_id FK
+    text name
+    text code
+  }
+  NABL_TEST_CATALOG {
+    uuid id PK
+    text code
+    text name
+    text department
+    text loinc "nullable"
+    jsonb default_ranges
+  }
   TEST {
     uuid id PK
     uuid tenant_id FK
     text code
     text name
-    text department
+    uuid department_id FK
     uuid specimen_type_id FK
+    boolean is_custom "non-NABL"
+    uuid nabl_ref FK "nullable"
     int tat_hours
   }
   TEST_PANEL {
@@ -111,6 +183,17 @@ erDiagram
   }
   PANEL_ITEM {
     uuid panel_id FK
+    uuid test_id FK
+  }
+  HEALTH_PACKAGE {
+    uuid id PK
+    uuid tenant_id FK
+    text name
+    numeric price
+    boolean active
+  }
+  HEALTH_PACKAGE_ITEM {
+    uuid package_id FK
     uuid test_id FK
   }
   REFERENCE_RANGE {
@@ -188,18 +271,56 @@ erDiagram
     text level "tech/pathologist"
     timestamptz at
   }
+  REPORT_STATIONERY {
+    uuid id PK
+    uuid tenant_id FK
+    uuid branch_id FK "nullable"
+    text header_html
+    text footer_html
+    text logo_uri
+    jsonb margins
+  }
+  REPORT_TEMPLATE {
+    uuid id PK
+    uuid tenant_id FK
+    text name
+    uuid department_id FK
+    uuid stationery_id FK
+    jsonb layout
+  }
   REPORT {
     uuid id PK
     uuid order_id FK
-    text state "preliminary/final"
+    uuid template_id FK
+    text state "draft/in_review/preliminary/final"
+    uuid reviewed_by FK "nullable"
+    uuid signed_by FK "nullable"
     text pdf_uri
-    text signature
+    int print_count
+    text handover_status "pending/handed_over"
   }
   REPORT_DELIVERY {
     uuid id PK
     uuid report_id FK
     text channel "whatsapp/sms/email"
+    uuid initiated_by FK "manual send"
     text status
+    timestamptz at
+  }
+  REPORT_PRINT_LOG {
+    uuid id PK
+    uuid report_id FK
+    uuid printed_by FK
+    int copies
+    timestamptz at
+  }
+  REPORT_HANDOVER {
+    uuid id PK
+    uuid report_id FK
+    text handed_to
+    text method "barcode/manual"
+    text scanned_barcode "nullable"
+    uuid by_user FK
     timestamptz at
   }
   INVOICE {
@@ -208,6 +329,8 @@ erDiagram
     uuid order_id FK
     numeric subtotal
     numeric discount
+    text discount_justification "mandatory if discount"
+    uuid discount_approved_by FK "nullable"
     numeric gst
     numeric total
     numeric due
@@ -234,6 +357,50 @@ erDiagram
     numeric amount
     int days_overdue
     text status
+  }
+  INVENTORY_ITEM {
+    uuid id PK
+    uuid tenant_id FK
+    uuid branch_id FK
+    text name
+    text unit
+    numeric qty_on_hand
+    numeric reorder_threshold "low-stock alert"
+    text batch_no
+    date expiry
+  }
+  TEST_KIT {
+    uuid id PK
+    uuid tenant_id FK
+    uuid inventory_item_id FK
+    text name
+    int tests_per_kit "kit size eg 10/100"
+    int tests_remaining
+    text lot_no
+    date expiry
+  }
+  STOCK_LEDGER {
+    uuid id PK
+    uuid inventory_item_id FK
+    text txn "receipt/issue/consumption/adjust"
+    numeric qty
+    text ref "test/order on consumption"
+    timestamptz at
+  }
+  EXPENSE_CATEGORY {
+    uuid id PK
+    uuid tenant_id FK
+    text name "rent/salaries/utilities/reagents/..."
+  }
+  EXPENSE {
+    uuid id PK
+    uuid tenant_id FK
+    uuid branch_id FK
+    uuid category_id FK
+    numeric amount
+    text mode "cash/upi/bank"
+    text payee
+    timestamptz incurred_at
   }
   CONSENT {
     uuid id PK
