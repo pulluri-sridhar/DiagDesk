@@ -15,14 +15,17 @@ platform that natively handles the doctor-referral economy at the heart of India
   NABL, ABDM, and DPDP, which is exactly when SMBs adopt SaaS.
 - Incumbents are barbelled: premium tools that are expensive, internet-dependent, and full of add-on fees,
   versus a cheap-but-shallow long tail. The **"missing middle" — affordable yet complete — is open.**
-- The **doctor-referral economy** (commissions, B2B credit, per-partner rate cards) is the financial center
-  of gravity and is under-served by software — our wedge.
+- The **doctor-referral economy** (B2B credit, per-partner rate cards, referral analytics — handled the
+  *compliant* way, no kickbacks) is the financial center of gravity and is under-served by software — our wedge.
 
 ## Documentation
 
 | Doc | What's inside |
 |---|---|
 | [docs/stakeholder-plan.md](docs/stakeholder-plan.md) | **Start here** — consolidated plan for stakeholder/end-user review & sign-off |
+| [docs/stakeholder-call-2026-06-28.md](docs/stakeholder-call-2026-06-28.md) | **Latest owner call** — 22 requirements + traceability matrix (inventory, RBAC, letterhead, handover, referral economics, MediCircle…) |
+| [docs/rbac-permissions.md](docs/rbac-permissions.md) | Owner-defined **granular RBAC** — user types + per-feature permission catalogue + overrides |
+| [docs/medicircle-vision.md](docs/medicircle-vision.md) | **MediCircle** V3 north star — Doctors · Pharmacies · Diagnostic Centers · Home-Care ecosystem |
 | [docs/product-strategy.md](docs/product-strategy.md) | Positioning, target segment, differentiators, module map, business thesis |
 | [docs/market-research.md](docs/market-research.md) | Sourced research: pain points, competitive teardown, regulatory & market context |
 | [docs/roadmap.md](docs/roadmap.md) | Phased roadmap (MVP → V1 → V2) and the architecture sketch |
@@ -35,7 +38,7 @@ platform that natively handles the doctor-referral economy at the heart of India
 | [docs/testing-strategy.md](docs/testing-strategy.md) | Testing & quality strategy: Playwright-led E2E + full pyramid, CI gates |
 | [docs/security-hardening.md](docs/security-hardening.md) | Rate limiting, DDoS/WAF, bot & OTP-abuse defense, layered hardening |
 | [docs/analytics-insights.md](docs/analytics-insights.md) | Revenue/ops/growth insights: dashboards, referral & geographic analytics, trends |
-| [docs/adr/](docs/adr/README.md) | **Architecture Decision Records** — auth, multi-tenancy/RLS, offline-sync, hosting, database, language, anti-kickback |
+| [docs/adr/](docs/adr/README.md) | **Architecture Decision Records** — auth, multi-tenancy/RLS, offline-sync, hosting, database, language, anti-kickback, granular RBAC, MediCircle, compliant referral economics |
 | [docs/design/](docs/design/HLD.md) | **Design package** — HLD, LLD, data-model (ERD + dictionary), scalability, diagrams, and a rich Design-Document PDF |
 | [docs/hosting-india.md](docs/hosting-india.md) | India-only hosting decision (no hyperscaler): provider evaluation + DPDP/CERT-In/MeitY basis |
 

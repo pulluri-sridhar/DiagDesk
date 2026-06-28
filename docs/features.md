@@ -11,8 +11,8 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 1.1 Tenant (lab organization) onboarding & setup wizard — **[MVP]**
 1.2 Multi-branch / collection-center management (hierarchy: org → branch → collection center → hub) — **[MVP]**
 1.3 User management; staff profiles; designations — **[MVP]**
-1.4 Roles & permissions (RBAC) — granular, branch-scoped — **[MVP]**
-1.5 Authentication: login, MFA, password policy, session management — **[MVP]**
+1.4 Roles & permissions (RBAC) — **owner-defined, granular per-feature permissions** set at user-creation (catalogue + per-user overrides), branch-scoped — **[MVP]** · see [rbac-permissions.md](rbac-permissions.md)
+1.5 Authentication & MFA: **Email-OTP**, **Authenticator-app (TOTP)**, and **biometric** login — device biometric via passkeys/WebAuthn **[MVP]** + **hardware fingerprint-scanner** integration **[V1]**; password policy, session management — **[MVP]** · see [adr/authentication.md](adr/authentication.md)
 1.6 Org/branch configuration (working hours, holidays, letterheads, logos, branding) — **[MVP]**
 1.7 Subscription / plan & entitlement management (what the lab has paid for) — **[MVP]**
 1.8 Audit log of all admin actions (immutable) — **[MVP]**
@@ -20,8 +20,8 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 1.10 Single sign-on / directory integration for larger chains — **[V2]**
 
 ## 2. Master data & catalogue
-2.1 Test master (tests, methods, units, specimen type, container, TAT) — **[MVP]**
-2.2 Test panels / profiles / health packages — **[MVP]**
+2.1 Test master (tests, methods, units, specimen type, container, TAT) — built by **picking from a global NABL test catalogue** (seeds tests + reference/critical ranges) **and** creating **custom non-NABL tests** the lab performs — **[MVP]**
+2.2 Test panels / profiles — **[MVP]**; **health-package creation** (test bundles + package pricing) — **[V1]**
 2.3 Reference ranges (age/sex/method-specific) & critical (panic) value limits — **[MVP]**
 2.4 Department / section setup (biochem, hematology, micro, pathology, radiology…) — **[MVP]**
 2.5 Rate cards — per branch, per B2B partner, per scheme (CGHS TMS 2.0 / ECHS / TPA) — **[MVP→V1]**
@@ -61,7 +61,7 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 6.2 Invoice generation; itemized billing — **[MVP]**
 6.3 Payment handling: cash, card, UPI, partial payments, dues tracking — **[MVP]**
 6.4 GST-aware invoicing (mixed exempt/taxable lines) & e-invoicing when applicable — **[MVP]**
-6.5 Discounts & concessions with approval workflow — **[MVP]**
+6.5 Discounts & concessions — applicable at **patient registration**; a **mandatory free-text justification** is required for every discount, above-limit discounts need an approver, and both are audit-logged; per-user discount limit (`disc_limit_%`) — **[MVP]**
 6.6 Online payment gateway (Razorpay/UPI) & payment links — **[V1]**
 6.7 Day-end cash reconciliation & shift closing — **[MVP]**
 6.8 Refunds, cancellations, credit notes — **[MVP]**
@@ -88,20 +88,21 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 9.1 Result entry & calculation (formulas, derived values) — **[MVP]**
 9.2 Auto-validation rules; reference-range flagging (H/L/critical) — **[MVP]**
 9.3 Delta check (vs patient history) — **[V1]**
-9.4 Multi-level validation / authorization (tech → pathologist sign-off) — **[MVP]**
+9.4 Multi-level validation / authorization — a saved report routes to a **review queue** for **owner/pathologist review → digital signature** (sign-off state machine on `report.state`); unsigned reports cannot be issued — **[MVP]**
 9.5 Critical value alerting & callback log — **[V1]**
 9.6 Repeat / rerun & amendment workflow with audit — **[MVP]**
 9.7 Culture & sensitivity (microbiology) structured results — **[V1]**
 9.8 Histopathology / cytology descriptive reporting — **[V1]**
 
 ## 10. Report generation & delivery
-10.1 Report rendering (PDF) from templates with digital signature — **[MVP]**
+10.1 Report rendering (PDF) from templates with digital signature; **saved letterhead/stationery** (logo, header/footer, margins) so the **print-preview is the actual report on the letterhead**, and the preview is **inline-editable** before sign/print — **[MVP]**
 10.2 Cumulative / trend reports across visits — **[V1]**
 10.3 Multi-language report options — **[V1]**
-10.4 Report delivery: WhatsApp + SMS + email — **[MVP]**
+10.4 Report delivery: WhatsApp + SMS + email — **WhatsApp send is staff-initiated (manual)**, not auto-pushed; delivery status tracked — **[MVP]**
 10.5 Patient portal / app report access — **[V1]**
 10.6 Doctor/B2B portal report access (bulk) — **[V1]**
-10.7 Report re-print, version history, partial/preliminary reports — **[MVP]**
+10.7 Report re-print, version history, partial/preliminary reports; **print-count visible** (each print increments a counter + writes a print-log of who/when/copies) — **[MVP]**
+10.9 **Report handover tracking** — mark a report **handed over to the patient**, including by **scanning the report/accession barcode** at handover (records who/when/method); pending-handover worklist — **[MVP]**
 10.8 Report access security (OTP/link expiry, watermarking) — **[V1]**
 
 ## 11. Patient & doctor engagement
@@ -123,8 +124,9 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 ## 13. B2B & Partner management — compliant, no commissions
 > ⚠️ **No referral-commission engine.** Paying referring doctors a cut is illegal in India and binds the lab
 > as payer (IMC 2002 Clause 6.4.1; *Apex Laboratories*, SC 2022). See
-> [compliance-anti-kickback.md](compliance-anti-kickback.md). Money flows only to the institution that *buys*
-> the test — never to a person for *sending* a patient.
+> [compliance-anti-kickback.md](compliance-anti-kickback.md). Money flows only to whoever *buys* the test, or
+> for a genuine *service rendered* — never to a person for *sending* a patient
+> ([ADR-010 — compliant referral economics](adr/010-compliant-referral-economics.md)).
 
 13.1 B2B/institutional **rate contracts** (hospital, clinic, corporate, TPA, reference lab — the buyer pays) — **[V1]**
 13.2 B2B **credit accounts & credit limits** — **[V1]**
@@ -135,14 +137,19 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 13.7 **Doctor / B2B engagement portal** — report delivery, communications, account statements; no commission — **[V1]**
 13.8 **Compliance guardrail** — separates "customer billing" from "referral source"; blocks/warns if a payout is attached to a referrer; audit-logged — **[V1]**
 13.9 Franchise / collection-center settlement (legitimate inter-entity invoicing, not referral cuts) — **[V2]**
+13.10 **Professional-services contracts** — record genuine services a professional renders to the lab (reporting/consulting/teleradiology) paid on a **`fixed`/`per_service`** basis (**never per-referral / never %-of-bill**); a contract whose counterparty also refers patients is **flagged for review**, not auto-paid — **[V1]** · [ADR-010](adr/010-compliant-referral-economics.md)
+13.11 **Referral activity statements** — compliant statements of volume/revenue *generated* by source (analytics, **no payout**), gated by the `finance.reports.referral_activity` permission — **[V1]**
 
 ## 14. Inventory & procurement
-14.1 Reagent & consumable master + stock ledger — **[V1]**
-14.2 Stock receipt, issue, consumption (link to tests) — **[V1]**
-14.3 Expiry alerts & batch/lot tracking — **[V1]**
-14.4 Reorder levels & auto purchase requisition — **[V1]**
-14.5 Supplier management & purchase orders — **[V1]**
-14.6 Multi-branch stock transfer — **[V2]**
+> Owner flagged inventory as a **big day-to-day challenge** — core inventory moves into **MVP**.
+
+14.1 Reagent & consumable master + stock ledger — **[MVP]**
+14.2 **Test-kit master** — a kit defines **`tests_per_kit`** (e.g. 10 or 100 by kit size); each test run **decrements** the kit's remaining count; lot/expiry tracked — **[MVP]**
+14.3 Stock receipt, issue, **consumption linked to tests run** — **[MVP]**
+14.4 Expiry alerts & batch/lot tracking — **[MVP]**
+14.5 **Reorder-threshold alerting** — per-item `reorder_threshold` triggers low-stock alerts + purchase requisition — **[MVP]**
+14.6 Supplier management & purchase orders — **[V1]**
+14.7 Multi-branch stock transfer — **[V2]**
 
 ## 15. Quality & compliance
 15.1 Internal Quality Control (IQC) — Levey-Jennings charts, Westgard rules — **[V1]**
@@ -156,11 +163,11 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 
 ## 16. Finance & accounting
 16.1 Revenue ledger & collections summary — **[MVP]**
-16.2 Expense & petty-cash tracking — **[V1]**
+16.2 **Expense management** — day-to-day expense entry across categories/scenarios (rent, salaries, utilities, reagent purchase, maintenance, petty cash, misc), with **expense reports** — **[MVP]**
 16.3 B2B settlement & reference-lab payables accounting (institutional, not referral payouts) — **[V1]**
 16.4 GST reports & filing exports — **[V1]**
 16.5 Accounting-software export/integration (Tally/Zoho/etc.) — **[V2]**
-16.6 P&L / financial MIS by branch — **[V1]**
+16.6 P&L / financial MIS **by branch and by department** (tests carry a `department_id`) — **[MVP→V1]**
 
 ## 17. Analytics, MIS & dashboards
 17.1 Operational dashboard (registrations, samples, TAT, pending) — **[MVP]**
@@ -183,6 +190,7 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 18.4 Website booking widget / embeddable scripts — **[V1]**
 18.5 HIS/EHR integration (for hospital B2B) — **[V2]**
 18.6 Aggregator/marketplace integrations (where chosen) — **[V2]**
+18.7 **MediCircle** — connected ecosystem (Doctors · Pharmacies · Diagnostic Centers · Home-Care), DiagDesk as node 1 — **[V3 north star]** · see [medicircle-vision.md](medicircle-vision.md), [ADR-009](adr/009-medicircle-platform-direction.md)
 
 ## 19. Cross-cutting platform capabilities
 19.1 Offline-first operation at branch (registration, billing, barcode, results during outages) — **[MVP]**
@@ -195,7 +203,7 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 19.10 **Rate limiting, WAF & DDoS / bot protection** (per IP/user/tenant/endpoint; OTP/login hardening) — **[MVP]** · see [security-hardening.md](security-hardening.md)
 19.11 Anomaly-based auto-blocking, per-API-key quotas, VAPT — **[V1]**
 19.8 Localization / multi-language UI — **[V1]**
-19.9 Backup, disaster recovery & data export — **[MVP]**
+19.9 **Backup & disaster recovery** — **local (edge) backups** + **cloud DBaaS HA/PITR**, documented RPO/RTO, and on-demand **data export** — **[MVP]** · see [adr/004-hosting-and-data-residency.md](adr/004-hosting-and-data-residency.md)
 
 ---
 
@@ -208,6 +216,7 @@ is phase-tagged **[MVP] / [V1] / [V2]**. This is the backlog seed; it maps to th
 - **Doctor / B2B app/portal** — referral order status, reports, and B2B account/credit statements (no commissions) — **[V1]**
 
 ### Phase summary
-- **[MVP]** — run a single lab end-to-end, offline-resilient: §§1,2,3,6,7,8,9,10,11 (core), 15 (audit/DPDP), 17.1, 19.
-- **[V1]** — India money + compliance + experience: §§4,5,13,14,15 (QC), 16, 17, plus engagement & booking.
+- **[MVP]** — run a single lab end-to-end, offline-resilient: §§1,2,3,6,7,8,9,10,11 (core), 14 (inventory + test-kit + reorder alerts), 15 (audit/DPDP), 16.1–16.2 (collections + **expense management**), 17.1, 19. Includes **owner-defined granular RBAC**, **letterhead/stationery + inline preview**, **review→sign-off**, **print-count**, **report-handover + barcode**, **NABL-catalogue picker + Departments master**, **backup/DR**, and **Email-OTP/TOTP/passkey-biometric MFA**.
+- **[V1]** — India money + compliance + experience: §§4,5,13 (**compliant referral economics**: professional-service contracts + activity statements), 15 (QC), 16 (dept finance), 17, health packages, purchase orders/suppliers, hardware fingerprint-scanner integration, plus engagement & booking.
 - **[V2]** — unified diagnostics + ecosystem: §12 (radiology), 18 (ABDM/NHCX/EHR), self-serve builders, BMW, marketplace.
+- **[V3 north star]** — §18.7 **MediCircle** ecosystem ([medicircle-vision.md](medicircle-vision.md)).

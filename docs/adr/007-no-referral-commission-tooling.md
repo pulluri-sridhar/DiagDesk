@@ -49,3 +49,7 @@ sending the patient.*
   design.
 - **Revisit if:** the legal position changes (e.g., a formally permitted, transparent referral-fee regime is
   enacted) — confirmed with counsel.
+
+> **Extended by [ADR-010 — Compliant Referral Economics](010-compliant-referral-economics.md):** adds the legal
+> money channels (professional-services contracts on a `fixed`/`per_service` basis; B2B buyer payments) and
+> referral **activity** statements. ADR-010 does **not** relax the prohibition on per-referral commissions.

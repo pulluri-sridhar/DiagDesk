@@ -47,10 +47,20 @@ counter during internet outages, and is low-friction for patients.
 |---|---|---|
 | **Patients** | **Phone OTP — WhatsApp-first, SMS fallback** (email OTP optional) | Phone-first, password-free, high conversion |
 | **Doctors / B2B** | Phone or email OTP | Low-friction, occasional users |
-| **Lab staff** | **Password + TOTP** (or **passkeys/WebAuthn**) | Handle PHI **and** money daily |
-| **Admin / owner** | **Passkeys or password + TOTP**, MFA enforced | Highest privilege |
+| **Lab staff** | **Password / Email-OTP** + a second factor: **Authenticator-app (TOTP)** or **biometric** (passkeys) | Handle PHI **and** money daily |
+| **Admin / owner** | **Passkeys (biometric) or password + TOTP**, MFA enforced | Highest privilege |
 - **Rationale for the split:** SMS/WhatsApp OTP is vulnerable to **SIM-swap/interception** — acceptable for
   patient convenience, **not** as the sole factor for staff/admin. ABHA-based login added for patients in V2.
+
+### 6a. Staff biometric login (stakeholder #21)
+- **Device biometric via passkeys/WebAuthn [MVP]:** fingerprint/face unlock on the staff workstation/phone —
+  standards-based, phishing-resistant, no extra hardware; satisfies the "biometric login" ask and doubles as MFA.
+- **Email-OTP for staff [MVP]:** a low-friction factor (via Resend, code-only, no PHI) for staff without a
+  registered passkey/TOTP yet, or as a fallback.
+- **Hardware fingerprint scanners [V1]:** many Indian labs use USB fingerprint devices at the counter. Planned as
+  a device-integration workstream that enrols a biometric template (stored as sensitive personal data under DPDP —
+  explicit consent + encrypted, never leaves India) and maps it to the user's passkey/credential. Biometric data
+  is **never** a sole factor for money operations without a second factor.
 
 ### 7. Authentication vs authorization (kept separate — defense in depth)
 - Keycloak = **authN** (who you are). **AuthZ** = **RBAC roles + OPA/ABAC policies + Postgres RLS** — a bug in

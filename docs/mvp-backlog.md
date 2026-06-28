@@ -64,8 +64,13 @@ is a counter operation.
 - **S1.2** As an admin, I want to create staff users and assign branch-scoped roles, so that access is least-
   privilege. *AC:* role changes take effect immediately; actions are audit-logged; a user sees only their
   branch's data.
-- **S1.3** As a staff member, I want to log in with MFA, so that access is secure. *AC:* failed-login lockout,
-  session expiry, refresh-token rotation.
+- **S1.3** As a staff member, I want to log in with MFA — **Email-OTP, Authenticator-app (TOTP), or biometric
+  (passkey)** — so that access is secure. *AC:* failed-login lockout, session expiry, refresh-token rotation;
+  ≥2 factors enforced for money operations.
+- **S1.4** As an owner, I want to set **granular per-feature permissions** when creating a user (from the
+  permission catalogue, with per-user overrides + limits like discount-% and financial-report-days), so that
+  access matches each role. *AC:* effective permissions = role ∪ overrides; enforced at gateway **and** RLS;
+  changes immediate + audit-logged. See [rbac-permissions.md](rbac-permissions.md).
 
 ### E2 — Master data & catalogue
 - **S2.1** Manage the **test master** (test, method, unit, specimen, container, TAT, reference & critical
@@ -76,6 +81,11 @@ is a counter operation.
 - **S2.4** Configure **report templates** per test/department. *AC:* a template renders a valid PDF with
   placeholders resolved.
 - **S2.5** Maintain **referring doctors** and **B2B partners**. *AC:* searchable; linkable to an order.
+- **S2.6** Build the test master by **picking from the global NABL catalogue** (seeds ranges) **and** creating
+  **custom non-NABL tests**. *AC:* picked tests inherit NABL reference ranges; `is_custom` tests are clearly
+  flagged; both are orderable.
+- **S2.7** Manage a **Departments** master and a **saved letterhead/stationery**. *AC:* tests carry a
+  `department_id`; a report template renders on the saved letterhead in preview.
 
 ### E3 — Patient registration & MPI
 - **S3.1** As front-desk, I want fast walk-in registration with minimal fields, so that queues move. *AC:*
@@ -91,8 +101,9 @@ is a counter operation.
   payment recorded; receipt printable at the counter offline.
 - **S4.3** **GST-aware** invoicing for mixed exempt/taxable lines. *AC:* correct tax per line; compliant
   invoice number sequence.
-- **S4.4** Apply **discounts with approval**. *AC:* above-threshold discount requires an authorized approver;
-  audit-logged.
+- **S4.4** Apply **discounts at registration with a mandatory free-text justification**. *AC:* a discount cannot
+  be saved without a justification; amounts above the user's `discount_limit_pct` require an authorized approver;
+  both justification + approver are audit-logged.
 - **S4.5** **Day-end cash reconciliation**. *AC:* expected vs collected per shift; variance flagged.
 
 ### E5 — Sample lifecycle (pre-analytical)
@@ -118,11 +129,16 @@ is a counter operation.
 - **S7.3** **Repeat/amend** a result. *AC:* amendment versioned with reason; prior version retained.
 
 ### E8 — Reporting & delivery
-- **S8.1** Generate a **signed PDF report** from template. *AC:* digital signature applied; preliminary vs
-  final states; reprint with version history.
-- **S8.2** Deliver via **WhatsApp + SMS + email**. *AC:* delivery status tracked; secure access (OTP/expiring
-  link); retry on failure.
+- **S8.1** Generate a report from template **on the saved letterhead/stationery**, with an **inline-editable
+  print preview**, then route to **review → owner/pathologist sign-off + digital signature**. *AC:* preview shows
+  the actual letterheaded report and is editable before sign-off; unsigned reports cannot be issued; preliminary
+  vs final states; reprint with version history.
+- **S8.2** Deliver via **WhatsApp (staff-initiated/manual) + SMS + email**. *AC:* WhatsApp send is an explicit
+  user action (not auto-push); delivery status tracked; secure access (OTP/expiring link); retry on failure.
 - **S8.3** Patient/doctor retrieves the report. *AC:* access audit-logged; watermarking on shared copies.
+- **S8.4** Track **prints and handover**. *AC:* each print increments `report.print_count` + writes a print-log;
+  handover marked by **scanning the report/accession barcode** (or manual), recording who/when; pending-handover
+  worklist.
 
 ### E9 — Offline-first & sync (cross-cutting, hardened here)
 - **S9.1** All counter ops (register/bill/barcode/result) work during an internet outage. *AC:* no blocking;
@@ -139,6 +155,19 @@ is a counter operation.
 ### E11 — Operational dashboard (basic MIS)
 - **S11.1** Live ops view: registrations, samples by status, pending/overdue, TAT. *AC:* per-branch; near-real-
   time from event read-model.
+
+### E12 — Inventory & test-kits (owner-flagged priority)
+- **S12.1** Manage a **reagent/consumable + test-kit master** with **`tests_per_kit`**, lot & expiry. *AC:* a kit
+  records how many tests it yields; expiry tracked.
+- **S12.2** **Consume stock on test run** + receipt/issue ledger. *AC:* running a test decrements the kit's
+  `tests_remaining`; `stock_ledger` is append-only and reconciles `qty_on_hand`.
+- **S12.3** **Reorder-threshold low-stock alerts**. *AC:* when `qty_on_hand ≤ reorder_threshold` (or a kit nears
+  empty/expiry), an alert + purchase requisition is raised.
+
+### E13 — Expense management
+- **S13.1** Record **day-to-day expenses** by category (rent/salaries/utilities/reagents/maintenance/petty-cash…)
+  with mode, payee, note, date. *AC:* entry permission-gated; **expense reports** by category/branch/period;
+  feeds department/branch P&L.
 
 ---
 
@@ -159,7 +188,7 @@ journey. Stories: S3.1, S3.2, S4.1, S4.2, S5.1, S6.2, S7.2, S8.1, S8.2, S10.1, p
 5. **S2** — E4 (order + billing) + **walk-in vertical slice** wired (S8.1 manual path).
 6. **S3** — E5 (sample lifecycle) + E10 (audit/consent hardening).
 7. **S4** — E6 (analyzer) + E7 (validation).
-8. **S5** — E8 (reporting + delivery) + E9 (offline/sync hardening) + E11 (ops dashboard) → **MVP**.
+8. **S5** — E8 (reporting + delivery) + E9 (offline/sync hardening) + E11 (ops dashboard) + E12 (inventory/test-kit) + E13 (expenses) → **MVP**.
 
 > Timeline is team-size dependent; assumes the team in [stakeholder-plan.md §8](stakeholder-plan.md). Re-estimate
 > at sprint planning with the actual team.

@@ -78,5 +78,18 @@ a payout, accrual, or "amount owed to Dr. X."** Respect DPDP for any personal da
 - **Compliance guardrail (a feature):** the system **separates "customer billing" from "referral source,"** and
   **blocks/warns** if a user tries to attach a monetary payout to a referral source. Audit-trailed.
 
-**Marketing line:** DiagDesk is the *compliant* choice — it helps labs run legitimate B2B relationships and
-referral analytics, and is ready for the stricter NMC 2023 regime — instead of automating an illegal practice.
+### Compliant referral economics ([ADR-010](adr/010-compliant-referral-economics.md)) — for the owner's "show referral payments, legally" ask
+A diagnostic-center owner asked to record doctor referral payments *"adhering to the legalities."* We support the
+money flows that **genuinely are legal**, structurally fenced off from kickbacks:
+- **Professional-services contracts:** pay a professional for **services actually rendered** (reporting, consulting,
+  teleradiology) on a **`fixed`/`per_service`** basis — **never per-referral, never %-of-patient-bill**. A
+  `service_engagement` must reference the rendered service (a report signed, a study read), not a referred patient.
+  A contract whose counterparty also refers patients is **flagged for review**, not auto-paid.
+- **Buyer payments:** where the doctor/clinic **is the buyer**, use B2B billing (money flows to the buyer of the test).
+- **Referral activity statements:** analytics of volume/revenue *generated* by source — **no payout**, permission-gated.
+- The legacy "Referral **Payment** Reports" toggle is **not** reproduced; the guardrail still blocks any per-referral
+  payout keyed to a `referring_doctor`.
+
+**Marketing line:** DiagDesk is the *compliant* choice — it helps labs run legitimate B2B relationships, pay for
+genuine professional services, and read referral analytics, and is ready for the stricter NMC 2023 regime —
+instead of automating an illegal practice.

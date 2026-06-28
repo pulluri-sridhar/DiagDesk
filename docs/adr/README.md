@@ -13,5 +13,8 @@ place; the linked source doc holds the fuller rationale.
 | [005](005-database-postgresql.md) | Database — PostgreSQL (not MongoDB) | Accepted | tech-stack |
 | [006](006-backend-language.md) | Backend language — NestJS (TypeScript) + Go for edge services | Accepted | tech-stack |
 | [007](007-no-referral-commission-tooling.md) | No referral-commission tooling (anti-kickback compliance) | Accepted | compliance-anti-kickback |
+| [008](008-granular-rbac-permissions.md) | Granular, owner-defined RBAC permissions (catalogue + per-user overrides) | Accepted | rbac-permissions |
+| [009](009-medicircle-platform-direction.md) | MediCircle platform direction (V3 north star) | Accepted (direction) | medicircle-vision |
+| [010](010-compliant-referral-economics.md) | Compliant referral economics (extends ADR-007) | Accepted | compliance-anti-kickback |
 
 > New decisions: add a numbered file, set Status (Proposed → Accepted → Superseded), and link it here.
