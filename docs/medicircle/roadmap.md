@@ -139,6 +139,11 @@ patient → invoices — with **no per-referral payout anywhere** and the lab ab
 - **Clinical liability (AI):** **assistive-only**, mandatory doctor sign-off, disclaimers, full audit; AI output
   never sent to the patient and never auto-acts.
 - **Data privacy:** consent-first, **DPDP** compliance, minimal sharing, India-residency, encryption.
+- **Operator credentials & certifications** (distinct from the legal gates above — these are registrations/audits
+  the *platform operator* must obtain): company/GST/gateway-KYC, **DPDP + CERT-In + VAPT**, **TRAI-DLT + WhatsApp/Meta**
+  (R1); **ABDM milestone certification + WASA audit** and **ISO 27001** are **long poles — start in R1** for R3
+  go-live; **IRDAI** position before R3 insurance. Full checklist + timeline in
+  [compliance.md §7](compliance.md#7-platform-operator--credentials-registrations--certifications).
 - **Offline-first sync** at the lab edge adds real engineering complexity; it is a core differentiator of the lab
   node — invest, but scope the R1 conflict model tightly.
 

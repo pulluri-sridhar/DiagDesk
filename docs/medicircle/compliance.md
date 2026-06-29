@@ -199,7 +199,82 @@ No RMP referral commissions anywhere — and no commission engine to toggle. Med
 
 ---
 
-## 7. Sources
+## 7. Platform operator — credentials, registrations & certifications
+
+*What does the **SaaS company** (the operator of MediCircle) need, as opposed to the clinical licences held by its
+**users**? Two rules of thumb:*
+
+1. **To *build* (write software): nothing.** No licence or certificate is required to develop the platform.
+2. **To *operate* live (handle health data + payments + messaging + ABDM): a stack of registrations, integration
+   gates, and security audits** — but the platform stays a **technology enabler**: it **verifies** clinical
+   licences, it does not hold them, and it is deliberately architected to stay **out of** drug-dispensing,
+   RBI payment-aggregator, and IRDAI-intermediary scope.
+
+> ⚠️ Not legal advice — confirm each item, and your fund-flow/insurance/e-pharmacy structuring, with Indian
+> healthtech-regulatory and payments counsel before launch. Several items below have **2025–26 status changes**.
+
+### 7.1 What the operator needs
+
+| Requirement | Type | Trigger (feature that makes it needed) | Notes (2026) |
+|---|---|---|---|
+| Company + **GST** + payment-gateway **merchant KYC** | Mandatory | Operating at all | Pvt Ltd, GST, PAN/TAN; Razorpay merchant onboarding |
+| **DPDP Act 2023** compliance (Data Fiduciary) | Mandatory | Handling any personal/health data | Consent, data-principal rights, breach process, India residency. If notified a **Significant Data Fiduciary** → **DPO in India + DPIA + independent audit**. DPDP Rules being notified/phased 2025–26 — confirm current stage |
+| **CERT-In** Directions (28 Apr 2022) | Mandatory | Internet-facing systems | **180-day logs retained in India**, **6-hour** incident reporting, NTP clock sync |
+| **VAPT by a CERT-In-empanelled auditor** | Mandatory for ABDM · strongly expected otherwise | Go-live; ABDM WASA | Required to clear ABDM production; repeat periodically/after major change |
+| **ISO 27001** (+ **SOC 2 Type II**) | Commercial, *not* legal | Selling to hospitals/insurers/enterprise | ISO 27001 is the priority cert in India; SOC 2 Type II for US buyers; both aid cyber-insurance & due-diligence (~6–12 mo to certify) |
+| **ABDM milestone certification** (M1/M2/M3) → WASA audit → **NHA go-live** | Integration gate | Building ABHA/FHIR (R3) | Sandbox → milestones → CERT-In WASA → NHA production creds; enrol in **HFR** (facilities) + **HPR** (professionals); **M4/NHCX** for insurance claims. **Long lead — start the sandbox in R1** even though prod is R3 |
+| **TRAI DLT** registration (entity + header + templates) | Mandatory | Sending SMS/OTP | Register as **Principal Entity** on a DLT platform; unregistered headers/templates are scrubbed/blocked |
+| **WhatsApp Business API** + **Meta Business verification** | Integration gate | WhatsApp messaging | Via a BSP (Gupshup). Since **7 Oct 2025**, messaging limits are **per Business Portfolio** (all numbers share one limit) — plan capacity at portfolio level |
+| **Stay OUT of RBI Payment-Aggregator scope** | Architectural | Any money movement | Use a **licensed PA + Razorpay Route**; **never pool/hold/escrow/settle customer funds** in your own account — *handling of funds* is what triggers needing an RBI **PA authorization** (note the 15-Sep-2025 PA Master Direction) |
+| **PCI-DSS SAQ-A** | Mandatory (light) | Accepting card payments | Gateway-hosted/redirect → shortest questionnaire. **v4.0.1 expanded SAQ-A**: payment-page **script-integrity / tamper-detection (6.4.3, 11.6.1)** apply from 31 Mar 2025 — "redirect = nothing to do" is no longer true |
+| **Stay OUT of drug-dispensing** | Architectural / legal | Pharmacy flow | The **licensed pharmacy holds the Drug License (Form 20/21)** and dispenses via a registered pharmacist; the platform **intermediates only**. **No notified e-pharmacy law** (2018 draft rules still unnotified) — **highest-uncertainty item; watch for a notification or restriction/ban** |
+| **Telemedicine platform duties** (no licence) | Mandatory conduct | Teleconsult | Telemedicine Practice Guidelines 2020 §5 bind the **platform**: list/verify only **RMPs**, ensure consent, report misconduct, **no autonomous AI prescribing** (AI assists the RMP only) |
+| **IRDAI intermediary** registration | Conditional | Insurance beyond pure lead-gen | Triggered at **solicitation** (compare/recommend/quote/paid-per-policy). **Pure consented lead handoff** to a licensed insurer/intermediary stays outside — a narrow lane. Categories: Web Aggregator / Corporate Agent / **IMF**. IRDAI moved intermediaries to **perpetual registration (Feb 2026)** |
+
+### 7.2 What the platform *verifies* of its users (held by the user, not the operator)
+
+| User | Credential the platform verifies |
+|---|---|
+| **Doctor** | NMC / State Medical Council registration (+ **HPR** enrolment) |
+| **Diagnostic lab** | **NABL** accreditation + establishment registration (+ **HFR**) |
+| **Pharmacy** | **Drug License (Form 20/21)** + registered pharmacist |
+| **Home-care professional** | State Nursing Council / INC, or Physiotherapy Council registration; ID + background check |
+| **All providers** | **GSTIN** + bank KYC for payouts |
+
+> Handled by the **Credentialing & Verification** service (microservices.md #3) — the platform onboards and verifies
+> these; it does not hold them.
+
+### 7.3 Architectural "stay out of scope" guardrails
+Design so the operator does **not** become: an **RBI Payment Aggregator** (never hold/pool funds — use Route escrow);
+a **drug seller** (intermediate to licensed pharmacies; never dispense or take title); an **IRDAI intermediary**
+(consented lead-gen only until registered); or a **Clinical Establishment** under the CEA (don't operate the
+lab/clinic or employ the clinicians delivering care — that can pull state CEA rules onto the platform).
+
+### 7.4 Pre-launch checklist & timeline (indicative)
+
+| Item | Needed by | Rough lead time | Owner |
+|---|---|---|---|
+| Company / GST / gateway merchant KYC | **R1** | weeks | Founder / Finance |
+| DPDP + CERT-In baseline (consent, in-India logging, 6-hr breach runbook) | **R1** | weeks–months | Legal + Security |
+| First **VAPT** (CERT-In-empanelled) | **R1** | 2–6 weeks | Security |
+| **TRAI DLT** + **WhatsApp/Meta** verification | **R1** | 1–4 weeks | Eng / Ops |
+| **PCI SAQ-A** attestation (incl. v4 script controls) | **R1** | days–weeks | Security |
+| **ABDM sandbox** registration + start M1 (long pole) | **R1** *(prod in R3)* | start early | Eng |
+| **ISO 27001** kickoff | **R1** | cert ~6–12 mo | Security |
+| Pharmacy-flow legal sign-off (intermediary-only) | **R2** | weeks | Legal |
+| Home-care credentialing live + background-check vendor | **R2** | weeks | Ops / Legal |
+| PA fund-flow structuring confirmed (stay out of RBI-PA) | **R2** | weeks | Legal / Finance |
+| **ABDM** M1/M2/M3 + **WASA audit** + **NHA go-live** | **R3** *(ABHA/FHIR)* | **months** | Eng + Security |
+| **IRDAI** position confirmed (lead-gen vs intermediary) | **R3** *(insurance)* | weeks–months | Legal |
+| **SOC 2 Type II** (if US/enterprise demand) | **R3** | months | Security |
+
+> Timelines are indicative; **[Legal review]** gates apply to the anti-kickback, e-pharmacy, telemedicine,
+> payments-fund-flow, and insurance items. The two long poles are **ABDM certification** and **ISO 27001** — start
+> both in R1.
+
+---
+
+## 8. Sources
 
 - Diagnostic labs 2026 forecast — CrelioHealth: https://blog.creliohealth.com/beyond-metros-the-next-phase-of-indias-diagnostic-revolution-2026-forecast/
 - Indian diagnostics margin pressure — Whalesbook: https://www.whalesbook.com/news/English/healthcarebiotech/Indian-Diagnostics-Sector-Surges-on-Home-Demand-Faces-Margin-Pressure/69dbcd7be0ea10058dbd8c1b
@@ -216,6 +291,20 @@ No RMP referral commissions anywhere — and no commission engine to toggle. Med
 - *Apex Laboratories Pvt. Ltd. v. DCIT* (SC, 2022) — LiveLaw: https://www.livelaw.in/top-stories/apex-laboratories-pvt-ltd-vs-deputy-commissioner-of-income-tax-large-tax-payer-unit-ii-2022-livelaw-sc-195-192556
 - IMC (Professional Conduct, Etiquette and Ethics) Regulations 2002 — NMC PDF: https://www.nmc.org.in/wp-content/uploads/2017/10/Ethics-Regulations-2002.pdf
 - NMC 2023 regulations kept in abeyance — Complinity: https://complinity.com/legal-update/national-medical-commission-registered-medical-practitioner-professional-conduct-regulations-2023-not-to-be-operative-and-effective-till-further-notification-10477/
+
+**Operator credentials & certifications (§7):**
+- DPDP Act 2023 + framework — MeitY: https://www.meity.gov.in/data-protection-framework
+- CERT-In Directions (28 Apr 2022) + empanelled auditors — CERT-In: https://www.cert-in.org.in/
+- ABDM developer sandbox + milestones — NHA: https://sandbox.abdm.gov.in/ · HFR: https://facility.abdm.gov.in/ · HPR: https://hpr.abdm.gov.in/
+- RBI Payment Aggregator/PG Guidelines (17 Mar 2020): https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11822 · PA Master Direction (15 Sep 2025)
+- Razorpay Route (split settlement, platform doesn't hold funds): https://razorpay.com/docs/payments/route/
+- PCI-DSS v4.0.1 SAQ-A — PCI SSC: https://www.pcisecuritystandards.org/document_library/
+- TRAI DLT / TCCCPR (advice to senders): https://trai.gov.in/advice-to-senders
+- WhatsApp messaging limits (portfolio-level since Oct 2025) — Meta: https://developers.facebook.com/documentation/business-messaging/whatsapp/messaging-limits
+- Telemedicine Practice Guidelines 2020 (Appendix 5, §5 platform duties): https://www.indiaspend.com/wp-content/uploads/2020/05/Telemedicine.pdf
+- IRDAI Web Aggregators / intermediaries: https://irdai.gov.in/web-aggregators
+- NABL (lab accreditation): https://nabl-india.org/ · Clinical Establishments Act: https://clinicalestablishments.mohfw.gov.in/
+- ISO 27001 vs SOC 2 for India SaaS (commercial expectation): https://codesecure.in/blogs/soc-2-vs-iso-27001-which-first-india
 
 ---
 
