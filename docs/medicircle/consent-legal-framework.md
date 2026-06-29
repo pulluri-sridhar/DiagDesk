@@ -54,11 +54,18 @@ what the FTC penalized in GoodRx/BetterHelp), so it is fenced with its own instr
   on providing a service beyond what's necessary. **Making marketing consent mandatory makes it invalid** and worsens
   exposure. Mandatory gates are only the **privacy notice (A)** and **ToS (B)**; promotional consent (D) is opt-in and
   declining it must not block portal use.
-- **Granular** — per **channel** (email / SMS / WhatsApp / push / in-app) and per **purpose** (our own products vs
-  **third-party / partner offers** — kept separate; partner-sharing needs its own explicit consent).
-- **Health data is special.** Default = **no health-based targeting** and **no sharing of any health data with
-  third-party ad platforms, SDKs, or pixels** (the GoodRx/BetterHelp failure mode). Any promotion that *uses* health
-  attributes (e.g., diabetes-care offers) requires a **separate, explicit** consent and stays **first-party only**.
+- **Granular** — per **channel** (email / SMS / WhatsApp / push / in-app) and per **purpose**: (i) **our own
+  products/services**, and (ii) **partner / third-party offers** — *enabled* but behind a **separate, explicit
+  consent**. Preferred model: **first-party delivery** (the platform sends the partner's offer; the partner receives
+  **no user PII**). If user PII is ever actually shared with a partner, that requires its own explicit consent **plus
+  a data-sharing agreement** with the partner. Partner offers must also be **non-health-based** (see next bullet).
+- **No health-based targeting — full stop.** *(Decision.)* We do **not** target promotions using any health
+  attribute (condition, test, prescription, etc.), and we **never** share health data with third-party ad platforms,
+  SDKs, or pixels (the GoodRx/BetterHelp failure mode). Promotional segmentation uses only non-health attributes.
+- **Consent capture method (tiered).** *(Decision.)* **Clickwrap-logged is the default** for the marketing/promotional
+  consent (and for sign-up/registration) — legally written under IT Act §10A. **E-signature (Aadhaar eSign / DSC)** is
+  reserved for **provider/subscriber B2B agreements + the DPA** and **high-risk physical-activity waivers**. SMS/WhatsApp
+  promotions add the **TRAI DCA OTP double opt-in** on top.
 - **Children excluded.** No promotional profiling or targeted ads to under-18 accounts (DPDP §9) — suppress them entirely.
 - **Revocable any time**, as easily as granted — every message carries an unsubscribe; withdrawal moves the user to a
   **suppression list** honoured promptly; withdrawal of marketing consent **does not** affect their service.
@@ -135,7 +142,7 @@ auditable consent/withdrawal logs; DSAR (access/erasure) workflow; **dual breach
 | Risk (precedent) | Mitigation in this framework |
 |---|---|
 | Breach + slow notice (AIIMS, ICMR, **Star Health** → ₹250 cr) | Security safeguards + hard-wired 6 h/72 h notification runbook + DPO |
-| Ad-tech health-data leakage (GoodRx/BetterHelp/Flo) | Marketing default-off; no health-data SDK/pixel sharing; separate opt-in; **first-party only** for any health-based promotion (§2.1) |
+| Ad-tech health-data leakage (GoodRx/BetterHelp/Flo) | Marketing default-off; **no health-based targeting at all**; no health-data SDK/pixel sharing; separate opt-in (§2.1) |
 | Forced/bundled marketing consent → invalid + worse exposure | Promotional consent is **optional opt-in, not a portal gate**; separate from privacy/ToS; revocable (§2.1) |
 | Active-platform loses §79 (Amway/1MG) | Neutral-intermediary posture, grievance officer, court-order-only takedown |
 | Consent scope exceeded (Samira Kohli) | Procedure-specific, recorded clinical/telemedicine consent |
@@ -162,10 +169,11 @@ auditable consent/withdrawal logs; DSAR (access/erasure) workflow; **dual breach
 6. **Default marketing = off** (recommended) and the cookie-consent approach (essential-only by default).
 7. **Which activities require the physical waiver** + a PAR-Q-style health screen (retreats, camps, home physio…).
 8. **Insurance to carry** — cyber, professional indemnity, public-liability/event.
-9. **Promotional use of the user/patient record (§2.1)** — confirm: (a) marketing consent is **optional/opt-in**, not a
-   portal gate (required for validity); (b) **first-party only** vs also **partner/third-party offers** (separate
-   consent); (c) **any health-based targeting at all?** (default: no, unless separately + explicitly consented,
-   first-party only); (d) clickwrap-logged consent vs **e-signed** for higher assurance.
+9. **Promotional use of the user/patient record (§2.1)** — ✅ **Decided:** (a) marketing consent is **optional opt-in,
+   not a portal gate**; (b) **partner/third-party offers allowed** behind a **separate explicit consent** (first-party
+   delivery preferred; PII-sharing needs its own consent + data-sharing agreement); (c) **no health-based targeting at
+   all**; (d) **clickwrap-logged by default**, **e-sign reserved** for B2B/DPA agreements + high-risk waivers (+ TRAI
+   DCA OTP on SMS/WhatsApp).
 10. **Engage Indian healthtech counsel** to draft the final binding copy from this framework (strongly recommended).
 
 ## 12. Sources
