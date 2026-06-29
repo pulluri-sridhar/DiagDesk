@@ -31,6 +31,7 @@ package brings the rest of the program to the same documentation depth, **reconc
 | [compliance.md](compliance.md) | Market research + India 2026 regulatory constraints (NMC anti-kickback, e-pharmacy, telemedicine, DPDP, ABDM) + **platform-operator credentials & a pre-launch checklist** (§7) |
 | [consent-legal-framework.md](consent-legal-framework.md) | **Consent & legal framework (proposal)** — privacy/ToS/waiver/marketing instruments, touchpoint→gating matrix, mandatory-accept UX, Company + subscriber protections, case-law risk register, open decisions |
 | [clinic-hospital-his.md](clinic-hospital-his.md) | Clinic operations + full Hospital Information System (HIS) — ADT/IPD/OT/nursing/MRD/cashless; enterprise track |
+| [market-research-hospitals-clinics.md](market-research-hospitals-clinics.md) | **Market research** — hospital & clinic challenges in India (2026) mapped to MediCircle's one-stop solution; sourced |
 
 ## Diagrams (`diagrams/`)
 - **`medicircle-context.png/.svg`** — C4-L1 system context (5 actor types + platform + external integrations)
