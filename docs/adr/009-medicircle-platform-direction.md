@@ -39,9 +39,13 @@ seriously and in what shape** we carry this ambition, and on **reconciling the c
 Where the two designs conflict, **the DiagDesk decisions win program-wide** (see
 [medicircle-reconciliation.md](../medicircle-reconciliation.md)):
 5. **DiagDesk is the canonical lab node**; MediCircle's shallower lab module defers to it.
-6. **Hosting:** **India-sovereign, no hyperscaler** ([ADR-004](004-hosting-and-data-residency.md)) **supersedes**
-   MediCircle's AWS Mumbai stack; AWS-coupled services get sovereign swaps (SES→Resend, Textract→alt OCR,
-   S3→S3-compatible, Secrets Manager→Vault).
+6. **Hosting:** **provider-agnostic managed, India-region** ([ADR-004](004-hosting-and-data-residency.md))
+   replaces MediCircle's AWS-Mumbai-specific assumptions. AWS is **allowed** (it is the BAA-bearing graduation
+   tier, alongside Azure India and the E2E/Yotta sovereign tier); the program just starts cheap/fast on a
+   managed provider (DO Bangalore / Fly.io Mumbai) and keeps the stack portable. MediCircle's **AWS-coupled
+   services are made provider-agnostic and India-region** rather than banned (SES→Resend, Textract→alt OCR,
+   S3→S3-compatible object store, Secrets Manager→Vault, CloudFront→India CDN) — the goal is portability + India
+   residency, not avoiding hyperscalers.
 7. **Anti-kickback:** the **no-commission-engine** posture (ADR-007/010) **supersedes** MediCircle's gated
    commission engine, which is **removed** and replaced with B2B billing + professional-services contracts +
    referral analytics. (MediCircle's own market research already recommended dropping RMP commissions.)
@@ -53,7 +57,8 @@ Where the two designs conflict, **the DiagDesk decisions win program-wide** (see
   into one coherent program; ensures today's primitives are built network-ready; keeps the compliance and
   residency story consistent across every side of the circle.
 - **Costs/risks:** scope-creep temptation (mitigated by the "node 1 must win first" guardrail); reconciliation work
-  at MediCircle build-start (AWS→sovereign swaps, remove commission engine, align money representation); each new
+  at MediCircle build-start (make AWS-coupled services provider-agnostic/India-region, remove commission engine,
+  align money representation); each new
   vertical widens the regulatory surface (pharmacy/e-prescription, telemedicine, home-care licensing) — needs
   counsel before each step.
 - **Revisit if:** DiagDesk traction warrants pulling V3.0 (Doctor⇄Lab loop) forward, or the regulatory landscape

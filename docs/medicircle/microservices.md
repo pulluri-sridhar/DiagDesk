@@ -6,9 +6,11 @@ offline-first edge + microservices; the connective layer starts as **modular-mon
 independent services as load grows ([medicircle-reconciliation.md](../medicircle-reconciliation.md) §3). This is the
 **canonical service list** — `HLD.md`, `LLD.md`, and `data-model.md` align to it.*
 
-> **Reconciled decisions baked in:** India-sovereign hosting (no hyperscaler) · **no commission engine** (compliant
-> economics only — ADR-007/010) · Keycloak OIDC · **integer paise** money · UUIDv7 · transactional outbox · DPDP +
-> ABDM/ABHA + FHIR R4 · AI assistive-only with doctor sign-off.
+> **Reconciled decisions baked in:** Java 21 + Spring Boot 3 backend (Go at the lab edge; TypeScript FE/mobile only) ·
+> provider-agnostic managed hosting, India-region (start DO Bangalore / Fly.io Mumbai; graduate to AWS Mumbai / Azure
+> India (BAA) or E2E / Yotta (sovereign) per contract) · **no commission engine** (compliant economics only —
+> ADR-007/010) · Keycloak OIDC · **integer paise** money · UUIDv7 · transactional outbox · DPDP + ABDM/ABHA + FHIR R4 ·
+> AI assistive-only with doctor sign-off.
 
 ---
 
@@ -36,7 +38,7 @@ independent services as load grows ([medicircle-reconciliation.md](../medicircle
 | 10 | **Audit & Admin** | Immutable hash-chained audit (clinical/financial/consent), disputes, content moderation, fraud monitoring | `audit_logs`, `disputes`, `moderation_cases` | service | ✅ | R1 |
 | 11 | **Analytics / MIS** | CQRS read-models + dashboards (referrals, conversion, revenue, TAT, home-care, reconciliation) | `mv_*` read models | module | | R2 |
 | 12 | **Search & Discovery** | OpenSearch index for lab/doctor/test/content discovery, ranking | (index only) | module | | R2 |
-| 13 | **Notification/Job Workers + Scheduler** | BullMQ consumers + cron: reports pipeline, AI analysis, payouts, delivery dispatch, OCR, **expiry scans**, monthly statements, follow-up reminders | — | service | | R1 |
+| 13 | **Notification/Job Workers + Scheduler** | Kafka consumers + scheduled jobs (Spring `@Scheduled`/ShedLock): reports pipeline, AI analysis, payouts, delivery dispatch, OCR, **expiry scans**, monthly statements, follow-up reminders | — | service | | R1 |
 
 ## B. Lab node (DiagDesk) — offline-first edge + microservices
 
@@ -109,7 +111,7 @@ independent services as load grows ([medicircle-reconciliation.md](../medicircle
 
 ## Integration adapters (anti-corruption layer; not domain services)
 Razorpay (+Route) · Gupshup/Meta WhatsApp · MSG91 SMS · FCM · **Resend** email · 100ms video · Anthropic **Claude** ·
-sovereign/alt **OCR** · **ABDM/ABHA + FHIR** · Google/OLA **Maps**. All wrapped so providers can be swapped without
+self-hosted/alt **OCR** · **ABDM/ABHA + FHIR** · Google/OLA **Maps**. All wrapped so providers can be swapped without
 touching domain logic.
 
 ---

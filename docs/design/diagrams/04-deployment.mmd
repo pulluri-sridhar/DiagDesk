@@ -10,11 +10,11 @@ flowchart TB
     prn["Barcode printer / analyzers"]:::edge
   end
 
-  subgraph CSP["India Sovereign Cloud (E2E Networks / Yotta) — India region"]
+  subgraph CSP["Provider-agnostic managed cloud (DO Bangalore / Fly.io Mumbai → AWS/Azure or E2E/Yotta) — India region"]
     subgraph K8S["Managed Kubernetes"]
       svcs["Microservices (pods)"]:::node
       kc["Keycloak"]:::self
-      tmp["Temporal"]:::self
+      tmp["Spring State Machine + Kafka choreography"]:::self
       vault["Vault"]:::self
       otel["OTel Collector + Grafana LGTM"]:::self
     end

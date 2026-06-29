@@ -64,7 +64,7 @@ Every view: **date-range + branch + comparison-period** filters, drill-down to d
   columnar) if query volume/cardinality grows. India-resident throughout (DPDP).
 - **In-app dashboards:** built with **Recharts/visx** on the read models (fast, embedded, branded).
 - **Ad-hoc / deep BI:** self-hosted **Metabase** (or Apache Superset) on the analytics store for power users —
-  open-source, India-resident, no hyperscaler.
+  open-source, India-resident, portable across providers.
 - **Distinction:** **PostHog** (already in the stack) = *product* analytics (how users use the app, funnels,
   feature flags). This module = *business* analytics (revenue, ops, growth). Different audiences, both kept.
 - **Performance & isolation:** all multi-tenant analytics enforce **tenant RLS**; pre-aggregation + caching

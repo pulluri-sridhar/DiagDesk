@@ -197,7 +197,7 @@ services in [microservices.md](microservices.md), the per-participant build in
 21.1 **Offline-first lab edge** — branch runs registration, billing, barcode, results during outages (k3s + local Postgres) — **[R1]**
 21.2 **Conflict-aware edge ⇄ cloud sync** + money-record reconciliation (Sync Engine) — **[R1]**
 21.3 **Security** — TLS 1.2+, encryption at rest (AES-256), least-privilege RBAC, secrets in vault, **OWASP ASVS L2**; Postgres RLS tenant isolation; field-level PHI encryption — **[R1]** · (NFR)
-21.4 **India data residency** (DPDP, ap-south-1 / India-sovereign hosting — no hyperscaler) — **[R1]** · (NFR)
+21.4 **India data residency** (DPDP / CERT-In; provider-agnostic managed hosting, India-region — start DO Bangalore / Fly.io Mumbai; graduate to AWS Mumbai / Azure India (BAA) or E2E / Yotta (sovereign) per contract) — **[R1]** · (NFR)
 21.5 **Observability** — centralised logs/metrics/traces, SLO dashboards, alerting — **[R1]** · (NFR)
 21.6 **Data integrity** — ACID for financial flows; **idempotent payment webhooks**; integer-paise money — **[R1]** · (NFR)
 21.7 **ABDM / FHIR R4** interoperability + ABHA linkage — **[R3]** · (NFR)
@@ -226,7 +226,7 @@ portal. Reuses Consultations, Appointments/queue, Inventory, and Billing. Full s
 *In-patient/enterprise modules the OPD layer does **not** cover. Sold to **NABH-track hospitals** as a dedicated
 **enterprise track**, not folded into the SMB R1–R3 timeline. Each hospital can choose the **full MediCircle HIS**
 **or** keep its existing HIS and connect via **HL7/FHIR** for orders/results/records. One **`encounter`** spine
-(FHIR `Encounter`-aligned) unifies OPD · IPD · ER. Sovereign-hosted, **no commission**, **integer-paise** money,
+(FHIR `Encounter`-aligned) unifies OPD · IPD · ER. Provider-agnostic India-region hosting, **no commission**, **integer-paise** money,
 AI **assistive-only with clinician sign-off**. Full spec: [clinic-hospital-his.md](clinic-hospital-his.md) §2.*
 23.1 **Patient Administration / ADT** — registration (**UHID**), **Admission–Discharge–Transfer**, MLC, death register, encounter management (OPD/IPD/ER) — **[Enterprise / R4+]**
 23.2 **Bed & ward management** — ward/room/bed master, **real-time occupancy**, allocation/transfer, housekeeping/turnaround status — **[Enterprise / R4+]**

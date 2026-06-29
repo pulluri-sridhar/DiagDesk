@@ -94,5 +94,5 @@ The SMB go-to-market (R1–R3: labs, clinics, pharmacies, home-care) is **not** 
   MRD/coding → pharmacy/formulary, then ICU/ER/blood-bank extensions. Longer build, dedicated team, NABH-track buyers.
 - Every hospital can choose **full HIS** *or* **HL7/FHIR integration** with its existing systems.
 
-> This expands the program materially. The lab node, anti-kickback, sovereign-hosting, and consent decisions all carry
+> This expands the program materially. The lab node, anti-kickback, provider-agnostic India-region hosting, and consent decisions all carry
 > over unchanged; the HIS is additive, not a change to those.

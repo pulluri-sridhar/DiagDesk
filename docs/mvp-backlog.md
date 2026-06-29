@@ -20,8 +20,9 @@ is a counter operation.
 
 ### F0.1 — Monorepo & service template
 - Nx monorepo; shared libs: `auth`, `telemetry`, `tenancy` (RLS context), `events` (outbox), `testing`.
-- A **service template** (NestJS) preloaded with: OTel, Keycloak auth guard, RLS-aware DB module, outbox +
-  Kafka publisher, OPA client, health/readiness probes, structured logging, Dockerfile, CI pipeline.
+- A **service template** (Java 21 + Spring Boot 3) preloaded with: OTel, Keycloak auth guard, RLS-aware DB
+  module, outbox + Kafka publisher, OPA client, health/readiness probes, structured logging, Dockerfile, CI
+  pipeline.
 - **Done when:** `nx g service <name>` scaffolds a running service that authenticates, emits a trace, exposes
   `/health`, and ships a passing pipeline — with zero hand-wiring.
 
@@ -31,9 +32,11 @@ is a counter operation.
 - ArgoCD GitOps to `sit`/`dev`; trunk-based with feature flags (Unleash).
 - **Done when:** a trivial PR runs all gates green and auto-deploys a preview URL.
 
-### F0.3 — Infrastructure (E2E Networks, India region)
-- Terraform: managed K8s, managed PostgreSQL, S3-compatible object store, managed Kafka + Valkey.
-- Self-hosted on K8s: Keycloak, Vault, Temporal, OTel Collector + Grafana/Loki/Tempo/Mimir, Sentry.
+### F0.3 — Infrastructure (provider-agnostic managed, India region)
+- Terraform: managed K8s, managed PostgreSQL, S3-compatible object store, managed Kafka + Valkey — on the
+  chosen India-region provider (start on DigitalOcean Bangalore / Fly.io Mumbai; portable to AWS Mumbai /
+  Azure India or E2E / Yotta). Stack kept portable so the provider is a swap, not a rewrite.
+- Self-hosted on K8s: Keycloak, Vault, OTel Collector + Grafana/Loki/Tempo/Mimir, Sentry.
 - All pinned to India region; logs retained in-India (CERT-In).
 - **Done when:** a service can reach Postgres (RLS on), publish/consume Kafka, read a Vault secret, and its
   traces/logs/metrics appear in Grafana.
@@ -46,7 +49,7 @@ is a counter operation.
 
 ### F0.5 — Identity, tenancy & security baseline
 - Keycloak realms; JWT with `tenant_id`/`branch_id`/roles; gateway (Kong) validates and propagates claims.
-- Postgres RLS policies keyed on `tenant_id`; OPA policy bundle; mTLS (Linkerd).
+- Postgres RLS policies keyed on `tenant_id`; OPA policy bundle; mTLS (Istio).
 - **Done when:** an automated test proves tenant A cannot read tenant B via API or DB, and an unauthorized role
   is denied by OPA.
 

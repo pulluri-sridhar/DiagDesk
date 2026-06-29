@@ -13,7 +13,7 @@ security testing in [testing-strategy.md](testing-strategy.md).*
 
 | Layer | Threat it stops | Control |
 |---|---|---|
-| **Edge / CDN + WAF** | Volumetric DDoS, OWASP Top-10, bad bots, geo/IP abuse | **Indusface AppTrana** (India-based managed WAF+DDoS+bot) — or Cloudflare; plus the CSP's own anti-DDoS scrubbing (E2E/Yotta) |
+| **Edge / CDN + WAF** | Volumetric DDoS, OWASP Top-10, bad bots, geo/IP abuse | **Indusface AppTrana** (India-based managed WAF+DDoS+bot) — or Cloudflare; plus the chosen provider's own anti-DDoS scrubbing |
 | **API Gateway (Kong)** | Request floods, oversized payloads, scraping | **Rate limiting** (per IP / user / tenant / endpoint), request-size limits, IP allow/deny, ACLs, schema validation |
 | **Auth (Keycloak)** | Brute force, credential stuffing, OTP abuse | Brute-force lockout, OTP throttling + backoff, CAPTCHA on risk, passwordless/passkeys for staff |
 | **Application services** | Logic abuse, injection, IDOR, noisy-neighbor | Input validation, parameterized queries, idempotency, **per-tenant quotas**, output encoding |

@@ -22,7 +22,7 @@ offline-first · India data residency · best-in-class tools for healthcare.*
 | **Service mesh (east-west)** | **Istio** | mTLS between all services, circuit breaking, traffic shifting, observability integration; team already knows it |
 | **Database** | **PostgreSQL 16 + RLS** | ACID, multi-tenant row-level security, JSONB for flexible payloads — db-per-service |
 | **Cache / sessions** | **Redis** | Industry standard; battle-tested in healthcare at scale; Redis Enterprise has HIPAA-eligible configurations |
-| **Object storage** | **S3** (AWS / Azure Blob / DO Spaces) | Managed, durable, India-region; report PDFs, DICOM, documents |
+| **Object storage** | **S3-compatible** (DO Spaces / AWS S3 / Azure Blob / E2E) | Managed, durable, India-region; report PDFs, DICOM, documents — provider-agnostic S3 API |
 | **Search** | **OpenSearch** | Patient, catalog, and test search at scale; Apache 2.0 |
 | **AuthN** | **Keycloak** | OIDC + OTP (email/SMS/WhatsApp) + passkeys; self-hosted, India-resident |
 | **AuthZ** | **OPA + RBAC + PostgreSQL RLS** | Three-layer defense: gateway enforces roles, OPA evaluates fine-grained ABAC policies, RLS isolates every row by tenant |
@@ -38,9 +38,9 @@ offline-first · India data residency · best-in-class tools for healthcare.*
 | **Interop** | **HL7 v2 (HAPI) + FHIR R4 (HAPI FHIR)** | ABDM HIP, analyzer & EHR integration |
 | **Payments** | **Razorpay / PhonePe** | India rails, UPI-first |
 | **Notifications** | **Resend** (email) · **WhatsApp BSP** · **SMS (DLT-registered)** | All behind one Notification service — providers swappable |
-| **Cloud / region** | **AWS Mumbai** (primary) · **Azure India** (compliance tier) · **DigitalOcean Bangalore** (budget workloads) | India-region data residency (DPDP + CERT-In); HIPAA BAA available on AWS and Azure; mature managed services |
+| **Cloud / region** | **Provider-agnostic managed, India-region** — start on **DigitalOcean Bangalore / Fly.io Mumbai**; graduate to **AWS Mumbai / Azure India** (HIPAA BAA) or **E2E / Yotta** (sovereign) per contract | India-region data residency (DPDP + CERT-In); provider is a swap, not a rewrite; final provider TBD |
 | **Edge orchestration** | **k3s** | Lightweight K8s at branch edge; runs offline with local Postgres |
-| **Cloud orchestration** | **Managed Kubernetes** (EKS / AKS / DOKS) | Fully managed, India-region |
+| **Cloud orchestration** | **Managed Kubernetes** (DOKS / EKS / AKS / E2E) | Fully managed, India-region; portable across providers |
 | **IaC** | **Terraform** | BSL license — internal infra use is permitted; team already knows it |
 | **GitOps / CD** | **ArgoCD** | Declarative, Git-driven deployments; Apache 2.0 |
 | **CI** | **GitHub Actions** | Pipelines, supply-chain security scans |
@@ -176,7 +176,7 @@ All services emit **OpenTelemetry** traces, metrics, and logs from day one using
 | Errors | Sentry (self-hosted) |
 | Product analytics | PostHog (self-hosted) |
 
-Business metrics tracked alongside technical RED/USE metrics: turnaround time, rejection rate, payout accuracy, sync lag.
+Business metrics tracked alongside technical RED/USE metrics: turnaround time, rejection rate, B2B receivables/billing accuracy, sync lag.
 
 Correlation IDs propagated across gRPC calls, Kafka events, and the edge sync boundary for end-to-end trace visibility.
 
@@ -199,26 +199,36 @@ Correlation IDs propagated across gRPC calls, Kafka events, and the edge sync bo
 
 ---
 
-## India hosting — cloud provider strategy
+## India hosting — provider-agnostic managed strategy
 
-**Data residency requirement:** All PHI and logs must remain in India (DPDP + CERT-In 180-day retention). All three providers have India-region data centers — use India regions exclusively.
+**Data residency requirement:** All PHI and logs must remain in India (DPDP + CERT-In 180-day retention). Use
+India-region data centers exclusively, on **whichever managed provider is chosen** — the architecture is kept
+portable (Kubernetes + Postgres + S3 API) so **the provider is a swap, not a rewrite**. The final provider is
+an open decision (see [ADR-004](adr/004-hosting-and-data-residency.md)); the rows below show the candidates.
 
-| Building block | AWS Mumbai (primary) | Azure India (compliance tier) | DigitalOcean Bangalore (budget) |
+| Building block | Start tier — DO Bangalore / Fly.io Mumbai | Hyperscaler tier — AWS Mumbai / Azure India | Sovereign tier — E2E / Yotta |
 |---|---|---|---|
-| PostgreSQL (managed, HA + PITR) | RDS / Aurora Postgres | Azure Database for PostgreSQL | Managed Postgres |
-| Kubernetes | EKS | AKS | DOKS |
-| Kafka | MSK (managed Kafka) | Event Hubs (Kafka-compatible) | Self-hosted on K8s |
-| Redis | ElastiCache for Redis | Azure Cache for Redis | Managed Redis |
-| Object storage | S3 | Azure Blob Storage | Spaces |
-| Vault, Keycloak, Grafana stack | Self-hosted on EKS | Self-hosted on AKS | Self-hosted on DOKS |
+| PostgreSQL (managed, HA + PITR) | DO Managed Postgres (Fly → external managed PG) | RDS/Aurora · Azure Database for PostgreSQL | E2E/Yotta managed Postgres |
+| Kubernetes | DOKS / Fly Machines | EKS / AKS | E2E / Yotta managed K8s |
+| Kafka | Self-hosted on K8s | MSK · Event Hubs (Kafka-compatible) | E2E managed / self-hosted |
+| Redis | DO Managed Redis | ElastiCache · Azure Cache for Redis | E2E/Yotta managed Valkey |
+| Object storage (S3 API) | DO Spaces | S3 · Azure Blob | E2E S3-compatible |
+| Vault, Keycloak, Grafana stack | Self-hosted on K8s | Self-hosted on K8s | Self-hosted on K8s |
 
-**AWS Mumbai** — primary for most workloads. Broadest managed service set, HIPAA BAA available, signed BAA required before storing PHI. Most mature healthcare compliance posture (HIPAA, HITRUST CSF, SOC 1/2/3, PCI DSS, ISO 27001).
+**Start tier — DigitalOcean Bangalore / Fly.io Mumbai.** Begin here: fast to stand up, cost-effective, full
+managed Postgres/K8s/Redis/object-store (on Fly, pair app compute with an external managed Postgres). Good for
+pilot/MVP and non-regulated workloads.
 
-**Azure India** — compliance / enterprise tier. Use for public-sector or HIPAA-contractual workloads requiring Microsoft's compliance portfolio; strong BAA.
+**Hyperscaler tier — AWS Mumbai / Azure India.** Graduate here when a contract needs an explicit **HIPAA BAA**,
+the broadest managed set, or an enterprise compliance portfolio (HIPAA, HITRUST CSF, SOC 1/2/3, PCI DSS, ISO
+27001). Sign the **BAA before any PHI enters** the environment.
 
-**DigitalOcean Bangalore** — budget / non-PHI workloads only (dev/staging, non-sensitive services). Fewer healthcare-specific compliance certifications; do not store PHI here.
+**Sovereign tier — E2E Networks / Yotta (Yntraa).** Graduate here when a deal needs an **India-sovereign,
+non-hyperscaler** posture, GovCloud, or MeitY/STQC + Tier-IV (public-sector/CGHS).
 
-> Sign a **Business Associate Agreement (BAA)** with your chosen provider before any PHI enters the environment. Both AWS and Azure offer BAAs. Obtain it before go-live.
+> Pin everything to an India region; keep all logs in India (180 days); sign a **DPA/BAA** with the chosen
+> provider before any PHI enters the environment. The provider choice is deferred — the portability rule keeps
+> switching cheap.
 
 ---
 
@@ -270,7 +280,7 @@ Correlation IDs propagated across gRPC calls, Kafka events, and the edge sync bo
 5. **Redis** — mature, battle-tested, HIPAA-eligible in enterprise configuration; RSALv2 license is permissible for internal product use.
 6. **HashiCorp Vault** — industry standard for secrets management in healthcare; BSL license is permissible for internal use; not competing with HashiCorp.
 7. **Cloudflare** for WAF/DDoS.
-8. **AWS Mumbai** (primary) · **Azure India** (compliance tier) · **DigitalOcean Bangalore** (non-PHI / budget). India-region data residency satisfied on all three. Sign a BAA with the chosen provider before PHI enters the environment.
+8. **Provider-agnostic managed hosting, India-region** — start on **DO Bangalore / Fly.io Mumbai**; graduate to **AWS Mumbai / Azure India** (HIPAA BAA) or **E2E / Yotta** (sovereign) per contract. Stack kept portable (K8s + Postgres + S3 API) so the provider is a swap, not a rewrite; final provider TBD (see ADR-004). Sign a BAA with the chosen provider before PHI enters the environment.
 9. **Nx monorepo** — polyglot (Java + Go + TypeScript) with dependency graph.
 10. **Terraform** — BSL license is permissible for internal infrastructure management; not competing with HashiCorp.
 

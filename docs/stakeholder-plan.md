@@ -13,7 +13,7 @@ detailed docs and ends with the decisions we need signed off. **No code is writt
 | [compliance-matrix.md](compliance-matrix.md) | Mandatory-vs-incentivized compliance |
 | [tech-stack.md](tech-stack.md) | Decisive technology stack |
 | [technical-architecture.md](technical-architecture.md) | Microservices design, data, security, observability |
-| [hosting-india.md](hosting-india.md) | India-only hosting decision |
+| [hosting-india.md](hosting-india.md) | India-region hosting decision (provider-agnostic managed) |
 
 ---
 
@@ -25,7 +25,8 @@ NABL, ABDM and DPDP. We win the **Tier 2/3 standalone and small-chain lab** with
 transparently-priced, ABDM/NABL-ready** product with **compliant B2B revenue management + referral analytics +
 doctor engagement** (no illegal commission tooling — paying referral cuts is prohibited; see
 [compliance-anti-kickback.md](compliance-anti-kickback.md)). Built as **microservices on PostgreSQL**, **hosted
-on an India-sovereign cloud (no hyperscaler)**, with **security and observability from day one**.
+on a provider-agnostic managed, India-region cloud** (portable — the provider is a swap, not a rewrite), with
+**security and observability from day one**.
 
 ---
 
@@ -100,15 +101,18 @@ on an India-sovereign cloud (no hyperscaler)**, with **security and observabilit
 ## 7. Technology & hosting (summary — detail in tech-stack.md / hosting-india.md)
 
 - **Architecture:** right-sized **microservices** (DDD bounded contexts, ~10 at MVP), database-per-service,
-  events (Kafka) + sagas (Temporal), **offline-first edge** at each branch.
+  events (Kafka) + sagas (**Spring State Machine + Kafka choreography**), **offline-first edge** at each branch.
 - **Database:** **PostgreSQL** everywhere (JSONB for flexible/FHIR data) — **not MongoDB** (rationale in
-  tech-stack.md; also, Mongo Atlas in India runs on excluded hyperscalers).
-- **Backend:** **NestJS (TypeScript)** *or* **Java/Spring Boot** — open decision (§9); **Go** for the device
-  gateway + sync engine.
+  tech-stack.md).
+- **Backend:** **Java 21 + Spring Boot 3** (team expertise, richest FHIR/HL7 + enterprise durability); **Go**
+  for the device gateway + sync engine. **TypeScript is frontend/mobile only** — contract-first
+  OpenAPI/gRPC schemas generate typed clients across the boundary.
 - **Frontend:** **React + TypeScript** PWA (offline counter app) + **React Native** (patient/phlebotomist).
-- **Security & observability from day 1:** Keycloak/OPA/Vault/Linkerd; OpenTelemetry → Grafana LGTM + Sentry.
-- **Hosting (India only, no hyperscaler):** **E2E Networks** (primary) or **Yotta** (compliance/enterprise);
-  managed Postgres/K8s/object-store from the CSP, self-host Keycloak/Temporal/observability on managed K8s.
+- **Security & observability from day 1:** Keycloak/OPA/Vault/Istio; OpenTelemetry → Grafana LGTM + Sentry.
+- **Hosting (provider-agnostic managed, India-region):** start on **DigitalOcean Bangalore / Fly.io Mumbai**
+  (cheap/fast); graduate per contract to **AWS Mumbai / Azure India** (HIPAA BAA) or **E2E / Yotta**
+  (sovereign). Managed Postgres/K8s/object-store from the CSP, self-host Keycloak/Vault/observability on
+  managed K8s. Stack kept portable so the provider is a swap, not a rewrite; final provider TBD.
 
 ---
 
@@ -119,11 +123,12 @@ on an India-sovereign cloud (no hyperscaler)**, with **security and observabilit
 - **Phase 0 — Foundation (~3–4 weeks):** monorepo + service template (security + observability preloaded),
   CSP accounts, K8s, CI/CD with scans, edge-node + sync skeleton. *No features until the golden path exists.*
 - **Suggested initial team:** 1 tech lead/architect, 3–4 backend, 2 frontend, 1 mobile, 1 platform/SRE (owns
-  the self-hosted Kafka/Temporal/observability), 1 QA, 1 product, plus design and a compliance advisor
+  the self-hosted Kafka/observability), 1 QA, 1 product, plus design and a compliance advisor
   (NABL/DPDP/ABDM) part-time.
 - **Indicative timeline:** MVP usable ~4 months, V1 ~8 months, V2 ~14 months (team-size dependent).
-- **Indicative infra cost:** modest on an Indian CSP at pilot scale (transparent INR pricing on E2E); the
-  larger early cost is **engineering**, plus a **platform/SRE owner** for self-hosted components.
+- **Indicative infra cost:** modest at pilot scale on the start-tier provider (DigitalOcean Bangalore /
+  Fly.io Mumbai); the larger early cost is **engineering**, plus a **platform/SRE owner** for self-hosted
+  components.
 
 ---
 
@@ -131,9 +136,11 @@ on an India-sovereign cloud (no hyperscaler)**, with **security and observabilit
 
 1. **Beachhead segment** — Tier 2/3 standalone & small chains *(recommended)*.
 2. **MVP wedge** — Core LIS + billing + delivery first; B2B & Partner management in V1 *(recommended)*.
-3. **Backend language** — **NestJS/TypeScript** (single language FE+BE, fastest India hiring) vs **Java/Spring
-   Boot** (max FHIR/HL7 + enterprise durability). **Needs a decision — it sets hiring.**
-4. **Hosting provider** — **E2E Networks** *(recommended)* vs **Yotta** (if HIPAA/GovCloud/fuller HA needed).
+3. **Backend language** — **LOCKED: Java 21 + Spring Boot 3** (team expertise, richest FHIR/HL7 + enterprise
+   durability); Go for the device gateway + sync engine; TypeScript frontend/mobile only. *Confirm for hiring.*
+4. **Hosting posture** — **LOCKED: provider-agnostic managed, India-region** — start on **DigitalOcean
+   Bangalore / Fly.io Mumbai**; graduate to **AWS Mumbai / Azure India** (HIPAA BAA) or **E2E / Yotta**
+   (sovereign) per contract. *The specific start provider is the remaining open call (founders, within days).*
 5. **Compliance ambition for V2** — ABDM HIP certification (unlocks ₹15/txn) timing and whether to pursue
    government/CGHS contracts (drives MeitY-empanelled CSP choice).
 6. **Database** — **PostgreSQL confirmed** (MongoDB not adopted) — confirm.
@@ -145,8 +152,8 @@ on an India-sovereign cloud (no hyperscaler)**, with **security and observabilit
 | Risk | Mitigation |
 |---|---|
 | Offline-sync complexity (esp. money records) | Favor append-only flows; domain reconciliation for billing; chaos-test sync |
-| Self-hosting Kafka/Temporal/observability toil | Dedicated platform/SRE owner; prefer E2E's managed Kafka/Redis where possible |
-| Indian CSP DBaaS HA maturity varies | POC failover + PITR before committing; Yotta for stronger HA/SLA |
+| Self-hosting Kafka/observability toil | Dedicated platform/SRE owner; prefer the provider's managed Kafka/Redis where possible |
+| Managed-DBaaS HA maturity varies by provider | POC failover + PITR before committing; graduate to AWS/Azure or Yotta for stronger HA/SLA |
 | ABDM certification lead time (sandbox→WASA→NHA) | Start the Interop track early in V2 |
 | D2C aggregators pressure customers' footfall | Ship the patient-experience toolkit in V1 to help labs defend |
 | Scope creep on an "all-in-one" vision | Strict MVP→V1→V2 gating; each module maps to a validated pain point |
@@ -172,5 +179,5 @@ on an India-sovereign cloud (no hyperscaler)**, with **security and observabilit
 | | Clinical / NABL advisor | | |
 | | Pilot lab (end user) | | |
 
-*On sign-off of §9, we proceed to build-planning (finalize language/provider, detailed data models, sprint
-plan) — then Phase 0 foundation, then MVP.*
+*On sign-off of §9, we proceed to build-planning (confirm the start-tier provider, detailed data models,
+sprint plan) — then Phase 0 foundation, then MVP.*

@@ -57,7 +57,7 @@ reports computerized but absent from the doctor's EMR — gaps that multiply int
 shifting to platforms that **unify the whole workflow**, and the **integrated segment already holds the largest revenue share**.
 MediCircle is built exactly for this: **each provider runs day-to-day operations in one place**, and the **connected circle**
 (doctor ⇄ lab ⇄ pharmacy ⇄ home-care ⇄ patient, now + clinic & hospital) removes the hand-offs between them — on an
-**ABDM-native, sovereign, anti-kickback-clean** foundation.
+**ABDM-native, India-region, anti-kickback-clean** foundation.
 
 ## 5. Where MediCircle wins (differentiation)
 - **Truly all-in-one across the circle** — not a single-provider tool: lab (deep, offline-first) + clinic + hospital HIS +

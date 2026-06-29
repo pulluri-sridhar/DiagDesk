@@ -19,11 +19,11 @@ relational store, a document store, or both.
 - **SQL** for MIS/analytics (joins, window functions, BI tooling).
 - **JSONB** covers the "flexible schema" need (FHIR resources, device payloads, templates) **without** giving
   up relational guarantees — so a separate document store is unnecessary.
-- **Practical:** MongoDB Atlas's India region runs on **excluded hyperscalers** (ADR-004); self-hosting Mongo
-  HA would be pure ops toil, whereas managed Postgres is available from E2E/Yotta/Jio/ESDS.
+- **Practical:** self-hosting Mongo HA would be pure ops toil, whereas managed Postgres (HA + PITR) is
+  available India-region on every candidate provider (ADR-004) — DigitalOcean/Fly, AWS/Azure, and E2E/Yotta.
 - Database-per-service; standardize on Postgres to minimize a small team's operational surface. A document
   store is reconsidered only if a specific future bounded context proves it (and even then, Postgres JSONB or
-  object storage is preferred under the no-hyperscaler constraint).
+  object storage is preferred to keep the stack portable).
 
 ## Consequences
 - **Positive:** strong consistency for money/PHI; native tenant isolation; one operational datastore; flexible

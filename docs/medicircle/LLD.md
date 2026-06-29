@@ -14,7 +14,9 @@ grows. Companion to [HLD.md](HLD.md), [data-model.md](data-model.md) and the can
 | **Related** | [HLD.md](HLD.md) · [data-model.md](data-model.md) · [microservices.md](microservices.md) · [../medicircle-reconciliation.md](../medicircle-reconciliation.md) |
 
 > **Reconciled decisions baked in** (see [reconciliation §3](../medicircle-reconciliation.md)):
-> India-sovereign hosting (no hyperscaler) · **integer paise** money (`bigint`, currency `INR`) · **UUIDv7**
+> Java 21 + Spring Boot 3 backend (Go at the lab edge; TypeScript FE/mobile only) · provider-agnostic managed
+> hosting, India-region (start DO Bangalore / Fly.io Mumbai; graduate to AWS Mumbai / Azure India (BAA) or E2E /
+> Yotta (sovereign) per contract) · **integer paise** money (`bigint`, currency `INR`) · **UUIDv7**
 > (time-sortable) IDs · transactional outbox + idempotency keys · **Keycloak OIDC** + RBAC + org-scope + RLS ·
 > DPDP + ABDM/ABHA + FHIR R4 · **AI assistive-only with mandatory doctor sign-off**.
 >
@@ -34,26 +36,27 @@ Every service — whether an independent lab-node microservice or a bounded-cont
 monolith — follows the same **hexagonal** shape:
 
 ```
-Controller (HTTP/WS, DTO validation)  ─►  Service / use-case (transactions, sagas)
+Controller (REST/gRPC/WS, DTO validation)  ─►  Service / use-case (transactions, sagas)
         │                                      │
         ▼                                      ▼
-  Guards / Policies (RBAC + org-scope)     Repository (Prisma/TypeORM)  ─►  Postgres (RLS)
+  Filters / Policies (RBAC + org-scope)    Repository (Spring Data JPA / jOOQ)  ─►  Postgres (RLS)
         │                                      │
         ▼                                      ▼
    OpenAPI schema                        Domain events  ─►  Outbox  ─►  bus
-                                          (lab: Kafka · connective: BullMQ)
+                                          (Kafka; connective layer also uses Spring events)
 ```
 
 **Cross-cutting conventions (every service):**
 
-- **DTO validation:** request/response DTOs validated with `class-validator` / `zod`; never trust client input.
-  Errors are typed domain errors → **RFC-7807** `application/problem+json` at the edge.
+- **DTO validation:** request/response DTOs validated with Bean Validation (`jakarta.validation`); never trust
+  client input. Errors are typed domain errors → **RFC-7807** `application/problem+json` at the edge.
 - **IDs & tenancy:** **UUIDv7** PKs (edge-safe, time-sortable). `org_id` / `branch_id` derived from the verified
   Keycloak JWT → `SET app.org_id` → **Postgres RLS** on every query. No cross-org read without an explicit
   consent grant.
 - **Transactional outbox:** domain events are written in the **same DB transaction** as the state change, then
-  relayed to the bus (Kafka at the lab core, BullMQ in the connective layer). Guarantees at-least-once side
-  effects with exactly-once *transition* semantics (dedup on `outbox_event.id`).
+  relayed to the bus (Kafka at the lab core and for connective-layer choreography; in-process Spring events
+  inside the monolith). Guarantees at-least-once side effects with exactly-once *transition* semantics (dedup on
+  `outbox_event.id`).
 - **Idempotency:** all mutating endpoints accept an `Idempotency-Key` header; the key + request hash is persisted
   and replays return the original response. Payment/provider webhooks additionally dedupe on the **provider event
   id**.
@@ -243,7 +246,8 @@ Worker(VisitCompleted): Payments → wage payout(ELIGIBLE) for the rendered visi
 
 ## 4. API contract (representative, versioned `/api/v1`)
 
-> Full machine-readable contract lives in `openapi.yaml` (generated from NestJS decorators). Conventions:
+> Full machine-readable contract lives in `openapi.yaml` (contract-first OpenAPI; springdoc generates it from
+> Spring controllers, and typed TypeScript clients are generated for the FE/mobile from the same spec). Conventions:
 > `Authorization: Bearer <jwt>` (Keycloak); pagination `?page&limit` or cursor; errors RFC-7807
 > `application/problem+json`; all mutating endpoints accept `Idempotency-Key`.
 
@@ -508,8 +512,9 @@ reconciliation. • *Owns:* `mv_*` read models. • *Events:* sub domain events.
 **12. Search & Discovery** — OpenSearch index for lab/doctor/test/content discovery + ranking (§5.3).
 • *Owns:* index only. • *Events:* sub catalog/profile changes (index projection).
 
-**13. Notification/Job Workers + Scheduler** — BullMQ consumers + cron: reports pipeline, AI analysis, **wage/B2B
-payouts**, delivery dispatch, OCR, **expiry scans**, statements, follow-up reminders.
+**13. Notification/Job Workers + Scheduler** — Kafka consumers + scheduled jobs (Spring `@Scheduled`/ShedLock):
+reports pipeline, AI analysis, **wage/B2B payouts**, delivery dispatch, OCR, **expiry scans**, statements,
+follow-up reminders.
 • *Owns:* —. • *Events:* sub `report.ready`, `visit.completed`, etc.
 
 ### B. Lab node (DiagDesk) — offline-first edge + microservices
@@ -683,8 +688,8 @@ B2BAccount 1─* Invoice 1─* InvoiceItem ; B2BAccount 1─0..1 Settlement (Pay
 - Cache reference-range and brand↔composition lookups (read-mostly).
 - **Materialised referral analytics read-models** for doctor dashboards — **counts/conversion only, no money**.
 - Cursor pagination on orders / notifications / visits; covering indexes (see data-model §indexes).
-- Presigned **S3-compatible** (sovereign) URLs for report/prescription media — never proxy large files through
-  the API.
+- Presigned **S3-compatible** (provider-agnostic, India-region) URLs for report/prescription media — never proxy
+  large files through the API.
 - Home-visit live location streamed over WebSocket; matching pool queries use geo (PostGIS / OLA Maps) indexes.
 
 ---

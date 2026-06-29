@@ -15,14 +15,14 @@ counter during internet outages, and is low-friction for patients.
 ## Decision
 
 ### 1. Identity provider — **Keycloak (self-hosted)**
-- Self-hosted on the India K8s cluster → identity data stays **India-resident** with no hyperscaler/SaaS-IdP
-  dependency (Auth0/Cognito are excluded — they run on excluded clouds).
+- Self-hosted on the India-region K8s cluster → identity data stays **India-resident** with no external
+  SaaS-IdP dependency, and remains **portable across providers** (no managed Auth0/Cognito lock-in).
 - Protocols: **OpenID Connect / OAuth 2.0**.
 
 ### 2. Flows per client
 - **Web (counter/admin/patient/doctor portals):** OIDC **Authorization Code + PKCE** (no browser secrets).
 - **Mobile apps:** Authorization Code + PKCE (native).
-- **Service-to-service:** **mTLS** (Linkerd) + OAuth2 **client-credentials**.
+- **Service-to-service:** **mTLS** (Istio) + OAuth2 **client-credentials**.
 - **Public / B2B APIs:** OAuth2 client-credentials / API keys with per-key quotas.
 
 ### 3. Tokens & session

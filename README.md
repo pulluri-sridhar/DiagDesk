@@ -49,7 +49,7 @@ DiagDesk ships first; MediCircle is the program it grows into.
 | [docs/analytics-insights.md](docs/analytics-insights.md) | Revenue/ops/growth insights: dashboards, referral & geographic analytics, trends |
 | [docs/adr/](docs/adr/README.md) | **Architecture Decision Records** — auth, multi-tenancy/RLS, offline-sync, hosting, database, language, anti-kickback, granular RBAC, MediCircle, compliant referral economics |
 | [docs/design/](docs/design/HLD.md) | **Design package** — HLD, LLD, data-model (ERD + dictionary), scalability, capacity & load testing, diagrams, and a rich Design-Document PDF |
-| [docs/hosting-india.md](docs/hosting-india.md) | India-only hosting decision (no hyperscaler): provider evaluation + DPDP/CERT-In/MeitY basis |
+| [docs/hosting-india.md](docs/hosting-india.md) | India-region hosting decision (provider-agnostic managed): provider evaluation + DPDP/CERT-In/MeitY basis |
 | [design-system/](design-system/README.md) | **Design system** — single source of truth: multi-brand (DiagDesk/MediCircle) design tokens → Tailwind + CSS vars + RN theme; component standards |
 | [docs/brochures/](docs/brochures/) | Visually rich **stakeholder** & **technical** brochure PDFs |
 | [docs/mockups/](docs/mockups/) | Rendered DiagDesk UI mockups (portal + mobile apps) |
@@ -57,8 +57,10 @@ DiagDesk ships first; MediCircle is the program it grows into.
 ## Decisions locked (see [docs/adr/](docs/adr/README.md))
 
 Authentication (Keycloak OIDC + OTP/passkeys/biometric) · multi-tenancy (db-per-service + `tenant_id` + Postgres
-RLS) · offline-first sync · **hosting** (India-sovereign, no hyperscaler — E2E/Yotta) · **database** (PostgreSQL,
-not MongoDB) · backend language (NestJS + Go) · **anti-kickback** (no referral-commission tooling) · granular
+RLS) · offline-first sync · **hosting** (provider-agnostic managed, India-region — start on DigitalOcean
+Bangalore / Fly.io Mumbai; graduate to AWS Mumbai / Azure India or E2E / Yotta per contract) · **database**
+(PostgreSQL, not MongoDB) · backend language (Java 21 + Spring Boot 3, Go for edge; TypeScript frontend/mobile
+only) · **anti-kickback** (no referral-commission tooling) · granular
 owner-defined RBAC · compliant referral economics · **MediCircle** platform direction (V3).
 
 ## Open strategic decisions

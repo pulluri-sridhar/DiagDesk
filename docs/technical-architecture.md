@@ -38,7 +38,7 @@ graph TB
     Doctor[Referring doctor / B2B]
     Admin[Lab owner / admin]
   end
-  subgraph DiagDesk[DiagDesk Platform - India Sovereign Cloud]
+  subgraph DiagDesk[DiagDesk Platform - India-region Managed Cloud]
     GW[API Gateway]
     SVC[Microservices]
     Edge[Branch Edge Nodes - offline-first]
@@ -93,7 +93,7 @@ module inside a neighboring service and split out when justified.
 | **B2B & Partner Billing** | Institutional rate contracts, B2B credit ledger & receivables aging, reference-lab outsourcing, referral-source analytics (no payouts — anti-kickback compliant) | V1 |
 | **Quality & Compliance** | NABL QC, L-J charts, Westgard, IQC/EQAS, rejection tracking | V1 |
 | **Inventory** | Reagents/consumables, expiry alerts, auto-reorder | V1 |
-| **Booking & Home-Collection** | Scheduling, phlebotomist assignment + routing (Temporal) | V1 |
+| **Booking & Home-Collection** | Scheduling, phlebotomist assignment + routing (Spring State Machine) | V1 |
 | **MIS / Analytics** | CQRS read models: TAT, QC, revenue dashboards | V1 |
 | **Interop (ABDM HIP)** | ABHA linking, FHIR care-context, NHCX claims | V2 |
 | **Radiology (RIS)** | Modality worklist, structured reporting, PACS/DICOM | V2 |
@@ -106,7 +106,7 @@ graph LR
     ESync[Sync Agent - Go]
     EDev[Device Gateway - Go]
   end
-  subgraph Cloud[Cloud - India Sovereign CSP - Managed K8s]
+  subgraph Cloud[Cloud - India-region Managed CSP - Managed K8s]
     KONG[Kong API Gateway]
     IAM[Identity & Access]
     TEN[Tenant & Org]
@@ -147,8 +147,9 @@ graph LR
 - **Multi-tenancy:** every tenant-scoped table carries `tenant_id`; **RLS policies** filter by the
   `tenant_id` set from the verified JWT claim (`SET app.tenant_id`). Branch scoping via `branch_id`.
 - **Consistency across services:** **transactional outbox** + **Debezium CDC** → Kafka. Eventual consistency
-  by default; **Saga** (orchestrated in Temporal for complex flows like order→billing→report, choreographed
-  via events for simple ones). **Idempotency keys** on all state-changing endpoints and consumers.
+  by default; **Saga** via **Spring State Machine** (a state machine per service for flows like
+  order→billing→report) with **Kafka choreography** carrying state changes between services. **Idempotency
+  keys** (ULID/UUIDv7) on all state-changing endpoints and consumers make transitions safe to replay.
 - **CQRS read models:** MIS/Analytics builds denormalized projections from events for fast dashboards
   (TAT/QC/revenue) without burdening write services.
 - **Audit log:** append-only, **hash-chained** (each row references prior hash) for tamper evidence — serves
@@ -229,7 +230,7 @@ sequenceDiagram
 | **AuthN** | Keycloak OIDC; short-lived JWT access + rotating refresh; MFA for staff/admin |
 | **AuthZ** | RBAC (roles) + **OPA/ABAC** policies (externalized) + **Postgres RLS** as the last line of tenant isolation |
 | **Tenant isolation** | Verified `tenant_id`/`branch_id` claims propagated gateway → service → DB (RLS); defense in depth |
-| **Transport** | TLS 1.3 everywhere; **mTLS between services** via Linkerd |
+| **Transport** | TLS 1.3 everywhere; **mTLS between services** via Istio |
 | **Data at rest** | Disk/volume encryption; **column-level/field encryption** for PHI/PII (Tink or `pgcrypto`); key mgmt in **Vault** |
 | **Secrets** | Vault dynamic secrets; no secrets in env files or images |
 | **Edge / network** | Zero-trust, private subnets, **WAF** at the edge (Kong/Cloudflare); branch nodes hold minimal data, encrypted, remotely revocable |
@@ -261,18 +262,22 @@ sequenceDiagram
 
 ## 9. Infrastructure & delivery
 
-> Hosting is **India-only, no hyperscaler** — see [hosting-india.md](hosting-india.md) for the provider
-> evaluation and compliance basis. Recommended: **E2E Networks** (primary) or **Yotta/Yntraa** (compliance/
-> enterprise tier).
+> Hosting is **provider-agnostic managed, India-region** — see [hosting-india.md](hosting-india.md) and
+> [ADR-004](adr/004-hosting-and-data-residency.md) for the provider evaluation and compliance basis. Start on
+> **DigitalOcean Bangalore / Fly.io Mumbai** (cheap/fast); graduate per contract to **AWS Mumbai / Azure
+> India** (explicit HIPAA BAA, broadest managed set) or **E2E Networks / Yotta** (India-sovereign / GovCloud /
+> MeitY-STQC tier). The architecture is kept portable so the provider is a swap, not a rewrite; the final
+> provider is an open decision (TBD).
 
-- **Cloud/region:** **India-sovereign, MeitY-empanelled CSP** (E2E Networks default; Yotta/ESDS/Jio
-  alternatives), pinned to an India region for DPDP residency + CERT-In in-India logs.
+- **Cloud/region:** **provider-agnostic managed CSP, India-region** (start on DigitalOcean Bangalore / Fly.io
+  Mumbai; graduate to AWS Mumbai / Azure India or E2E / Yotta per contract), pinned to an India region for
+  DPDP residency + CERT-In in-India logs.
 - **Compute:** **CSP-managed Kubernetes** in cloud; **k3s** on branch edge nodes.
-- **Managed from the CSP:** **managed PostgreSQL** (per service); **S3-compatible object storage** (E2E EOS /
-  Yotta S3) + **MinIO** at edge; on **E2E/Jio** also **managed Kafka** and **managed Redis/Valkey**.
-- **Self-hosted on the managed K8s** (no India-resident managed option without a hyperscaler):
-  **Keycloak, Temporal, Vault**, the **Grafana/Loki/Tempo/Mimir** observability stack, and **Kafka/Redis**
-  where the CSP doesn't manage them. **OpenSearch** self-hosted for search.
+- **Managed from the CSP:** **managed PostgreSQL** (per service); **S3-compatible object storage** + **MinIO**
+  at edge; **managed Kafka** and **managed Redis/Valkey** where the provider offers them.
+- **Self-hosted on the managed K8s** (portable across providers): **Keycloak, Vault**, the
+  **Grafana/Loki/Tempo/Mimir** observability stack, and **Kafka/Redis** where the CSP doesn't manage them.
+  **OpenSearch** self-hosted for search.
 - **IaC:** **Terraform** (CSP provider/API). **GitOps:** **ArgoCD**. **CI/CD:** **GitHub Actions**
   (build → test → scan → sign → deploy), trunk-based with feature flags.
 - **Repo:** **Nx monorepo** holding shared OpenAPI/AsyncAPI/proto contracts, the service template, and shared
@@ -300,7 +305,7 @@ sequenceDiagram
    Kafka, OTel→Grafana, CI/CD with security scans, edge-node + Sync Engine skeleton.
 2. **MVP services:** Identity, Tenant, Patient, Catalog/Rate-Card, Order/Workflow (+sample), Result,
    Device Gateway, Reporting, Billing, Notification, Audit/Consent — all offline-capable at the edge.
-3. **V1:** B2B & Partner Billing, Quality & Compliance, Inventory, Booking & Home-Collection (Temporal), MIS.
+3. **V1:** B2B & Partner Billing, Quality & Compliance, Inventory, Booking & Home-Collection (Spring State Machine), MIS.
 4. **V2:** Interop (ABDM HIP/FHIR/NHCX), Radiology (RIS) + PACS/DICOM.
 
 ---
@@ -311,15 +316,20 @@ sequenceDiagram
 - **Distributed-transaction sprawl** → prefer events + sagas; reserve synchronous chains for true read needs.
 - **Offline sync on money records** → domain reconciliation, never blind LWW for billing.
 - **ABDM certification lead time** (sandbox → WASA → NHA) → start the Interop track early in V2.
-- **Operating a full self-hosted platform** (Kafka, Keycloak, Vault, Temporal, LGTM) is real toil for a small
-  team → consider managed equivalents (Grafana Cloud, Redpanda Cloud, Temporal Cloud) **in an India region**
+- **Operating a full self-hosted platform** (Kafka, Keycloak, Vault, LGTM) is real toil for a small
+  team → prefer the provider's managed equivalents (managed Kafka/Redis, Grafana Cloud) **in an India region**
   where residency allows, trading cost for ops time.
 
 ---
 
 ## 13. Decisions to confirm
 
-1. **Primary backend language** — Java/Spring Boot (recommended) vs NestJS (if JS-first team).
-2. **Cloud** — AWS Mumbai (default) vs Azure Central India vs India-sovereign DC.
-3. **Managed vs self-hosted** platform components (Kafka/Keycloak/Temporal/observability) — cost vs ops toil.
-4. **Repo strategy** — Nx monorepo (recommended for a small team) vs polyrepo.
+1. **Hosting provider** — locked posture is **provider-agnostic managed, India-region** (start on DigitalOcean
+   Bangalore / Fly.io Mumbai; graduate to AWS Mumbai / Azure India or E2E / Yotta per contract). The specific
+   start provider is an open decision (TBD, founders decide within days) — see [ADR-004](adr/004-hosting-and-data-residency.md).
+2. **Managed vs self-hosted** platform components (Kafka/Keycloak/Vault/observability) — cost vs ops toil.
+3. **Repo strategy** — Nx monorepo (recommended for a small team) vs polyrepo.
+
+> **Locked (no longer open):** primary backend is **Java 21 + Spring Boot 3** (Go for the Device Gateway +
+> Sync Engine; TypeScript frontend/mobile only) — [ADR-006](adr/006-backend-language.md); sagas via **Spring
+> State Machine + Kafka choreography** (no Temporal); service mesh is **Istio**.

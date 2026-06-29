@@ -131,8 +131,8 @@ team**, **parallel** to the SMB R1–R3 releases and **not blocking** the labs/c
 go-to-market. The **Clinic edition** lands on the SMB track (**~R2**); the HIS is additive on top. Every hospital
 can run the **full MediCircle HIS** **or** keep its existing HIS and connect via **HL7/FHIR** (orders/results/
 records). The in-house **LIS is the DiagDesk lab node**; **RIS/PACS** (V2) is the in-house radiology. Conventions
-carry over unchanged: **sovereign-hosted, no commission, integer-paise money, AI assistive-only with clinician
-sign-off, full audit on CPOE/eMAR**. See [clinic-hospital-his.md](clinic-hospital-his.md) §2/§7 and features §23.
+carry over unchanged: **provider-agnostic managed hosting (India-region), no commission, integer-paise money, AI
+assistive-only with clinician sign-off, full audit on CPOE/eMAR**. See [clinic-hospital-his.md](clinic-hospital-his.md) §2/§7 and features §23.
 
 **Sequence (Enterprise / "R4+"):**
 1. **ADT / bed & ward** — registration/UHID, admission–discharge–transfer, encounter spine, real-time bed

@@ -79,7 +79,7 @@ register → collect → run (analyzer) → validate → report (WhatsApp) → b
 ## V3 (north star) — "MediCircle ecosystem"
 
 Connect **Doctors · Pharmacies · Diagnostic Centers · Home-Care** around a consented patient record, with
-DiagDesk as node 1, built on the same India-sovereign, consent-first, **anti-kickback-clean** foundation. Begins
+DiagDesk as node 1, built on the same India-region (provider-agnostic managed), consent-first, **anti-kickback-clean** foundation. Begins
 only once DiagDesk is a clear category winner. See [medicircle-vision.md](medicircle-vision.md) and
 [ADR-009](adr/009-medicircle-platform-direction.md).
 

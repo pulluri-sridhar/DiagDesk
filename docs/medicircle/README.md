@@ -11,9 +11,11 @@ package brings the rest of the program to the same documentation depth, **reconc
 > **Phase:** design / planning — no application code. These docs live in the DiagDesk repo for now (this session's
 > scope); they relocate to the `medicircle` repo at build-start (~July 2026).
 >
-> **Locked decisions reflected throughout:** India-sovereign hosting (no hyperscaler) · **no commission engine**
-> (compliant economics only) · Keycloak OIDC · **integer paise** money · UUIDv7 · transactional outbox · DPDP +
-> ABDM/ABHA + FHIR R4 · AI assistive-only with mandatory doctor sign-off · hybrid edge+cloud architecture.
+> **Locked decisions reflected throughout:** Java 21 + Spring Boot 3 backend (Go at the lab edge; TypeScript
+> FE/mobile only) · provider-agnostic managed hosting, India-region (start DO Bangalore / Fly.io Mumbai; graduate
+> to AWS Mumbai / Azure India (BAA) or E2E / Yotta (sovereign) per contract) · **no commission engine** (compliant
+> economics only) · Keycloak OIDC · **integer paise** money · UUIDv7 · transactional outbox · DPDP + ABDM/ABHA +
+> FHIR R4 · AI assistive-only with mandatory doctor sign-off · hybrid edge+cloud architecture.
 
 ---
 
@@ -25,7 +27,7 @@ package brings the rest of the program to the same documentation depth, **reconc
 | [HLD.md](HLD.md) | High-Level Design — principles, NFRs, C4 context/container, service catalogue, core flows, data/integration/security/deployment/observability/scalability |
 | [LLD.md](LLD.md) | Low-Level Design — backend layering, state machines, sequences, API contract, key algorithms, per-service internals |
 | [data-model.md](data-model.md) | Full PostgreSQL data dictionary (~58 tables) + relationships + ERD; integer paise, UUIDv7, RLS; **no commission tables** |
-| [tech-stack.md](tech-stack.md) | Program-wide tech stack (all five sides) — sovereign, supersedes the prior AWS-based MediCircle stack |
+| [tech-stack.md](tech-stack.md) | Program-wide tech stack (all five sides) — Java/Spring Boot, provider-agnostic India-region; supersedes the prior AWS-based MediCircle stack |
 | [features.md](features.md) | Full feature catalogue per participant, phase-tagged R1/R2/R3 |
 | [roadmap.md](roadmap.md) | R1 (Jul–Sep 2026) → R2 → R3 phased delivery; DiagDesk lab node ships first |
 | [compliance.md](compliance.md) | Market research + India 2026 regulatory constraints (NMC anti-kickback, e-pharmacy, telemedicine, DPDP, ABDM) + **platform-operator credentials & a pre-launch checklist** (§7) |
