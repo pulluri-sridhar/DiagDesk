@@ -62,5 +62,25 @@ demand an explicit **HIPAA BAA**.
 - **Costs/risks:** must keep the stack genuinely portable (avoid provider-proprietary lock-in beyond managed
   Postgres/K8s/S3); self-host Keycloak/Vault/observability → a platform/SRE owner is required; the final
   provider choice is deferred (decision owner: founders, within days).
-- **Revisit when:** the provider is chosen (record it as a short follow-up note here), a contract mandates
-  HIPAA/GovCloud, or a DPDP notification restricts health-data transfer further.
+- **Revisit when:** a contract mandates HIPAA/GovCloud, or a DPDP notification restricts health-data transfer
+  further. *(The "which provider to start on" follow-up is now resolved — see the decision update below.)*
+
+---
+
+## Decision update — 2026-06-29: start-tier provider = **DigitalOcean Bangalore**
+
+The deferred start-tier choice is made: **DigitalOcean, Bangalore (BLR1) region.** Use **managed Postgres (HA +
+PITR) + DOKS (managed Kubernetes) + managed Redis + Spaces (S3-compatible)**, all pinned to BLR1; self-host
+Keycloak/Vault/Grafana-LGTM on DOKS (also satisfies the CERT-In in-India log rule). **Fly.io Mumbai** was the
+considered alternative — deprioritised because Fly Postgres is unmanaged and would require bolting on an external
+managed Postgres.
+
+This does **not** change the posture: hosting stays **provider-agnostic and portable** (K8s + Postgres + S3 API),
+so DO is the *starting* tier, not a lock-in. The **graduation paths are unchanged** — **AWS Mumbai / Azure India**
+(when a contract needs an explicit HIPAA BAA or the broadest managed set) and **E2E Networks / Yotta** (when a deal
+needs an India-sovereign / GovCloud posture). Provider remains a **swap, not a rewrite**.
+
+**Before pilot on DO:** POC the managed-Postgres **failover (RTO/RPO) + PITR**, confirm **Spaces S3-API
+compatibility** for report PDFs/DICOM, and wire the **6-hr CERT-In / 72-hr DPDP** breach runbook. No BAA is needed
+at this tier for non-PHI pilot workloads; sign a DPA, and a **BAA before any PHI** if/when graduating to a
+hyperscaler tier.

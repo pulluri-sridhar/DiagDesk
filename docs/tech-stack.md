@@ -215,9 +215,9 @@ an open decision (see [ADR-004](adr/004-hosting-and-data-residency.md)); the row
 | Object storage (S3 API) | DO Spaces | S3 · Azure Blob | E2E S3-compatible |
 | Vault, Keycloak, Grafana stack | Self-hosted on K8s | Self-hosted on K8s | Self-hosted on K8s |
 
-**Start tier — DigitalOcean Bangalore / Fly.io Mumbai.** Begin here: fast to stand up, cost-effective, full
-managed Postgres/K8s/Redis/object-store (on Fly, pair app compute with an external managed Postgres). Good for
-pilot/MVP and non-regulated workloads.
+**Start tier — ✅ selected: DigitalOcean Bangalore** (Fly.io Mumbai was the considered alternative). Begin here:
+fast to stand up, cost-effective, full managed **Postgres + DOKS + Redis + Spaces** in the India (BLR1) region.
+Good for pilot/MVP and non-regulated workloads. *(Decision 2026-06-29 — see [ADR-004](adr/004-hosting-and-data-residency.md).)*
 
 **Hyperscaler tier — AWS Mumbai / Azure India.** Graduate here when a contract needs an explicit **HIPAA BAA**,
 the broadest managed set, or an enterprise compliance portfolio (HIPAA, HITRUST CSF, SOC 1/2/3, PCI DSS, ISO
