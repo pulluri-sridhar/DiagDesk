@@ -2,7 +2,7 @@
 
 *Production-ready from day one. Built to scale from a single lab to thousands without rework.*
 *Constraints honored: microservices · PostgreSQL + RLS · API gateway · security & observability from day one ·
-offline-first · India-sovereign hosting · open source first.*
+offline-first · India data residency · best-in-class tools for healthcare.*
 
 > **Last reviewed:** 2026-06-29 · **Status:** LOCKED
 
@@ -21,12 +21,12 @@ offline-first · India-sovereign hosting · open source first.*
 | **API Gateway (north-south)** | **Kong Gateway OSS** | Rate limiting per tenant/user/endpoint, API keys, auth plugin, B2B partner routing — from MVP to scale |
 | **Service mesh (east-west)** | **Istio** | mTLS between all services, circuit breaking, traffic shifting, observability integration; team already knows it |
 | **Database** | **PostgreSQL 16 + RLS** | ACID, multi-tenant row-level security, JSONB for flexible payloads — db-per-service |
-| **Cache / sessions** | **Valkey** | Redis-compatible, BSD-licensed open source fork (Linux Foundation); drop-in, no licensing risk |
-| **Object storage** | **S3 — E2E Networks** | India-sovereign, S3-compatible, no hyperscaler |
+| **Cache / sessions** | **Redis** | Industry standard; battle-tested in healthcare at scale; Redis Enterprise has HIPAA-eligible configurations |
+| **Object storage** | **S3** (AWS / Azure Blob / DO Spaces) | Managed, durable, India-region; report PDFs, DICOM, documents |
 | **Search** | **OpenSearch** | Patient, catalog, and test search at scale; Apache 2.0 |
 | **AuthN** | **Keycloak** | OIDC + OTP (email/SMS/WhatsApp) + passkeys; self-hosted, India-resident |
 | **AuthZ** | **OPA + RBAC + PostgreSQL RLS** | Three-layer defense: gateway enforces roles, OPA evaluates fine-grained ABAC policies, RLS isolates every row by tenant |
-| **Secrets** | **OpenBao** | Open source Vault fork (MPL 2.0, Linux Foundation); dynamic secrets, PHI encryption-as-a-service |
+| **Secrets** | **HashiCorp Vault** | Industry standard for secrets management; dynamic secrets, PHI encryption-as-a-service; widely adopted in healthcare enterprises |
 | **WAF / DDoS / bot** | **Cloudflare** | WAF + DDoS + bot defense; free tier for MVP, Pro/Business for production |
 | **Traces / metrics / logs** | **OpenTelemetry → Grafana stack** | One instrumentation standard; Prometheus (metrics) + Loki (logs) + Tempo (traces) + Grafana (dashboards); self-hosted, India-resident |
 | **Error tracking** | **Sentry** (self-hosted) | Exception tracking + release health; BSL license — internal use free |
@@ -38,9 +38,9 @@ offline-first · India-sovereign hosting · open source first.*
 | **Interop** | **HL7 v2 (HAPI) + FHIR R4 (HAPI FHIR)** | ABDM HIP, analyzer & EHR integration |
 | **Payments** | **Razorpay / PhonePe** | India rails, UPI-first |
 | **Notifications** | **Resend** (email) · **WhatsApp BSP** · **SMS (DLT-registered)** | All behind one Notification service — providers swappable |
-| **Cloud / region** | **E2E Networks** (primary) · **Yotta** (compliance tier) | India-sovereign, MeitY-empanelled, no hyperscaler |
+| **Cloud / region** | **AWS Mumbai** (primary) · **Azure India** (compliance tier) · **DigitalOcean Bangalore** (budget workloads) | India-region data residency (DPDP + CERT-In); HIPAA BAA available on AWS and Azure; mature managed services |
 | **Edge orchestration** | **k3s** | Lightweight K8s at branch edge; runs offline with local Postgres |
-| **Cloud orchestration** | **Managed Kubernetes — E2E Networks** | India-resident managed K8s |
+| **Cloud orchestration** | **Managed Kubernetes** (EKS / AKS / DOKS) | Fully managed, India-region |
 | **IaC** | **Terraform** | BSL license — internal infra use is permitted; team already knows it |
 | **GitOps / CD** | **ArgoCD** | Declarative, Git-driven deployments; Apache 2.0 |
 | **CI** | **GitHub Actions** | Pipelines, supply-chain security scans |
@@ -94,7 +94,7 @@ No other languages introduced without an explicit architectural decision. Protec
 | Reporting / MIS (joins, window functions, BI tools) | Full SQL ecosystem | Aggregation pipeline — weaker BI fit |
 | Flexible payloads (FHIR bundles, device results, audit metadata) | **JSONB** — document flexibility without losing relational guarantees | Native, but you lose the above |
 | Compliance primitives (field encryption, hash-chained audit, PITR) | pgcrypto, RLS, PITR | Bolt-on |
-| India-sovereign managed option (no hyperscaler) | Yes — E2E DBaaS, Yotta SutraDB | MongoDB Atlas runs on AWS/GCP Mumbai — excluded |
+| Managed option with India-region + BAA | Yes — RDS/Aurora (AWS Mumbai), Azure Database for PostgreSQL | MongoDB Atlas India region runs on AWS/GCP; no BAA equivalent for PHI isolation |
 
 **JSONB closes the only real gap.** Store FHIR resources, device payloads, and template definitions as JSONB columns inside Postgres. One operational datastore, minimal ops surface for a small team.
 
@@ -192,29 +192,33 @@ Correlation IDs propagated across gRPC calls, Kafka events, and the edge sync bo
 | **Istio** | mTLS between every service inside the cluster — zero-trust internal network |
 | **OPA** | ABAC policy evaluation — fine-grained authorization externalized from service code |
 | **PostgreSQL RLS** | Tenant isolation enforced at the database layer — last line of defense |
-| **OpenBao** | Dynamic secrets, field-level PHI encryption, secret rotation |
+| **HashiCorp Vault** | Dynamic secrets, field-level PHI encryption, secret rotation |
 | **Semgrep + ZAP + gitleaks** | SAST, DAST, secret scanning in every CI run |
 
 **Compliance:** DPDP consent/retention/breach handling · CERT-In 180-day in-India log retention · hash-chained audit trail · VAPT before go-live.
 
 ---
 
-## India hosting — no hyperscaler
+## India hosting — cloud provider strategy
 
-Independent "India-region" managed services (Aiven, MongoDB Atlas, Redpanda Cloud, Grafana Cloud) all run on AWS/GCP Mumbai under the hood — **excluded by the no-hyperscaler rule**.
+**Data residency requirement:** All PHI and logs must remain in India (DPDP + CERT-In 180-day retention). All three providers have India-region data centers — use India regions exclusively.
 
-| Building block | Provider |
-|---|---|
-| PostgreSQL (managed, HA + PITR) | E2E Networks DBaaS (primary) · Yotta SutraDB (compliance tier) |
-| Kubernetes | E2E Managed K8s (cloud) · k3s (branch edge) |
-| Kafka | E2E Managed Kafka |
-| Valkey (cache) | E2E Managed Valkey |
-| Object storage (S3-compatible) | E2E EOS |
-| Keycloak, OpenBao, Grafana stack | Self-hosted on managed K8s |
+| Building block | AWS Mumbai (primary) | Azure India (compliance tier) | DigitalOcean Bangalore (budget) |
+|---|---|---|---|
+| PostgreSQL (managed, HA + PITR) | RDS / Aurora Postgres | Azure Database for PostgreSQL | Managed Postgres |
+| Kubernetes | EKS | AKS | DOKS |
+| Kafka | MSK (managed Kafka) | Event Hubs (Kafka-compatible) | Self-hosted on K8s |
+| Redis | ElastiCache for Redis | Azure Cache for Redis | Managed Redis |
+| Object storage | S3 | Azure Blob Storage | Spaces |
+| Vault, Keycloak, Grafana stack | Self-hosted on EKS | Self-hosted on AKS | Self-hosted on DOKS |
 
-**Primary:** E2E Networks — most complete non-hyperscaler managed set; transparent INR pricing; NSE-listed; MeitY + STQC empanelled.
+**AWS Mumbai** — primary for most workloads. Broadest managed service set, HIPAA BAA available, signed BAA required before storing PHI. Most mature healthcare compliance posture (HIPAA, HITRUST CSF, SOC 1/2/3, PCI DSS, ISO 27001).
 
-**Compliance tier:** Yotta (Yntraa) — HIPAA attestation, Tier IV, GovCloud; use for regulated or public-sector contracts.
+**Azure India** — compliance / enterprise tier. Use for public-sector or HIPAA-contractual workloads requiring Microsoft's compliance portfolio; strong BAA.
+
+**DigitalOcean Bangalore** — budget / non-PHI workloads only (dev/staging, non-sensitive services). Fewer healthcare-specific compliance certifications; do not store PHI here.
+
+> Sign a **Business Associate Agreement (BAA)** with your chosen provider before any PHI enters the environment. Both AWS and Azure offer BAAs. Obtain it before go-live.
 
 ---
 
@@ -231,13 +235,13 @@ Independent "India-region" managed services (Aiven, MongoDB Atlas, Redpanda Clou
 | Tailwind CSS + shadcn/ui | MIT | Free |
 | React Native (Expo) | MIT | Free |
 | PostgreSQL 16 | PostgreSQL License | Free |
-| Valkey | BSD | Free |
+| Redis | RSALv2 (2024) | Free for internal use; not for resale as a managed service |
 | OpenSearch | Apache 2.0 | Free |
 | Keycloak | Apache 2.0 | Free |
 | OPA (Open Policy Agent) | Apache 2.0 | Free |
 | Kong Gateway OSS | Apache 2.0 | Free |
 | Istio | Apache 2.0 | Free |
-| OpenBao (Vault fork) | MPL 2.0 | Free |
+| HashiCorp Vault | BSL 1.1 (2023) | Free for internal use; not for competing with HashiCorp |
 | Cloudflare | Proprietary | Free tier → paid |
 | OpenTelemetry | Apache 2.0 | Free |
 | Prometheus + Grafana | Apache 2.0 / AGPL | Free (self-hosted) |
@@ -250,11 +254,10 @@ Independent "India-region" managed services (Aiven, MongoDB Atlas, Redpanda Clou
 | ArgoCD | Apache 2.0 | Free |
 | GitHub Actions | Proprietary | Free tier |
 | Trivy + Semgrep + ZAP + gitleaks | Apache 2.0 / LGPL | Free |
-| E2E Networks | Proprietary | Paid (hosting) |
-| Yotta | Proprietary | Paid (compliance tier) |
+| AWS / Azure / DigitalOcean | Proprietary | Paid (hosting — unavoidable) |
 | Razorpay / PhonePe | Proprietary | Transaction fees |
 
-**Only three things require payment:** cloud hosting (E2E Networks — unavoidable), Cloudflare beyond free tier, and payment gateway transaction fees. Every tool in the engineering stack is self-hosted open source.
+**Redis and Vault licensing note:** Both changed licenses (Redis in 2024, Vault in 2023). DiagDesk uses both internally to run its own product — this is permitted under both licenses. The restriction applies only if you were selling Redis or Vault as a managed service to others, which DiagDesk does not do.
 
 ---
 
@@ -264,10 +267,10 @@ Independent "India-region" managed services (Aiven, MongoDB Atlas, Redpanda Clou
 2. **Go** for device gateway and sync engine only — no other services.
 3. **Kafka choreography + Spring State Machine** for sagas — no Temporal.
 4. **Kong (north-south) + Istio (east-west)** — both retained; serve different boundaries; no Kuma.
-5. **Valkey** — not Redis; BSD license, drop-in compatible.
-6. **OpenBao** — not HashiCorp Vault; MPL 2.0, true open source.
-7. **Cloudflare** for WAF/DDoS — replaces AppTrana.
-8. **E2E Networks** (primary) + **Yotta** (compliance tier) — no hyperscaler.
+5. **Redis** — mature, battle-tested, HIPAA-eligible in enterprise configuration; RSALv2 license is permissible for internal product use.
+6. **HashiCorp Vault** — industry standard for secrets management in healthcare; BSL license is permissible for internal use; not competing with HashiCorp.
+7. **Cloudflare** for WAF/DDoS.
+8. **AWS Mumbai** (primary) · **Azure India** (compliance tier) · **DigitalOcean Bangalore** (non-PHI / budget). India-region data residency satisfied on all three. Sign a BAA with the chosen provider before PHI enters the environment.
 9. **Nx monorepo** — polyglot (Java + Go + TypeScript) with dependency graph.
 10. **Terraform** — BSL license is permissible for internal infrastructure management; not competing with HashiCorp.
 
