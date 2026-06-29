@@ -33,12 +33,39 @@ not a finalized policy, and not legal advice.** Final wording must be drafted/re
 | A | **Privacy Notice + granular data-processing consent** (DPDP §5–§7) | Lawful basis to collect/use/share personal & health data | Establish purpose-bound, informed, withdrawable consent | Authorize processing beyond stated purpose; be bundled/pre-ticked |
 | B | **Terms of Service / User Agreement** (per role) | The binding contract to use the portal | Set acceptable use, payments, IP, **limitation of liability (B2B)**, indemnity, dispute resolution | Impose unfair/unconscionable consumer terms; oust the consumer forum |
 | C | **Liability waiver + assumption-of-risk + medical disclaimer** | Events/workshops/**retreats**/camps + any physical/wellness activity; AI-assistive disclaimer | Evidence the user was informed of ordinary risks & disclaimers | Waive death/injury/**gross negligence**/fraud/statutory liability |
-| D | **Marketing consent + cookie/tracking consent** (DPDP + TRAI DLT/TCCCPR) | Promotional SMS/WhatsApp/email + analytics cookies | Separate **opt-in** for promotions; cookie choices | Be assumed/bundled with service consent; default-on for health data |
+| D | **Marketing / promotional consent + cookie/tracking consent** (DPDP + TRAI DLT/TCCCPR) | **Keeping a user/patient record to promote our products & other services**; promotional SMS/WhatsApp/email/push/in-app; analytics cookies | Separate **opt-in** for promotions; per-channel/per-purpose choices; cookie choices | Be **mandatory / a condition of using the portal**; be assumed/bundled with service consent; target children; share health data with ad platforms |
 | E | **Clinical / telemedicine consent** (separate, per-encounter) | Informed consent for tests/procedures/teleconsult | Procedure-specific, recorded consent (*Samira Kohli*; TPG 2020) | Be a one-time blanket consent for all future care |
 | F | **Cross-party data-sharing consent** (per purpose) | Sharing with a specific lab/pharmacy/insurer/another doctor | Per-recipient, per-purpose, revocable authorization | Be a blanket "share with anyone" toggle |
 
 > **Provider side:** providers (doctors/labs/pharmacies/home-care) also sign a **Data Processing Agreement (DPA)** +
 > provider Terms allocating data-fiduciary/processor responsibilities — this is what protects *subscribers* too.
+
+### 2.1 Promotional use of the user/patient record (added requirement)
+
+The portal will keep a record of all users — **subscribers (providers) and patients** — and we want **written consent**
+to use it to **promote our products and other services**. This is the **single highest-risk data use** (it is exactly
+what the FTC penalized in GoodRx/BetterHelp), so it is fenced with its own instrument (D) and these rules:
+
+- **Separate, explicit, opt-in written consent** — a distinct, unticked clickwrap consent (logged: version, timestamp,
+  IP/device, channels, purposes), **never bundled** with the privacy notice or ToS. Captured at sign-up **and**
+  manageable later from a consent dashboard. (Optionally e-signed for higher assurance, but a logged clickwrap is
+  legally "written" under IT Act §10A.)
+- **⚠️ It must be OPTIONAL — not a gate to use the portal.** DPDP §6 requires consent to be **free and not conditioned**
+  on providing a service beyond what's necessary. **Making marketing consent mandatory makes it invalid** and worsens
+  exposure. Mandatory gates are only the **privacy notice (A)** and **ToS (B)**; promotional consent (D) is opt-in and
+  declining it must not block portal use.
+- **Granular** — per **channel** (email / SMS / WhatsApp / push / in-app) and per **purpose** (our own products vs
+  **third-party / partner offers** — kept separate; partner-sharing needs its own explicit consent).
+- **Health data is special.** Default = **no health-based targeting** and **no sharing of any health data with
+  third-party ad platforms, SDKs, or pixels** (the GoodRx/BetterHelp failure mode). Any promotion that *uses* health
+  attributes (e.g., diabetes-care offers) requires a **separate, explicit** consent and stays **first-party only**.
+- **Children excluded.** No promotional profiling or targeted ads to under-18 accounts (DPDP §9) — suppress them entirely.
+- **Revocable any time**, as easily as granted — every message carries an unsubscribe; withdrawal moves the user to a
+  **suppression list** honoured promptly; withdrawal of marketing consent **does not** affect their service.
+- **Messaging-channel compliance** — promotional SMS/voice need **TRAI DLT registration + DCA OTP opt-in**; WhatsApp
+  needs opt-in + approved templates; email needs a working unsubscribe. (Both DPDP consent **and** TRAI consent apply.)
+- **Purpose-limitation by design** — service data is **not** repurposed for marketing without this fresh consent; the
+  promotional record is segmented from the clinical record; access is role-gated and audited.
 
 ## 3. Touchpoint → instrument gating matrix
 
@@ -108,7 +135,8 @@ auditable consent/withdrawal logs; DSAR (access/erasure) workflow; **dual breach
 | Risk (precedent) | Mitigation in this framework |
 |---|---|
 | Breach + slow notice (AIIMS, ICMR, **Star Health** → ₹250 cr) | Security safeguards + hard-wired 6 h/72 h notification runbook + DPO |
-| Ad-tech health-data leakage (GoodRx/BetterHelp/Flo) | Marketing default-off; no health-data SDK/pixel sharing; separate opt-in |
+| Ad-tech health-data leakage (GoodRx/BetterHelp/Flo) | Marketing default-off; no health-data SDK/pixel sharing; separate opt-in; **first-party only** for any health-based promotion (§2.1) |
+| Forced/bundled marketing consent → invalid + worse exposure | Promotional consent is **optional opt-in, not a portal gate**; separate from privacy/ToS; revocable (§2.1) |
 | Active-platform loses §79 (Amway/1MG) | Neutral-intermediary posture, grievance officer, court-order-only takedown |
 | Consent scope exceeded (Samira Kohli) | Procedure-specific, recorded clinical/telemedicine consent |
 | Arbitration ousting consumer (Emaar MGF) | Don't rely on forced arbitration vs consumers; consumer-forum carve-out |
@@ -134,7 +162,11 @@ auditable consent/withdrawal logs; DSAR (access/erasure) workflow; **dual breach
 6. **Default marketing = off** (recommended) and the cookie-consent approach (essential-only by default).
 7. **Which activities require the physical waiver** + a PAR-Q-style health screen (retreats, camps, home physio…).
 8. **Insurance to carry** — cyber, professional indemnity, public-liability/event.
-9. **Engage Indian healthtech counsel** to draft the final binding copy from this framework (strongly recommended).
+9. **Promotional use of the user/patient record (§2.1)** — confirm: (a) marketing consent is **optional/opt-in**, not a
+   portal gate (required for validity); (b) **first-party only** vs also **partner/third-party offers** (separate
+   consent); (c) **any health-based targeting at all?** (default: no, unless separately + explicitly consented,
+   first-party only); (d) clickwrap-logged consent vs **e-signed** for higher assurance.
+10. **Engage Indian healthtech counsel** to draft the final binding copy from this framework (strongly recommended).
 
 ## 12. Sources
 - DPDP Act 2023 (consent §6/§7, children §9) — IndiaCode: https://www.indiacode.nic.in/handle/123456789/2002 · enforcement timeline: https://www.dpdpa.com/dpdpa_enforcement_timeline.html
