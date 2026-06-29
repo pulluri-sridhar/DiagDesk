@@ -11,7 +11,7 @@ flowchart LR
   t4 --> noti["Notification svc"]:::svc
   t1 & t2 & t3 & t4 --> aud["Audit svc"]:::svc
   t1 & t2 & t3 & t4 --> mis["MIS read-models"]:::svc
-  subgraph SAGA["Temporal — order-to-report saga"]
+  subgraph SAGA["Spring State Machine + Kafka choreography — order-to-report saga"]
     s1["accession"]:::saga --> s2["await results"]:::saga --> s3["validate"]:::saga --> s4["render + sign"]:::saga --> s5["deliver"]:::saga
   end
   ord -. starts .-> SAGA

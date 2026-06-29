@@ -7,8 +7,8 @@ summary reconciled with the DiagDesk decisions. See [medicircle-reconciliation.m
 and [ADR-009](adr/009-medicircle-platform-direction.md).*
 
 > **Phase:** V3 horizon. DiagDesk (the lab product) is **node 1** and must succeed standalone first. MediCircle
-> is the platform it grows into — built on the same **India-sovereign, DPDP-compliant, consent-first,
-> anti-kickback-clean, AI-assistive-with-sign-off** foundation.
+> is the platform it grows into — built on the same **India-region (provider-agnostic managed),
+> DPDP-compliant, consent-first, anti-kickback-clean, AI-assistive-with-sign-off** foundation.
 
 ---
 
@@ -83,8 +83,11 @@ MediCircle **amplifies** the anti-kickback discipline. The encoded principle hol
   consented insurance lead-gen — never a cut for steering a patient.
 
 ## 4. Reconciled program decisions (from the DiagDesk build)
-- **Hosting:** India-sovereign, **no hyperscaler** (E2E/Yotta, [ADR-004](adr/004-hosting-and-data-residency.md));
-  MediCircle's AWS choices get sovereign swaps (SES→Resend, Textract→alt OCR, S3→S3-compatible, etc.).
+- **Hosting:** **provider-agnostic managed, India-region** ([ADR-004](adr/004-hosting-and-data-residency.md)) —
+  start on DO Bangalore / Fly.io Mumbai; graduate per contract to AWS Mumbai / Azure India (HIPAA BAA) or
+  E2E/Yotta (sovereign); final provider TBD. MediCircle's AWS-coupled choices are made provider-agnostic /
+  India-region (SES→Resend, Textract→alt OCR, S3→S3-compatible, etc.) — for portability + residency, not to
+  avoid hyperscalers.
 - **Anti-kickback:** DiagDesk's **no-commission-engine** posture program-wide (ADR-007/010).
 - **Architecture:** **hybrid** — the lab node keeps the **offline-first edge** + right-sized services; the
   connective layer starts as a cloud modular monolith and extracts services later.

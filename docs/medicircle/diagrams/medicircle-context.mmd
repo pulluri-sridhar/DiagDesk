@@ -1,5 +1,5 @@
 %% MediCircle — C4 Level 1 System Context
-%% Five-sided India healthcare platform. India-sovereign hosting, no hyperscaler.
+%% Five-sided India healthcare platform. Provider-agnostic managed hosting, India-region.
 %% Mermaid rules: no parentheses/commas inside node text or edge labels; short labels.
 flowchart TB
     %% ---- Actors (the five sides) ----
@@ -21,7 +21,7 @@ flowchart TB
     CARE -->|availability visits check-in| MC
     ADMIN -->|operations and moderation| MC
 
-    %% ---- External integrations (sovereign-aligned) ----
+    %% ---- External integrations (India-first) ----
     RZP[Razorpay<br/>payments and payouts]
     WA[WhatsApp<br/>Gupshup or Meta]
     SMS[MSG91<br/>SMS DLT]
@@ -29,7 +29,7 @@ flowchart TB
     MAIL[Resend<br/>email]
     VID[100ms<br/>video teleconsult]
     AI[Anthropic Claude<br/>assistive cues]
-    OCR[Sovereign OCR<br/>report parsing]
+    OCR[Self-hosted OCR<br/>report parsing]
     ABDM[ABDM and ABHA<br/>FHIR R4 records]
     MAPS[Maps<br/>Google or OLA geo]
 
@@ -45,4 +45,4 @@ flowchart TB
     MC -->|geocode and routing| MAPS
 
     %% ---- Notes baked into design ----
-    %% No hyperscaler. No commission engine. Compliant economics only.
+    %% Provider-agnostic managed hosting, India-region. No commission engine. Compliant economics only.

@@ -1,8 +1,13 @@
-# DiagDesk — India Hosting Decision (No Hyperscaler)
+# DiagDesk — India Hosting Decision (Provider-Agnostic Managed, India-Region)
 
-*Constraint: host in **India only**, explicitly **not** AWS / Azure / GCP. This doc records the compliance
-basis, the provider evaluation, and the recommendation. Companion to [tech-stack.md](tech-stack.md) and
-[technical-architecture.md](technical-architecture.md).*
+*Posture: **provider-agnostic managed hosting, India-region.** Pick the provider for fit, not ideology — keep
+**India-region data residency** as the hard rule and the architecture **portable** (Kubernetes + Postgres +
+S3 API) so the provider is a **swap, not a rewrite**. **Start cheap/fast** on a managed provider (DigitalOcean
+Bangalore / Fly.io Mumbai); **graduate per contract** to AWS Mumbai / Azure India (HIPAA BAA, broadest managed
+set) or E2E Networks / Yotta (India-sovereign / GovCloud / MeitY-STQC / Tier-IV). The **final provider is an
+open decision** (founders decide within days). This doc records the compliance basis, the provider landscape,
+and the tiers. Companion to [tech-stack.md](tech-stack.md), [ADR-004](adr/004-hosting-and-data-residency.md),
+and [technical-architecture.md](technical-architecture.md).*
 
 ---
 
@@ -15,19 +20,23 @@ basis, the provider evaluation, and the recommendation. Companion to [tech-stack
 | **ABDM HDMP + EHR/FHIR standards** (only if you join ABDM) | Mandatory *if* integrating ABHA | Consent artefacts, FHIR serialization of lab reports, India-resident federated data. |
 | **MeitY CSP empanelment + STQC audit** | **Optional** for private B2B | Required only to sell to **government / PSU / CGHS-type** buyers. You don't get empanelled — **your cloud provider does**. Choose an empanelled CSP to keep that door open. |
 
-**Bottom line:** Your "no hyperscaler" rule is a **sovereignty/business choice, not a legal mandate today.**
-We honor it — and it is a credible trust signal for Indian health data — but it has one sharp consequence
-(next section).
+**Bottom line:** The binding constraint is **India-region residency** (driven by CERT-In + the prudent
+default for health data), **not** any ban on hyperscalers. AWS Mumbai / Azure India are fully allowed (and are
+the BAA-bearing graduation tier). The real decision is **which managed provider to start on and how to keep the
+build portable** so the choice can change without a rewrite.
 
 ---
 
-## 2. The sharp consequence of excluding hyperscalers
+## 2. The portability model (so the provider is a swap, not a rewrite)
 
-Most independent "managed data service" vendors deliver their **India region by running on AWS/GCP Mumbai**:
-**Aiven, Redpanda Cloud, Temporal Cloud, Grafana Cloud, MongoDB Atlas** — all excluded by your rule. So the
-realistic model is: **managed Postgres + K8s + object storage (and, on some providers, Kafka/Redis) from an
-Indian-sovereign cloud, and self-host the rest (Keycloak, Temporal, Grafana/Prometheus, Vault) on that
-managed Kubernetes.**
+Some independent "managed data service" vendors deliver their **India region by running on AWS/GCP Mumbai**
+(e.g. **Aiven, Redpanda Cloud, Grafana Cloud, MongoDB Atlas**) — fine for residency, but they add a vendor
+dependency. The portable model we standardize on is: **managed Postgres + K8s + object storage (and, where
+available, Kafka/Redis) from whichever provider is chosen, and self-host the rest (Keycloak, Vault,
+Grafana/Prometheus) on that managed Kubernetes.** Because everything rides on **Kubernetes + Postgres + the S3
+API**, moving between DigitalOcean/Fly, AWS/Azure, and E2E/Yotta is a re-deploy, not a re-architecture.
+(Temporal has been removed from the platform — the lab saga is **Spring State Machine + Kafka choreography** —
+so there is no separate workflow engine to host on any tier.)
 
 ---
 
@@ -46,38 +55,54 @@ Postgres installed."
 
 ---
 
-## 4. Recommendation
+## 4. The tiers (final provider TBD — founders decide within days)
 
-**Primary: E2E Networks.** It is the most complete non-hyperscaler managed stack for a small team —
-**managed Postgres + managed Kafka + managed Valkey(Redis) + managed Kubernetes + S3-compatible object
-storage** in one place — with **transparent INR pricing**, NSE-listed transparency, and MeitY+STQC. This
-minimizes what we must self-host to just **Keycloak, Temporal, Vault, and the Grafana/Prometheus stack**.
+Hosting is **provider-agnostic, India-region, managed-first**. Rather than naming one winner, we lock a
+**posture and a tiered shortlist**; the actual provider is an open decision recorded in
+[ADR-004](adr/004-hosting-and-data-residency.md).
 
-**Compliance/enterprise alternative: Yotta (Yntraa).** Choose it (or run it as the regulated-workload tier)
-when you need **explicit HIPAA** attestation, **fuller managed-Postgres HA + PITR + 99.95% SLA**, **Tier IV**,
-or **GovCloud** for public-sector / CGHS-type lab contracts. Trade-off: less price transparency; Kafka/Redis
-become self-hosted.
+**Start tier (cost-optimized): DigitalOcean Bangalore / Fly.io Mumbai.** Begin here — fast to stand up,
+cost-effective, full managed Postgres/K8s/Redis/object-store (on Fly, pair app compute with an external
+managed Postgres, since Fly Postgres is unmanaged). Good for pilot/MVP and non-regulated workloads.
 
-**Also credible:** **Jio Enterprise Cloud** (disruptor pricing, broad managed DBs incl. managed Kafka via
-Confluent — validate product maturity + SOC2/HIPAA) and **ESDS** (government/BFSI-leaning, broad certs).
+**Hyperscaler tier: AWS Mumbai / Azure India.** Graduate here when a contract needs an explicit **HIPAA BAA**,
+the broadest managed service set, or an enterprise compliance portfolio (SOC/ISO/HITRUST). Sign the **BAA
+before any PHI enters** the environment.
 
-### Decision guardrails (do before signing)
+**Sovereign tier: E2E Networks / Yotta (Yntraa).** Graduate here when a deal needs an **India-sovereign,
+non-hyperscaler** posture, **GovCloud**, or **MeitY/STQC + Tier-IV** (public-sector / CGHS). Of the two:
+**E2E** is the most complete sovereign managed set for a small team — **managed Postgres + managed Kafka +
+managed Valkey(Redis) + managed Kubernetes + S3-compatible object storage** with **transparent INR pricing**,
+NSE-listed transparency, and MeitY+STQC. **Yotta (Yntraa)** adds **explicit HIPAA**, **fuller managed-Postgres
+HA + PITR + 99.95% SLA**, and **Tier IV / GovCloud** (trade-off: less price transparency; Kafka/Redis become
+self-hosted). **Also credible** in this tier: **Jio Enterprise Cloud** (disruptor pricing, broad managed DBs
+incl. managed Kafka via Confluent — validate maturity + SOC2/HIPAA) and **ESDS** (government/BFSI-leaning,
+broad certs).
+
+> Whichever tier we land on, self-host the same portable set on the managed K8s — **Keycloak, Vault, and the
+> Grafana/Prometheus (LGTM) stack** — and rely on the provider's managed Postgres/K8s/object-store. There is no
+> Temporal to host (saga = Spring State Machine + Kafka).
+
+### Decision guardrails (do before signing — any tier)
 1. **POC the DBaaS**: actually test **failover RTO/RPO and point-in-time restore** — vendor HA claims vary
    (E2E is promotion-based; Yotta advertises auto-failover).
-2. Get **written India-region commitment** and, if pursuing it, a **signed BAA / HIPAA scope**.
-3. Confirm **CERT-In** posture (180-day in-India logs, 6-hour breach support) and current **MeitY empanelment**
-   on the registry (ambud.meity.gov.in).
+2. Get **written India-region commitment** and, if PHI is in scope, a **signed BAA / HIPAA scope**.
+3. Confirm **CERT-In** posture (180-day in-India logs, 6-hour breach support) and — only if selling to
+   government — current **MeitY empanelment** on the registry (ambud.meity.gov.in).
 4. Confirm **S3-API compatibility** of the object store (some are Swift-based) before assuming drop-in S3 SDK.
 
 ---
 
 ## 5. What this means for the architecture
 
-- **Managed from the CSP:** PostgreSQL (per-service DBs), Kubernetes, S3-compatible object storage, and —
-  on E2E/Jio — Kafka and Redis/Valkey.
-- **Self-hosted on the managed K8s:** Keycloak (identity), Temporal (workflows), Vault (secrets),
+- **Managed from the provider:** PostgreSQL (per-service DBs), Kubernetes, S3-compatible object storage, and —
+  where available (e.g. E2E/Jio, or AWS MSK/ElastiCache, or DO Managed Redis) — Kafka and Redis/Valkey.
+- **Self-hosted on the managed K8s (portable across all tiers):** Keycloak (identity), Vault (secrets),
   OpenTelemetry Collector + **Grafana/Loki/Tempo/Mimir** (observability — also satisfies the CERT-In
-  180-day-in-India log rule), and Kafka/Redis where the CSP doesn't manage them.
-- **Edge nodes** (offline-first branch boxes) run **k3s + local Postgres** regardless of CSP.
-- **Region:** pin everything to the provider's India region; keep all logs in India (CERT-In).
-- **Budget a platform/SRE owner** for the self-hosted components (Temporal + Kafka are the main toil).
+  180-day-in-India log rule), and Kafka/Redis where the provider doesn't manage them. *(No Temporal — the lab
+  saga is **Spring State Machine + Kafka choreography**, so there is no workflow engine to operate.)*
+- **Edge nodes** (offline-first branch boxes) run **k3s + local Postgres** regardless of provider.
+- **Region:** pin everything to the provider's India region; keep all logs in India (CERT-In); wire the
+  6-hour CERT-In + 72-hour DPDP breach runbook; sign DPA/BAA before any PHI enters.
+- **Budget a platform/SRE owner** for the self-hosted components (Kafka is the main toil) — and keep the build
+  **portable** so the **provider is a swap, not a rewrite**.

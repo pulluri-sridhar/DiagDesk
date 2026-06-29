@@ -143,8 +143,8 @@ Governed by the **Telemedicine Practice Guidelines**:
 
 The Clinic and Hospital editions (see [clinic-hospital-his.md](clinic-hospital-his.md)) add provider-side
 obligations. The compliant posture is unchanged: **the hospital/clinic is the regulated entity; MediCircle
-stays a technology enabler** (per the §7.3 stay-out-of-scope guardrails). No commission engine, sovereign
-hosting, and the no-kickback line all carry over.
+stays a technology enabler** (per the §7.3 stay-out-of-scope guardrails). No commission engine,
+provider-agnostic managed hosting (India-region), and the no-kickback line all carry over.
 
 - **NABH accreditation** (hospital analogue of NABL). Voluntary, but **required for many empanelments**
   (PM-JAY, CGHS, insurer panels). Software wedge: **MRD** (discharge-summary completeness, deficiency

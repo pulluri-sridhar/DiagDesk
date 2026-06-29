@@ -10,7 +10,7 @@ prior MediCircle DB design brought to DiagDesk depth and **reconciled** with the
 removed** (see Compliance note).*
 
 > **Reconciled in:** integer-paise money · UUIDv7 PKs · Keycloak OIDC · transactional outbox · org-scoped RLS ·
-> DPDP consent-first · ABDM/ABHA + FHIR R4 · India-sovereign hosting · **no commission/payout-for-referral tables**.
+> DPDP consent-first · ABDM/ABHA + FHIR R4 · provider-agnostic managed hosting, India-region · **no commission/payout-for-referral tables**.
 
 ### Conventions
 - **PK:** `id uuid` (**UUIDv7** — time-sortable, edge/append-safe). FKs are `*_id`. Tables are **snake_case,
@@ -23,7 +23,7 @@ removed** (see Compliance note).*
   `org_type`+`org_id`) as the scoping key; **Row-Level Security** policies filter on the verified Keycloak JWT
   org claim. The lab node additionally carries `branch_id` for edge scoping.
 - **Async:** every state change that drives a side-effect writes a row to **`outbox_event`** in the same
-  transaction (the relay publishes to Kafka/BullMQ). Write idempotency is guarded by **`idempotency_key`**.
+  transaction (the relay publishes to Kafka). Write idempotency is guarded by **`idempotency_key`**.
 - **Flexible/interop payloads:** JSONB for device/AI/FHIR/audit blobs; **FHIR R4** resources cached in
   `fhir_resources`; `pgvector` for AI retrieval embeddings; `pg_trgm` GIN indexes for name search.
 - **Indexes:** every FK + common lookups; org-scoped tables lead with the scoping column to align with RLS and
@@ -595,8 +595,8 @@ money, RLS, soft-delete, audit + `outbox_event`. These rows **project to FHIR R4
 - **device_tokens** — `id`(uuid) PK · `user_id`(uuid) FK · `platform`(text: ios/android/web) · `token`(text) ·
   unique (user_id, token). *FCM push targets.*
 - **files** — `id`(uuid) PK · `owner_user_id`(uuid, nullable) FK · `bucket`(text) · `object_key`(text) ·
-  `mime_type`(text) · `size_bytes`(bigint) · `checksum`(text) · `is_sensitive`(bool). *S3-compatible (sovereign)
-  object references.*
+  `mime_type`(text) · `size_bytes`(bigint) · `checksum`(text) · `is_sensitive`(bool). *S3-compatible
+  (provider-agnostic, India-region) object references.*
 - **audit_logs** — `id`(uuid) PK · `actor_user_id`(uuid, nullable) FK · `action`(text) · `entity_type`(text) ·
   `entity_id`(uuid) · `before`(jsonb) · `after`(jsonb) · `prev_hash`(text) · `hash`(text) · `ip`(inet) · `at`(ts).
   *Append-only, hash-chained; partition by month.*
@@ -608,7 +608,7 @@ money, RLS, soft-delete, audit + `outbox_event`. These rows **project to FHIR R4
   `subject_id`(uuid) · `rating`(int 1–5) · `comment`(text). *Ratings feed `rating` columns.*
 - **outbox_event** — `id`(uuid) PK · `aggregate_type`(text) · `aggregate_id`(uuid) · `event_type`(text) ·
   `payload`(jsonb) · `status`(text: pending/relayed/failed) · `relayed_at`(ts). *Transactional outbox; relay →
-  Kafka/BullMQ; partition by month.*
+  Kafka; partition by month.*
 - **idempotency_key** — `key`(text) PK · `scope`(text) · `org_id`(uuid, nullable) · `result_ref`(text) ·
   `created_at`(ts). *Dedupes webhooks/commands (e.g. duplicate Razorpay webhook → no-op 200).*
 

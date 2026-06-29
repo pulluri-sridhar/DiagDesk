@@ -1,31 +1,44 @@
-# ADR-006: Backend Language — NestJS (TypeScript) + Go
+# ADR-006: Backend Language — Java / Spring Boot + Go
 
-**Status:** Accepted · **Date:** 2026-06 · **Deciders:** Architecture
+**Status:** Accepted · **Date:** 2026-06 (revised 2026-06-29) · **Deciders:** Architecture
 **Related:** [tech-stack.md](../tech-stack.md)
 
 ---
 
 ## Context
-We need a primary backend framework for ~10 microservices built by a small startup team in India, with a React/
-React Native frontend already chosen, heavy healthcare integration (HL7 device interfacing, FHIR for ABDM in
-V2), and an offline-first edge component. Goals: clean code, velocity, and a strong hiring pool.
+We need a primary backend framework for ~10 microservices, with a React/React Native frontend already chosen,
+heavy healthcare integration (HL7 device interfacing, FHIR for ABDM, batch/reporting), and an offline-first
+edge component. Goals: clean code, velocity, enterprise-grade reliability, and a strong hiring pool.
+
+The team has **deep Java / Spring Boot expertise**, and the program now spans the full MediCircle scope —
+including a **Hospital Information System** (ADT, IPD/CPOE, OT, MRD/ICD, TPA/cashless billing) where Spring's
+maturity for long-lived transactional, batch, and integration workloads is a direct fit. Java's healthcare
+interop ecosystem (**HAPI HL7 v2 + HAPI FHIR R4**) is the most mature available, which matters as FHIR/ABDM
+moves from a V2 escape hatch to a first-class program capability.
+
+> **Revision note (2026-06-29):** This ADR previously selected **NestJS (TypeScript)** as primary with a Java
+> escape hatch for FHIR. The decision is **reversed to Java / Spring Boot primary** to match team expertise,
+> the enterprise HIS scope, and HAPI FHIR/HL7 maturity. TypeScript remains the language of the **frontend and
+> mobile** (React + Vite PWA, React Native/Expo); we lose end-to-end shared FE/BE types, accepted as the cost.
 
 ## Decision
-**Primary: NestJS (TypeScript).** **Go** for the two edge/socket-heavy services.
-- **NestJS** — one language across frontend + backend (shared types via the Nx monorepo), the largest hiring
-  pool in India, and clean-architecture (modules/DI/ports-and-adapters) out of the box → directly serves the
-  "clean code" goal and team velocity.
+**Primary: Java 21 + Spring Boot 3.** **Go** for the two edge/socket-heavy services.
+- **Java / Spring Boot** — all domain microservices. Team expertise; proven at enterprise scale; richest
+  healthcare ecosystem (HAPI FHIR/HL7, Spring Batch for reporting/reconciliation, Spring State Machine for the
+  lab workflow saga). Clean modular structure (modules/DI/ports-and-adapters) serves the "clean code" goal.
 - **Go** — the **Device Integration Gateway** (many concurrent persistent HL7/ASTM analyzer sockets) and the
   **Sync Engine** (small static binary on every branch edge node).
-- **Escape hatch:** the **V2 ABDM/FHIR Interop service** may be **Java 21 + Spring Boot (HAPI FHIR)** if
-  TypeScript FHIR libraries prove insufficient — per-service polyglot is allowed by the architecture, so this
-  doesn't compromise the primary stack.
+- **Saga/workflow:** **Spring State Machine + Kafka choreography** (not Temporal) — state machine per service,
+  Kafka events between services, idempotent transitions keyed on ULID/UUIDv7. Keeps the platform surface small.
+- **Polyglot policy:** two languages only (Java + Go). No others without an explicit ADR. TypeScript is
+  frontend/mobile-only.
 
 ## Consequences
-- **Positive:** velocity + shared types + easy hiring; Go where concurrency/footprint matters; clean modular
-  structure; an isolated path for FHIR depth in V2.
-- **Costs/risks:** TypeScript FHIR/HL7 tooling is less mature than Java's HAPI (mitigated: HL7 lives in the Go
-  gateway; FHIR is V2 with a Java escape hatch); two languages (TS + Go) to staff — kept minimal by confining
-  Go to two services.
-- **Revisit if:** the team is hired primarily from a Java/Spring pool, or FHIR/HL7 depth becomes central enough
-  early that Java/Spring should be the primary.
+- **Positive:** matches the team's strongest skill set → velocity; enterprise-grade reliability for the HIS
+  scope; best-in-class FHIR/HL7 (HAPI) and batch (Spring Batch); Go where concurrency/footprint matters; one
+  saga mechanism inside the Spring ecosystem (no separate workflow platform to operate).
+- **Costs/risks:** **no shared FE/BE types** across the Nx monorepo (FE/mobile stay TypeScript) — mitigated by
+  contract-first OpenAPI/gRPC schemas generating typed clients; two backend languages (Java + Go) to staff —
+  kept minimal by confining Go to two services.
+- **Revisit if:** the team composition shifts decisively JS-first, or a bounded context proves a hard
+  requirement Spring cannot meet (document as a new ADR).

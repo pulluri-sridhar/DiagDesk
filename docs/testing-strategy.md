@@ -21,9 +21,9 @@ offline-first healthcare platform. Quality gates run in CI on every PR. Companio
 
 | Layer | Scope | Tooling |
 |---|---|---|
-| **Unit** | Pure logic, domain rules, calculations (result formulas, B2B billing, GST) | **Vitest** (frontend, shared libs, NestJS) — Jest acceptable for Nest |
+| **Unit** | Pure logic, domain rules, calculations (result formulas, B2B billing, GST) | **JUnit 5 + AssertJ** (Java services), **Go testing** (edge services), **Vitest** (frontend / shared TS libs) |
 | **Component (FE)** | React components/screens in isolation | **React Testing Library** + **Storybook** interaction tests; **MSW** to mock APIs |
-| **Integration (BE)** | A service against real Postgres/Kafka/Redis; repository + RLS + outbox | **Testcontainers** + **Supertest** (Nest HTTP) |
+| **Integration (BE)** | A service against real Postgres/Kafka/Redis; repository + RLS + outbox | **Testcontainers** + **Spring Boot Test** (`@SpringBootTest` / MockMvc / REST Assured) |
 | **Contract** | Service-to-service & API compatibility | **Pact** (consumer-driven) + **Spectral** lint on OpenAPI/AsyncAPI |
 | **E2E (web)** | Full user journeys through the real UI + stack | **Playwright** |
 | **E2E (mobile)** | Patient & phlebotomist React Native apps | **Maestro** (preferred) or Detox |
@@ -69,7 +69,7 @@ offline-first healthcare platform. Quality gates run in CI on every PR. Companio
 ---
 
 ## 5. CI quality gates (GitHub Actions, per PR)
-1. Lint + typecheck + format (ESLint, tsc, Prettier).
+1. Lint + format (Spotless/Checkstyle for Java, gofmt/golangci-lint for Go, ESLint + tsc + Prettier for TS).
 2. Unit + component (coverage threshold enforced).
 3. Integration (Testcontainers) + contract (Pact) verification.
 4. Build + container scan (Trivy) + **SBOM** (Syft) + image signing (cosign).
@@ -91,6 +91,6 @@ offline-first healthcare platform. Quality gates run in CI on every PR. Companio
 ---
 
 ### Tooling summary (one line)
-**Vitest + RTL/Storybook + MSW** (unit/component) · **Testcontainers + Supertest + Pact** (integration/contract)
+**JUnit 5/AssertJ + Go testing + Vitest + RTL/Storybook + MSW** (unit/component) · **Testcontainers + Spring Boot Test + Pact** (integration/contract)
 · **Playwright** (web E2E, a11y, visual) · **Maestro** (mobile E2E) · **k6** (load) · **Toxiproxy** (sync chaos)
 · **Semgrep/ZAP/Trivy/gitleaks** (security) · **Stryker + fast-check** (critical-module rigor).

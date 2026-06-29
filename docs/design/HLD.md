@@ -8,7 +8,7 @@
 ## 1. Purpose & scope
 An all-in-one, multi-tenant SaaS to run Indian diagnostic labs end-to-end — registration, billing, sample
 tracking, analyzer interfacing, validation, reporting, B2B & patient experience — **offline-resilient** and
-**India-sovereign**. This HLD covers the MVP-core platform; V1/V2 modules extend the same architecture.
+**India-region resident**. This HLD covers the MVP-core platform; V1/V2 modules extend the same architecture.
 
 ## 2. Goals & non-functional requirements (NFRs)
 | Area | Target |
@@ -25,7 +25,7 @@ tracking, analyzer interfacing, validation, reporting, B2B & patient experience 
 ## 3. Architecture overview
 - **Right-sized microservices** on DDD bounded contexts (~12 at MVP), **hexagonal** per service.
 - **Database-per-service** on PostgreSQL; **no shared DB**; multi-tenant via **`tenant_id` + Row-Level Security**.
-- **Async events** (Kafka, transactional outbox + CDC) + **sagas** (Temporal); gRPC for sync reads.
+- **Async events** (Kafka, transactional outbox + CDC) + **sagas** (Spring State Machine + Kafka choreography); gRPC for sync reads.
 - **Offline-first edge** at each branch (k3s + local Postgres + Go sync agent + device gateway).
 - **CQRS read models** for MIS; selective event sourcing for audit & sample lifecycle.
 
@@ -60,7 +60,7 @@ tracking, analyzer interfacing, validation, reporting, B2B & patient experience 
 **Walk-in journey** (the first vertical slice):
 ![Walk-in sequence](diagrams/06-seq-walkin.png)
 
-**Event & saga backbone** (Kafka topics + Temporal order-to-report saga):
+**Event & saga backbone** (Kafka topics + Spring State Machine order-to-report saga, Kafka choreography):
 ![Events & saga](diagrams/05-events-saga.png)
 
 **Sample lifecycle & TAT** (state machine):
@@ -82,7 +82,7 @@ tracking, analyzer interfacing, validation, reporting, B2B & patient experience 
 
 ## 8. Security & observability
 - **Security (defense in depth):** Keycloak OIDC (+OTP/passkeys), RBAC + OPA/ABAC + **Postgres RLS**, Vault
-  secrets, Linkerd mTLS, field-level PHI encryption, rate-limiting + WAF/DDoS (AppTrana), hash-chained audit,
+  secrets, Istio mTLS, field-level PHI encryption, rate-limiting + WAF/DDoS (AppTrana), hash-chained audit,
   DPDP + CERT-In. See [security-hardening.md](../security-hardening.md) and [adr/authentication.md](../adr/authentication.md).
 - **OTP auth flow:**
 ![OTP auth](diagrams/08-seq-otp.png)
@@ -93,11 +93,13 @@ tracking, analyzer interfacing, validation, reporting, B2B & patient experience 
 **Offline sync** (edge ↔ cloud, with money-record reconciliation):
 ![Offline sync](diagrams/07-seq-sync.png)
 
-**Deployment** (India sovereign cloud + branch edge):
+**Deployment** (provider-agnostic managed, India-region + branch edge):
 ![Deployment](diagrams/04-deployment.png)
 
-- **Cloud:** India-sovereign CSP (E2E Networks primary / Yotta tier) — managed K8s + Postgres + Kafka + object
-  store; self-host Keycloak/Temporal/Vault/observability ([ADR-004](../adr/004-hosting-and-data-residency.md)).
+- **Cloud:** provider-agnostic managed, India-region — start on DigitalOcean Bangalore / Fly.io Mumbai; graduate
+  to AWS Mumbai / Azure India (HIPAA BAA) or E2E / Yotta (sovereign) per contract. Managed K8s + Postgres + Kafka
+  + object store; the stack stays portable (K8s + Postgres + S3 API) so the provider is a swap, not a rewrite;
+  self-host Keycloak/Vault/observability ([ADR-004](../adr/004-hosting-and-data-residency.md)).
 - **Edge:** k3s + local Postgres + Go agents at each branch; conflict-aware resumable sync
   ([ADR-003](../adr/003-offline-first-and-sync.md)).
 

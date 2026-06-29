@@ -51,7 +51,7 @@ domain → repository/outbox ports → Postgres (RLS) + Kafka adapters. Endpoint
   `POST /v1/samples/{id}/event`.
 - **Domain:** `Order`, `OrderItem`, `Sample`, `Accession`, `SampleEvent` (lifecycle state machine — see
   [HLD §5](HLD.md)). Computes TAT from `ordered_at`; raises breach alerts.
-- **Events:** `order.created` (out, starts the Temporal saga), `sample.rejected`, `sample.status.changed`.
+- **Events:** `order.created` (out, starts the Spring State Machine saga via Kafka choreography), `sample.rejected`, `sample.status.changed`.
   **Consumes:** `result.validated` (to advance state). **Owns:** `order`, `order_item`, `sample`, `sample_event`.
 - **Compliance:** captures `referring_doctor_id` as a **source** only (no monetary field).
 
@@ -107,5 +107,5 @@ domain → repository/outbox ports → Postgres (RLS) + Kafka adapters. Endpoint
 ## V1/V2 services (pattern summary)
 Same hexagonal shape and conventions. **V1:** B2B & Partner Management (extends Billing — analytics + portal,
 no payouts), Quality & Compliance (IQC/L-J/Westgard/EQAS), Inventory (expiry/auto-reorder), Booking &
-Home-Collection (Temporal scheduling + routing), MIS (CQRS read models). **V2:** Interop (ABDM HIP/FHIR/NHCX),
+Home-Collection (Spring State Machine scheduling + Kafka choreography routing), MIS (CQRS read models). **V2:** Interop (ABDM HIP/FHIR/NHCX),
 Radiology (RIS + light PACS/DICOM). Each owns its own tables (see [data-model.md](data-model.md) V1/V2 section).

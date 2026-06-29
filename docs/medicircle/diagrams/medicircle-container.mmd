@@ -1,6 +1,6 @@
 %% MediCircle — C4 Level 2 Container / Service View
-%% Hybrid: connective modular monolith (NestJS) + lab-node microservices + offline-first branch edge.
-%% India-sovereign datastores. No hyperscaler. No commission engine.
+%% Hybrid: connective modular monolith (Spring Boot / Spring Modulith) + lab-node microservices + offline-first branch edge.
+%% Provider-agnostic managed datastores, India-region. No commission engine.
 %% Mermaid rules: no parentheses/commas inside node text or edge labels; short labels.
 flowchart TB
     %% ---- Client apps ----
@@ -21,7 +21,7 @@ flowchart TB
     end
 
     %% ---- Connective modular monolith ----
-    subgraph MONO[Connective Modular Monolith NestJS]
+    subgraph MONO[Connective Modular Monolith Spring Boot]
         M_ASSOC[Associations and Contracts<br/>no commission]
         M_CONS[Consultations and Prescriptions]
         M_TELE[Teleconsultation]
@@ -57,10 +57,10 @@ flowchart TB
     end
 
     %% ---- Workers ----
-    WRK[Async Workers and Scheduler<br/>BullMQ plus cron]
+    WRK[Async Workers and Scheduler<br/>Kafka plus scheduled jobs]
 
     %% ---- Datastores ----
-    subgraph DATA[Datastores India-sovereign]
+    subgraph DATA[Datastores India-region]
         PG[(PostgreSQL<br/>db-per-service plus RLS)]
         REDIS[(Redis Valkey<br/>cache queues pubsub)]
         OBJ[(S3-compatible<br/>object store)]
@@ -69,7 +69,7 @@ flowchart TB
 
     %% ---- Event and saga backbone ----
     KAFKA[[Kafka outbox plus CDC]]
-    TEMPORAL[[Temporal sagas]]
+    TEMPORAL[[Spring State Machine sagas]]
 
     %% ---- Client to gateway ----
     PATAPP --> GW

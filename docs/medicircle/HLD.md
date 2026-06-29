@@ -13,11 +13,12 @@ locked decisions in [medicircle-reconciliation.md](../medicircle-reconciliation.
 
 ## 1. Purpose & scope
 A five-sided, multi-tenant healthcare platform that connects diagnostic centers, doctors/hospitals,
-pharmacies, on-demand home-care professionals, and patients on **one TypeScript/NestJS/PostgreSQL
-backbone**. The **lab node (DiagDesk)** is offline-resilient and edge-deployed; the **connective layer**
-runs cloud-side as a modular monolith that extracts services as load grows. The whole program is
-**India-sovereign (no hyperscaler)**, **DPDP/ABDM/FHIR-aligned**, **compliant-economics only (no
-referral commissions)**, and **AI assistive-only with mandatory doctor sign-off**.
+pharmacies, on-demand home-care professionals, and patients on **one Java/Spring Boot/PostgreSQL
+backbone** (TypeScript on the FE/mobile surfaces). The **lab node (DiagDesk)** is offline-resilient
+and edge-deployed; the **connective layer** runs cloud-side as a modular monolith that extracts
+services as load grows. The whole program is **provider-agnostic managed, India-region**,
+**DPDP/ABDM/FHIR-aligned**, **compliant-economics only (no referral commissions)**, and **AI
+assistive-only with mandatory doctor sign-off**.
 
 Scope here is the system-level architecture across all five sides for R1→R3. Component internals belong
 in the LLD; the schema lives in [data-model.md](data-model.md); the exact service list is
@@ -30,10 +31,10 @@ in the LLD; the schema lives in [data-model.md](data-model.md); the exact servic
 | **Performance** | Registration/billing **< 1s p95** at the lab counter (local-first); core API reads **p95 < 300ms**, writes **p95 < 800ms**; payment-webhook + notification dispatch async off the request path |
 | **Scalability** | Multi-tenant to thousands of providers and millions of patients; stateless services horizontally autoscaled on CPU/queue depth; `tenant_id` + time-partitioned high-volume tables; read replicas + CQRS read models; Kafka write-buffering at the lab core |
 | **Security** | Keycloak **OIDC** + RBAC/org-scope + **Postgres RLS**; mTLS between services; field-level PHI encryption; **immutable hash-chained audit**; Vault secrets |
-| **Privacy/residency** | **DPDP** (consent-first, revocable, retention, 72-hr breach); **India-only data residency**; **CERT-In 180-day in-India logs**; **India-sovereign hosting, no hyperscaler** (E2E Networks primary / Yotta tier) |
+| **Privacy/residency** | **DPDP** (consent-first, revocable, retention, 72-hr breach); **India-only data residency**; **CERT-In 180-day in-India logs**; **provider-agnostic managed hosting, India-region** (start DO Bangalore / Fly.io Mumbai; graduate to AWS Mumbai / Azure India (BAA) or E2E / Yotta (sovereign) per contract) |
 | **Compliance** | **No referral-commission tooling** (ADR-007/010 — compliant economics only); ABDM/ABHA + **FHIR R4**; **AI assistive-only + mandatory doctor sign-off**; NMC 2023 anti-fee-splitting; GST-compliant invoicing; (lab) NABL QC; (R2+) telemedicine + e-pharmacy guardrails |
 | **Money integrity** | **Integer paise** (`bigint`) end-to-end; **idempotent, transactional** payment/payout flows; transactional outbox; everything auditable |
-| **Observability** | OpenTelemetry traces/metrics/logs; SLOs on the key journeys; correlation IDs across HTTP, Kafka, BullMQ and the edge-sync boundary |
+| **Observability** | OpenTelemetry traces/metrics/logs; SLOs on the key journeys; correlation IDs across HTTP, Kafka and the edge-sync boundary |
 
 ## 3. Architecture overview
 MediCircle is a **hybrid** of two complementary styles, joined by a shared event/outbox backbone:
@@ -41,10 +42,10 @@ MediCircle is a **hybrid** of two complementary styles, joined by a shared event
 - **Lab node (DiagDesk) — right-sized microservices + offline-first edge.** ~9 services on DDD
   bounded contexts, **database-per-service** on PostgreSQL, **no shared DB**, multi-tenant via
   **`tenant_id` + Row-Level Security**. **Async events** over **Kafka** (transactional outbox + CDC)
-  with **Temporal** sagas for the order-to-report workflow. Each branch runs an **offline-first edge**
-  (k3s + local Postgres + **Go** sync agent + **Go** device gateway) so counter-critical work survives
-  connectivity outages.
-- **Connective layer — cloud modular monolith (NestJS) + BullMQ.** Doctor/clinical, pharmacy,
+  with **Spring State Machine + Kafka choreography** sagas for the order-to-report workflow. Each
+  branch runs an **offline-first edge** (k3s + local Postgres + **Go** sync agent + **Go** device
+  gateway) so counter-critical work survives connectivity outages.
+- **Connective layer — cloud modular monolith (Spring Boot / Spring Modulith) + Kafka.** Doctor/clinical, pharmacy,
   home-care, engagement, insurance, and most platform concerns start as **bounded-context modules**
   inside one deployable, with an internal event bus and **no cross-module DB access**. The module seams
   + outbox let high-load modules **extract to independent services later** without rework.
@@ -62,7 +63,7 @@ MediCircle is a **hybrid** of two complementary styles, joined by a shared event
 
 *Source: [diagrams/medicircle-context.mmd](diagrams/medicircle-context.mmd) — the five actor types,
 the MediCircle platform, and the external integrations (Razorpay, WhatsApp, MSG91, FCM, Resend, 100ms,
-Claude, sovereign OCR, ABDM/FHIR, Maps).*
+Claude, self-hosted OCR, ABDM/FHIR, Maps).*
 
 ### Container / service view (C4-L2)
 ![Container view](diagrams/medicircle-container.png)
@@ -91,7 +92,7 @@ later. **Edge ✅** = also runs at the branch edge. Exact owned tables are in mi
 | **Audit & Admin** | service | ✅ | Immutable hash-chained audit, disputes, moderation, fraud monitoring |
 | **Analytics / MIS** | module | | CQRS read-models + dashboards (referrals, conversion, revenue, TAT, home-care) |
 | **Search & Discovery** | module | | OpenSearch discovery/ranking (labs, doctors, tests, content) |
-| **Job Workers + Scheduler** | service | | BullMQ consumers + cron: reports, AI, payouts, delivery dispatch, OCR, expiry scans, statements |
+| **Job Workers + Scheduler** | service | | Kafka consumers + scheduled jobs (Spring `@Scheduled`/ShedLock): reports, AI, payouts, delivery dispatch, OCR, expiry scans, statements |
 
 ### B. Lab node (DiagDesk) — offline-first edge + microservices
 | Service | Start-as | Edge | Responsibility |
@@ -157,7 +158,7 @@ Doctor creates a test order → patient notified with payment link → patient p
 webhook** flips the order to *paid* → lab notified → sample accessioned + barcoded → analyzer results
 in via the **Device Gateway** (or manual capture) → auto-validation + multi-level sign-off → **Reporting**
 renders a signed PDF → delivered to doctor (with **AI cues, sign-off required**) and patient (WhatsApp/app).
-A **Temporal saga** owns order-to-report; the **Sync Engine** lets every step run at the edge offline and
+A **Spring State Machine + Kafka choreography** saga owns order-to-report; the **Sync Engine** lets every step run at the edge offline and
 reconcile later. **No commission step** — the referring doctor is a **referral source for analytics
 only**, and a guardrail blocks attaching any payout to a referrer. Lawful B2B is billed institution-as-buyer.
 
@@ -200,18 +201,18 @@ billing** — **never per-referral commission**. Referral relationships surface 
 - **Lab node: database-per-service**; **connective layer: schema-per-context** inside the monolith
   (extract to its own DB when a module becomes a service). Every tenant-scoped table carries `tenant_id`
   (+ `branch_id`) enforced by **Row-Level Security**; **UUIDv7** PKs for edge-safe id generation.
-- **Cache/queue:** Redis/Valkey — cache, sessions, rate limits, **BullMQ** queues, WebSocket pub/sub.
-- **Object store:** **S3-compatible** (sovereign) buckets for `reports/`, `prescriptions/`, `content/`,
+- **Cache/queue:** Redis/Valkey — cache, sessions, rate limits, WebSocket pub/sub; in-monolith async/scheduled jobs via Spring (`@Async`/`@Scheduled`/ShedLock).
+- **Object store:** **S3-compatible** (provider-agnostic, India-region) buckets for `reports/`, `prescriptions/`, `content/`,
   `kyc/`; presigned URLs; server-side encryption; lifecycle policies.
 - **Search:** OpenSearch for discovery (labs, doctors, tests, content). **Vectors:** pgvector for AI
   retrieval over reference ranges / clinical knowledge.
-- **Events:** **transactional outbox** + CDC → **Kafka** (lab core) and the in-process event bus +
-  BullMQ (connective layer); **CQRS read models** for MIS.
+- **Events:** **transactional outbox** + CDC → **Kafka** (lab core and connective-layer choreography)
+  plus the in-process Spring event bus inside the monolith; **CQRS read models** for MIS.
 - **Health records:** **FHIR R4** resources mapped from internal models via a FHIR adapter for ABDM.
 - **Data classification:** PII / PHI / financial / operational — each with its own retention, encryption,
   and access rules. Full schema: [data-model.md](data-model.md).
 
-## 7. Integration architecture (sovereign providers)
+## 7. Integration architecture (India-first providers)
 All third-party calls go through **anti-corruption adapter layers** with retries, circuit breakers,
 timeouts, and webhook signature verification — so providers can be swapped without touching domain logic.
 
@@ -221,10 +222,10 @@ timeouts, and webhook signature verification — so providers can be swapped wit
 | WhatsApp + templates | Gupshup / Meta Cloud API | Template messages + media; delivery callbacks |
 | SMS + OTP (DLT) | **MSG91** / Kaleyra | DLT-registered templates |
 | Push | **FCM** | Device tokens per user |
-| Email | **Resend** | Transactional (sovereign-aligned; **not SES**) |
+| Email | **Resend** | Transactional (DPA + no-PHI guardrail; secure portal links only) |
 | Video | **100ms** / Agora | Room + token issuance; client SDKs; event webhooks |
 | AI cues | **Anthropic Claude** | Server-side, structured prompts; **PII-minimized, no raw PHI beyond consented scope**; assistive-only |
-| OCR | **Sovereign/self-hosted** (Tesseract/Docling on the India cluster) | Async report-PDF parse (**not Textract**) |
+| OCR | **Self-hosted** (Tesseract/Docling on the India cluster) | Async report-PDF parse (keeps PHI India-resident) |
 | Health records | **ABDM / ABHA + FHIR R4** | Consent-driven linkage & exchange |
 | Maps/geo | Google / OLA Maps | Geocoding + delivery/home-care radius & routing |
 
@@ -232,19 +233,22 @@ timeouts, and webhook signature verification — so providers can be swapped wit
 - **AuthN:** **Keycloak OIDC** — phone-OTP + short-lived JWT access + rotating refresh tokens; device binding.
 - **AuthZ:** **RBAC + org-scoping** (a lab admin only sees their org) with policy guards on every endpoint,
   backed by **Postgres RLS** row-level filters; ABAC/OPA where finer-grained policy is needed.
-- **Transport/at-rest:** TLS 1.2+, mTLS between services, AES-256 at rest, **field-level encryption** for
-  the most sensitive PHI; **Vault**-managed keys (**not Secrets Manager**).
+- **Transport/at-rest:** TLS 1.2+, mTLS between services (Istio), AES-256 at rest, **field-level encryption** for
+  the most sensitive PHI; **Vault**-managed keys.
 - **Consent enforcement** at the data-access layer for any cross-party sharing (DPDP, revocable).
 - **Webhooks:** signature verification + idempotency keys.
 - **Audit:** **immutable, hash-chained** append-only audit for clinical/financial/consent events.
 - **Threat controls:** rate limiting, WAF/DDoS, input validation, output encoding, OWASP ASVS L2.
 - **AI guardrails:** assistive-only, **mandatory doctor sign-off**, versioned + audited prompts/outputs.
 
-## 9. Deployment topology (India-sovereign cloud + branch edge)
-- **Cloud:** **India-sovereign CSP — E2E Networks primary / Yotta tier** — managed Kubernetes + managed
-  PostgreSQL + S3-compatible object store + Valkey + OpenSearch; **self-host Keycloak, Temporal, Vault,
-  Kafka and the observability stack**. **No hyperscaler — no AWS/EKS/RDS/S3/CloudFront/Textract/SES.**
-  CDN/edge via an India provider. Multi-zone where the tier supports it; PITR backups + read replicas.
+## 9. Deployment topology (provider-agnostic, India-region + branch edge)
+- **Cloud:** **provider-agnostic managed, India-region** — start on **DigitalOcean Bangalore / Fly.io
+  Mumbai**; graduate per contract to **AWS Mumbai / Azure India** (HIPAA BAA) or **E2E / Yotta**
+  (sovereign). Managed Kubernetes + managed PostgreSQL + S3-compatible object store + Redis/Valkey +
+  OpenSearch; **self-host Keycloak, Vault, Kafka, Istio and the observability stack** (portable across
+  tiers). The stack stays portable (**K8s + Postgres + S3 API + Kafka**) so the provider is a **swap,
+  not a rewrite**. CDN/edge via an India-region provider. Multi-zone where the tier supports it; PITR
+  backups + read replicas.
 - **Edge (lab node):** **k3s + local Postgres + Go sync agent + Go device gateway** at each branch;
   counter-critical paths run offline and reconcile via conflict-aware, resumable sync.
 - **Orchestration/IaC/CI-CD:** Docker containers on managed K8s (k3s at the edge); Terraform; GitHub
@@ -255,7 +259,7 @@ timeouts, and webhook signature verification — so providers can be swapped wit
   Sentry errors + PostHog product analytics. RED/USE + business metrics.
 - **SLOs:** cloud API availability 99.9%; report-delivery success; payment-webhook success; home-visit
   dispatch success; edge-sync convergence. Error budgets + burn-rate alerts.
-- **Correlation:** correlation IDs across HTTP, gRPC, Kafka, BullMQ and the **edge-sync boundary**.
+- **Correlation:** correlation IDs across HTTP, gRPC, Kafka and the **edge-sync boundary**.
 - **Resilience:** retries with backoff, DLQs for failed jobs, circuit breakers, graceful degradation
   (AI/teleconsult optional; the core referral/lab path must stay up).
 - **DR:** automated backups, PITR, multi-zone failover where available; documented runbooks; **CERT-In
