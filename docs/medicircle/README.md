@@ -27,6 +27,7 @@ package brings the rest of the program to the same documentation depth, **reconc
 | [features.md](features.md) | Full feature catalogue per participant, phase-tagged R1/R2/R3 |
 | [roadmap.md](roadmap.md) | R1 (Jul–Sep 2026) → R2 → R3 phased delivery; DiagDesk lab node ships first |
 | [compliance.md](compliance.md) | Market research + India 2026 regulatory constraints (NMC anti-kickback, e-pharmacy, telemedicine, DPDP, ABDM) + **platform-operator credentials & a pre-launch checklist** (§7) |
+| [consent-legal-framework.md](consent-legal-framework.md) | **Consent & legal framework (proposal)** — privacy/ToS/waiver/marketing instruments, touchpoint→gating matrix, mandatory-accept UX, Company + subscriber protections, case-law risk register, open decisions |
 
 ## Diagrams (`diagrams/`)
 - **`medicircle-context.png/.svg`** — C4-L1 system context (5 actor types + platform + external integrations)
