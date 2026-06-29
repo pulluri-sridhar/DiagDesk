@@ -120,9 +120,10 @@ team's operational surface.**
 ### Design workflow (design → code)
 - **Google Stitch** (Google Labs) for **AI-assisted UI design** — rapidly generate screen designs/flows from
   prompts, iterate, and export to Figma/markup.
-- **Pipeline:** Stitch for ideation/mockups → normalize into a **shared design system** (Tailwind design
-  tokens: color, spacing, type, components) → implement with shadcn/ui + **21st.dev** components + **Framer
-  Motion** → document in **Storybook**.
+- **Pipeline:** Stitch for ideation/mockups → normalize into the **shared design system** (the single source of
+  truth: [`/design-system`](../design-system/README.md) — DTCG **design tokens** → Tailwind preset + CSS variables
+  + React-Native theme; **multi-brand** DiagDesk/MediCircle × light/dark) → implement with shadcn/ui + **21st.dev**
+  components + **Framer Motion** → document in **Storybook**.
 - **Guardrail:** Stitch output and 21st.dev components are **accelerators, not the source of production truth** —
   everything passes through our design tokens, accessibility checks (axe), and Storybook so the UI stays
   consistent, accessible, and offline/performance-safe. This keeps "modern & user-friendly" without

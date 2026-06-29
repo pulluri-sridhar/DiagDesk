@@ -50,6 +50,7 @@ DiagDesk ships first; MediCircle is the program it grows into.
 | [docs/adr/](docs/adr/README.md) | **Architecture Decision Records** — auth, multi-tenancy/RLS, offline-sync, hosting, database, language, anti-kickback, granular RBAC, MediCircle, compliant referral economics |
 | [docs/design/](docs/design/HLD.md) | **Design package** — HLD, LLD, data-model (ERD + dictionary), scalability, capacity & load testing, diagrams, and a rich Design-Document PDF |
 | [docs/hosting-india.md](docs/hosting-india.md) | India-only hosting decision (no hyperscaler): provider evaluation + DPDP/CERT-In/MeitY basis |
+| [design-system/](design-system/README.md) | **Design system** — single source of truth: multi-brand (DiagDesk/MediCircle) design tokens → Tailwind + CSS vars + RN theme; component standards |
 | [docs/brochures/](docs/brochures/) | Visually rich **stakeholder** & **technical** brochure PDFs |
 | [docs/mockups/](docs/mockups/) | Rendered DiagDesk UI mockups (portal + mobile apps) |
 
