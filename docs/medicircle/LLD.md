@@ -152,6 +152,29 @@ Payout (home-care wage / B2B settlement only):
 > `payout` here means **only** a home-care professional wage, a lawful B2B settlement, or a refund-driven
 > reversal of one. There is **no commission accrual** feeding any of these states.
 
+### 2.8 Encounter / admission lifecycle (Hospital HIS — Group G)
+```
+REGISTERED ─► ADMITTED ─► IN_WARD | ICU ─► (OT) ─► DISCHARGE_INITIATED ─► BILLED ─► DISCHARGED
+Side branches:
+  IN_WARD ⇄ ICU                 (ward/ICU transfers; bed re-allocation)
+  any ─► (referral / cross-consult — non-terminal)
+```
+> One FHIR `Encounter`-aligned `encounter`/`admission` spine (Group G: **G2 ADT**, **G3 Bed/Ward**,
+> **G4 IPD & Nursing/CPOE/eMAR**, **G5 OT**) threads orders, eMAR, nursing notes, the ICD-coded discharge
+> summary (**G7 MRD**), and the final bill (**G6**). Integer paise, RLS, audit, FHIR projection as everywhere.
+> Full detail in [clinic-hospital-his.md](clinic-hospital-his.md).
+
+### 2.9 TPA / cashless claim (Hospital Billing — Group G6)
+```
+ESTIMATE ─► PRE_AUTH_REQUESTED ─► APPROVED | REJECTED ─► CLAIM_SUBMITTED ─► SETTLED
+Side branches:
+  REJECTED ─► (resubmit) PRE_AUTH_REQUESTED | (convert to self-pay)
+  APPROVED ─► (enhancement) PRE_AUTH_REQUESTED
+```
+> **G6 Hospital Billing & TPA/Cashless** (tariff/packages, advances, interim/final bills, **PM-JAY**). Consented
+> sharing per the consent framework; settlement money is integer paise. Detail in
+> [clinic-hospital-his.md](clinic-hospital-his.md).
+
 ---
 
 ## 3. Key sequence flows

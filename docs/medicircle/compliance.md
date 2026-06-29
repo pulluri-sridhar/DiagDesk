@@ -139,6 +139,38 @@ Governed by the **Telemedicine Practice Guidelines**:
 > **strictly assistive with mandatory doctor sign-off** — never autonomous diagnosis, prescribing, or
 > dispensing. This aligns with the platform-wide stance in the reconciliation doc.
 
+### 3.5 Hospital & clinic-specific (Clinic edition + Hospital HIS)
+
+The Clinic and Hospital editions (see [clinic-hospital-his.md](clinic-hospital-his.md)) add provider-side
+obligations. The compliant posture is unchanged: **the hospital/clinic is the regulated entity; MediCircle
+stays a technology enabler** (per the §7.3 stay-out-of-scope guardrails). No commission engine, sovereign
+hosting, and the no-kickback line all carry over.
+
+- **NABH accreditation** (hospital analogue of NABL). Voluntary, but **required for many empanelments**
+  (PM-JAY, CGHS, insurer panels). Software wedge: **MRD** (discharge-summary completeness, deficiency
+  tracking, retention), **QC / infection-control** logs, and **audit-ready artifacts** for the accreditation
+  cycle. Held/owned by the hospital; the platform supplies the evidence rails.
+- **Clinical Establishments Act (CEA).** The **hospital/clinic registers as the clinical establishment**;
+  MediCircle **must not become the establishment/operator** — it does not operate the facility or employ the
+  clinicians delivering care (cross-ref **§7.3 guardrails**, which already lists CEA). The platform records
+  the establishment's registration as a verified credential, nothing more.
+- **PM-JAY / TPA cashless.** Cashless **pre-authorization + claims** route through the **Insurance service**;
+  the hospital is the empanelled provider. The **IRDAI intermediary line still applies** — consented
+  lead-gen/claim-facilitation stays outside intermediary scope until registered (see §7.1).
+- **Biomedical Waste Management Rules, 2016.** The hospital maintains **BMW logs/registers** (segregation,
+  quantities, authorization, CBWTF handover). Platform provides the **register/log** tooling; the
+  authorization and disposal contracts are the hospital's.
+- **Hospital pharmacy Drug Licence** (Form 20/21) + **Blood Bank licence** (if the Blood Bank extension is
+  enabled, with Drugs & Cosmetics compliance). Both are **held by the hospital**; the platform **intermediates
+  only** and never holds the licence, dispenses, or takes title (consistent with §7.1 / §7.3).
+- **PC-PNDT** (where radiology/USG applies) and **MLC / statutory registers** (ADT, death register, etc.) are
+  **kept by the hospital**; the platform supplies the register and audit trail.
+
+> **AI + clinical-order audit.** AI stays **assistive-only with clinician sign-off**. **CPOE and eMAR are
+> fully audited** (every order/administration timestamped, attributed, immutable trail). **DPDP / ABDM /
+> FHIR** consent and records exchange are **already program-wide** (§3.4) and apply unchanged to IPD/OPD/ER
+> encounters.
+
 ---
 
 ## 4. Compliant monetization
@@ -169,6 +201,13 @@ No RMP referral commissions anywhere — and no commission engine to toggle. Med
 | **Home-care credentialing** | Good-practice / trust backbone (no statutory standard yet) | Background-verified, **certified** professionals (nursing council, etc.); live visit tracking + SOS; two-way ratings; visit insurance | **V3** (home-care side) |
 | **Doctor → patient messaging** | **MANDATORY** (advertising/solicitation limits) | Restrict to **non-promotional** clinical comms (reports, reminders, care content) with consent | **MVP / V2** |
 | **AI assistive-only + doctor sign-off** | **MANDATORY** (clinical safety) | AI cues/decision-support gated behind **mandatory RMP sign-off**; never autonomous diagnosis/prescribing | **All phases** |
+| **NABH accreditation** | **Voluntary**, but **required for many empanelments** (PM-JAY/CGHS/insurer panels) | **MRD** (discharge-summary completeness, deficiency tracking, retention), **QC + infection-control** logs, **audit-ready** accreditation artifacts; held by the hospital | **Hospital HIS** (MRD/QC) |
+| **Clinical Establishments Act (CEA)** | **MANDATORY** — **hospital/clinic** registers as the establishment | Platform **stays a technology enabler**, never the establishment/operator (cross-ref §7.3); records establishment registration as a **verified credential** only | **Clinic / Hospital HIS** |
+| **PM-JAY / TPA cashless claims** | **MANDATORY** where cashless offered | **Pre-auth + claims** via the **Insurance service**; hospital is the empanelled provider; **IRDAI intermediary** line still applies (consented facilitation vs solicitation) | **Hospital HIS** (billing/TPA) |
+| **Biomedical Waste Management Rules 2016** | **MANDATORY** (hospital) | **BMW logs/registers** (segregation, quantities, authorization, CBWTF handover); platform supplies tooling, hospital holds authorization | **Hospital HIS** |
+| **Hospital pharmacy Drug Licence (Form 20/21)** + **Blood Bank licence** (if enabled) | **MANDATORY** where dispensing / blood-banking | **Held by the hospital**; platform **intermediates only** — never holds the licence, dispenses, or takes title (per §7.1/§7.3) | **Hospital HIS** (pharmacy / blood-bank extension) |
+| **PC-PNDT** (radiology/USG) + **MLC / statutory registers** | **MANDATORY** where applicable | Registers (ADT, death, MLC) + PC-PNDT records **kept by the hospital**; platform supplies the register + **audit trail** | **Hospital HIS** |
+| **CPOE / eMAR clinical-order audit** | **MANDATORY** (clinical safety / records) | Every order/medication-administration **timestamped, attributed, immutable**; AI assistive-only with **clinician sign-off** | **Hospital HIS** (IPD/nursing) |
 
 ---
 
@@ -307,6 +346,12 @@ lab/clinic or employ the clinicians delivering care — that can pull state CEA 
 - IRDAI Web Aggregators / intermediaries: https://irdai.gov.in/web-aggregators
 - NABL (lab accreditation): https://nabl-india.org/ · Clinical Establishments Act: https://clinicalestablishments.mohfw.gov.in/
 - ISO 27001 vs SOC 2 for India SaaS (commercial expectation): https://codesecure.in/blogs/soc-2-vs-iso-27001-which-first-india
+
+**Hospital / clinic-specific (§3.5):**
+- NABH (hospital accreditation): https://nabh.co/
+- PM-JAY / Ayushman Bharat (NHA): https://nha.gov.in/PM-JAY · Hospital empanelment: https://pmjay.gov.in/
+- Bio-Medical Waste Management Rules 2016 (CPCB / MoEFCC): https://cpcb.nic.in/bio-medical-waste-rules/
+- PC-PNDT Act (MoHFW): https://main.mohfw.gov.in/Major-Programmes/pre-conception-pre-natal-diagnostic-techniques-act
 
 ---
 

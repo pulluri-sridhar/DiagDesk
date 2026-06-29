@@ -92,6 +92,12 @@ patient → invoices — with **no per-referral payout anywhere** and the lab ab
   back to the lab node).
 - **Patient app:** teleconsult; **buy medicines** (prescribed/nearest pharmacy, pickup/delivery); **book
   home-care visits** + live-track + OTP.
+- **Clinic edition (~R2):** OPD **clinic operations** portal for single-/multi-practitioner clinics — front desk
+  & registration (UHID/MRN, MPI dedup); **appointments + queue/token** (online booking, reminders, no-show);
+  **multi-practitioner scheduling** (rooms/slots/rosters); consultation & records (reuses Consultations);
+  **OPD billing** (GST, **integer-paise**, anti-kickback guardrails); **clinic inventory** (FEFO); orders out to
+  labs/pharmacy. Ships close to the existing doctor portal + operations. See
+  [clinic-hospital-his.md](clinic-hospital-his.md) §1 and features §22.
 - **Lab node additions:** suppliers + purchase orders; at-home phlebotomy.
 - **Platform:** **analytics/MIS** dashboards (referrals/conversion, revenue, TAT, home-care, reconciliation);
   search & discovery.
@@ -114,6 +120,40 @@ patient → invoices — with **no per-referral payout anywhere** and the lab ab
   cashless/TPA/NHCX direction.
 - **Interoperability:** deeper **ABDM/ABHA linkage + FHIR R4** records; toward a consented longitudinal
   patient record across the circle.
+
+---
+
+## Enterprise / Hospital HIS track (parallel to R1–R3 — not blocking SMB go-to-market)
+
+A **full Hospital Information System (HIS)** is **enterprise-scale** — effectively a product of its own, sold to
+**NABH-track hospitals** — so it runs as a **dedicated enterprise track** with a **longer timeline and a dedicated
+team**, **parallel** to the SMB R1–R3 releases and **not blocking** the labs/clinics/pharmacies/home-care
+go-to-market. The **Clinic edition** lands on the SMB track (**~R2**); the HIS is additive on top. Every hospital
+can run the **full MediCircle HIS** **or** keep its existing HIS and connect via **HL7/FHIR** (orders/results/
+records). The in-house **LIS is the DiagDesk lab node**; **RIS/PACS** (V2) is the in-house radiology. Conventions
+carry over unchanged: **sovereign-hosted, no commission, integer-paise money, AI assistive-only with clinician
+sign-off, full audit on CPOE/eMAR**. See [clinic-hospital-his.md](clinic-hospital-his.md) §2/§7 and features §23.
+
+**Sequence (Enterprise / "R4+"):**
+1. **ADT / bed & ward** — registration/UHID, admission–discharge–transfer, encounter spine, real-time bed
+   occupancy/allocation.
+2. **IPD & nursing — CPOE / eMAR** — in-patient encounter, doctor order entry, eMAR, vitals + intake/output,
+   care plans, rounds.
+3. **OT & surgery** — scheduling, pre-op, anaesthesia + surgical notes, implant/consumable tracking, post-op.
+4. **Hospital billing + TPA/cashless** — tariff/packages, advances, interim/final IPD bill, **pre-auth + claims**,
+   **PM-JAY**.
+5. **MRD & ICD coding** — ICD-10/11 coding, discharge summary, record completion/retention, statutory registers.
+6. **Hospital pharmacy & formulary** — formulary, ward indents/issue, drug-administration link (eMAR).
+7. **ICU / ER + extensions** — critical-care/ER charts; optional **blood-bank** (licensed), CSSD, diet/kitchen.
+
+**Buyers:** NABH-track hospitals; longer build than an SMB release; **dedicated enterprise team**; supports
+**full HIS or HL7/FHIR integration**.
+
+> **[Legal/Accreditation review]** — the HIS materially widens the regulatory surface: **NABH** accreditation
+> support; **Clinical Establishments Act** (the hospital is the registered establishment; the platform stays a
+> **technology enabler**, never the operator); **PM-JAY** / TPA / IRDAI for cashless; **Biomedical Waste (BMW)**
+> logs; **blood-bank licence** + Drugs & Cosmetics compliance if blood-bank is enabled; PC-PNDT (radiology), MLC /
+> statutory registers, DPDP/ABDM consent + FHIR. **[Legal/Accreditation review — gates the Enterprise HIS track.]**
 
 ---
 

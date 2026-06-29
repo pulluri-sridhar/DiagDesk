@@ -82,6 +82,23 @@ independent services as load grows ([medicircle-reconciliation.md](../medicircle
 | 31 | **Engagement** | Health content/advisories, **lab-owned** packages (no RMP kickback), campaigns, health camps; consent + opt-out; moderation | `content_items`, `campaigns`, `health_camps`, `package_promotions` | module | | R3 |
 | 32 | **Insurance** | Ailment-based plan recommendations, **consented** medical-summary sharing → leads; (R3+) cashless/TPA claims, PM-JAY, NHCX | `insurance_providers`, `insurance_recommendations`, `insurance_leads` | module | | R3 |
 
+## G. Clinic & Hospital (HIS)
+
+*New **Clinic** and **Hospital (HIS)** provider editions — see [clinic-hospital-his.md](clinic-hospital-his.md) (authoritative spec). The hospital HIS is **enterprise-scale** and runs on a **dedicated Enterprise / Hospital-HIS track ("R4+") that is parallel to R1–R3**; the Clinic edition ships ~R2. One **`encounter`** spine (FHIR `Encounter`-aligned) unifies OPD · IPD · ER.*
+
+| # | Service | Responsibilities | Owns (key tables) | Start-as | Edge? | Phase |
+|---|---|---|---|---|---|---|
+| 33 | **Clinic Operations** | Clinic front desk/registration (UHID/MRN, MPI dedup), appointments + queue/token, multi-practitioner scheduling (rooms/slots/rosters), OPD billing, clinic inventory; orders out to lab/pharmacy | `appointment`, `queue_token` (+ reuses encounter, Billing, Inventory) | service | | R2 |
+| 34 | **Patient Administration & ADT** | Registration/UHID, **Admission–Discharge–Transfer**, MLC/death register, encounter management (OPD/IPD/ER) | `encounter`, `admission` | service | | R4+ (Enterprise) |
+| 35 | **Bed & Ward Management** | Ward/room/bed master, **real-time occupancy**, allocation/transfer, housekeeping/turnaround status | `ward`, `room`, `bed`, `bed_allocation` | service | | R4+ (Enterprise) |
+| 36 | **IPD & Nursing (CPOE/eMAR)** | In-patient encounter, **CPOE** order entry, nursing assessments/notes, **eMAR**, vitals + intake/output charts, care plans, doctor rounds, cross-consults | `clinical_order`, `nursing_note`, `vital_observation`, `intake_output`, `medication_administration`, `care_plan_ipd` | service | | R4+ (Enterprise) |
+| 37 | **OT & Surgery** | OT scheduling, pre-op checklist, **anaesthesia record**, surgical/operative notes, implant & consumable tracking, post-op recovery | `ot_schedule`, `ot_case`, `anaesthesia_record`, `surgical_note`, `implant_log` | service | | R4+ (Enterprise) |
+| 38 | **Hospital Billing & TPA/Cashless** | **Tariff/package** plans, deposits/advances, interim + **final IPD bill**, corporate/insurance, **TPA pre-authorization + claims**, **PM-JAY**, refunds. **No commission engine.** | `tariff`, `bill_package`, `advance_payment`, `hospital_bill`, `bill_line`, `pre_authorization`, `tpa_claim`, `pmjay_claim` | service | | R4+ (Enterprise) |
+| 39 | **MRD & Clinical Coding** | **ICD-10/ICD-11** coding, **discharge summary**, record completion/deficiency tracking, retention, statutory registers | `discharge_summary`, `icd_code`, `mrd_record` | service | | R4+ (Enterprise) |
+| 40 | **Hospital Pharmacy & Formulary** | In-house pharmacy, **formulary**, ward indents/issue, drug administration link (eMAR), ward stock (extends Inventory/Pharmacy) | `formulary_item`, `ward_stock`, `drug_indent` | module | | R4+ (Enterprise) |
+
+> **Reuses (does not duplicate):** **Lab node (LIS)** = in-house lab, **Radiology RIS/PACS** (V2) for imaging, **Consultations & e-prescription**, **Inventory**, **Insurance** (cashless/TPA claims), plus platform **Identity/RBAC**, **Consent**, **Notifications**, **Audit**, and **Billing**. All tables follow platform conventions (UUIDv7, **integer paise**, tenant/org-scoped RLS, soft-delete, audit, **FHIR** projection).
+
 ---
 
 ## Clients (apps & portals — not services, but what consumes the above)
@@ -101,7 +118,15 @@ touching domain logic.
 - **R1 (MVP):** 1, 2, 3, 4, 5(consent), 6, 7, 8, 9, 10, 13 + lab node **14–19, 21, 22** + **23** (associations/contracts).
 - **R2:** 11, 12 + clinical **24, 25, 26, 27** + pharmacy **28, 29** + home-care **30** (booking/visits) + Inventory(pharmacy).
 - **R3:** 20 (NABL QC), home-care **30** (care plans/payouts), engagement **31**, insurance **32**, deeper Consent/FHIR.
+- **Enterprise / Hospital-HIS track (parallel to R1–R3):** Clinic Operations **33** ships **~R2**; the Hospital HIS
+  services **34–40** form a dedicated **Enterprise ("R4+")** track — ADT/bed (**34, 35**) → IPD/nursing/CPOE/eMAR
+  (**36**) → OT (**37**) → hospital billing + TPA/cashless (**38**) → MRD/coding (**39**) → pharmacy/formulary
+  (**40**), then ICU/ER/blood-bank extensions. Longer build, dedicated team, NABH-track buyers. See
+  [clinic-hospital-his.md](clinic-hospital-his.md).
 
-> **Count:** 32 domain services/modules + 4 client apps + the integration-adapter layer. The **lab-node** services
-> (14–19, 22) ship as independent **microservices with edge deployment** from R1; connective-layer **modules** extract
-> to independent services when load/team size justifies it (the outbox + event bus keep the seams clean).
+> **Count:** 40 domain services/modules + 4 client apps + the integration-adapter layer (Group **G** = Clinic &
+> Hospital HIS, **33–40**). The **lab-node** services (14–19, 22) ship as independent **microservices with edge
+> deployment** from R1; connective-layer **modules** extract to independent services when load/team size justifies it
+> (the outbox + event bus keep the seams clean). The **Enterprise / Hospital-HIS track runs parallel to R1–R3** (Clinic
+> ~R2, Hospital HIS "R4+"), reusing the lab node (LIS), Radiology RIS/PACS, Consultations, Inventory, Insurance, and the
+> Identity/Consent/Notifications/Audit/Billing platform services rather than duplicating them.

@@ -9,6 +9,9 @@ services in [microservices.md](microservices.md), the per-participant build in
 
 > **DiagDesk is the lab node** — the deeper offline-first diagnostic-center product that ships as **node 1**.
 > Sections **8–17 (Diagnostic Center / Lab)** are the DiagDesk lab node; the surrounding sides connect to it.
+>
+> **Clinic & Hospital (HIS)** — sections **22 (Clinic operations)** and **23 (Hospital / HIS)** add Clinics and
+> Hospitals as first-class providers. Full spec: [clinic-hospital-his.md](clinic-hospital-his.md).
 
 ---
 
@@ -204,6 +207,40 @@ services in [microservices.md](microservices.md), the per-participant build in
 21.11 **Search & discovery** — index for lab/doctor/test/content discovery + ranking — **[R2]**
 21.12 **Localization & accessibility** — English + major Indian languages; WhatsApp-first; **WCAG 2.1 AA** web portals; low-literacy patterns for tier 2/3 — **[R1→R2]** · (NFR)
 21.13 **Admin console** — KYC/onboarding approval queues, dispute resolution, refunds, content moderation, fraud monitoring, audit-log explorer, consent registry, data export/erasure — **[R1]** · (FR-12)
+
+---
+
+## 22. Clinic operations — clinic edition (OPD operations portal)
+*For single- and multi-practitioner OPD clinics that need **clinic operations**, not just a doctor's personal
+portal. Reuses Consultations, Appointments/queue, Inventory, and Billing. Full spec:
+[clinic-hospital-his.md](clinic-hospital-his.md) §1.*
+22.1 **Front desk & registration** — walk-in + appointment, UHID/MRN, MPI dedup — **[R2]**
+22.2 **Appointments + queue/token** — per practitioner/room; online booking; reminders; no-show handling — **[R2]**
+22.3 **Multi-practitioner scheduling** — rooms, slots, shared front desk, doctor rosters — **[R2]**
+22.4 **Consultation & records** — visit notes, vitals, e-prescription (reuses Consultations), attachments — **[R2]**
+22.5 **OPD billing** — invoices/receipts (GST), consultation + procedure charges, discounts (anti-kickback guardrails + consent/RBAC); **integer-paise** money — **[R2]**
+22.6 **Clinic inventory** — consumables/vaccines (reuses Inventory: batch/expiry/FEFO/reorder) — **[R2]**
+22.7 **Orders out** — tests to labs, e-prescription to pharmacy (reuses the connectivity layer) — **[R2]**
+
+## 23. Hospital (HIS) — full Hospital Information System
+*In-patient/enterprise modules the OPD layer does **not** cover. Sold to **NABH-track hospitals** as a dedicated
+**enterprise track**, not folded into the SMB R1–R3 timeline. Each hospital can choose the **full MediCircle HIS**
+**or** keep its existing HIS and connect via **HL7/FHIR** for orders/results/records. One **`encounter`** spine
+(FHIR `Encounter`-aligned) unifies OPD · IPD · ER. Sovereign-hosted, **no commission**, **integer-paise** money,
+AI **assistive-only with clinician sign-off**. Full spec: [clinic-hospital-his.md](clinic-hospital-his.md) §2.*
+23.1 **Patient Administration / ADT** — registration (**UHID**), **Admission–Discharge–Transfer**, MLC, death register, encounter management (OPD/IPD/ER) — **[Enterprise / R4+]**
+23.2 **Bed & ward management** — ward/room/bed master, **real-time occupancy**, allocation/transfer, housekeeping/turnaround status — **[Enterprise / R4+]**
+23.3 **OPD management** — hospital OPD clinics, appointments/queue, consultation, OPD billing (shares the Clinic module §22) — **[Enterprise / R4+]**
+23.4 **IPD & nursing** — in-patient encounter, **CPOE (doctor order entry)**, nursing assessments/notes, **eMAR (medication administration)**, vitals + **intake/output charts**, care plans, doctor **rounds**, referrals/cross-consults — **[Enterprise / R4+]**
+23.5 **OT & surgery** — OT **scheduling**, pre-op checklist, **anaesthesia record**, surgical/operative notes, implant & consumable tracking, post-op recovery — **[Enterprise / R4+]**
+23.6 **Critical Care (ICU) & Emergency (ER)** — ICU charts/ventilator/scoring; ER triage, MLC, observation → admit/discharge (deep monitoring-device integration is an extension) — **[Enterprise / R4+]**
+23.7 **Hospital pharmacy & formulary** — in-house pharmacy, **formulary**, ward indents/issue, drug administration link (eMAR), stock (extends Inventory + Pharmacy) — **[Enterprise / R4+]**
+23.8 **In-house LIS + RIS/PACS** — LIS = the **DiagDesk lab node**; **RIS/PACS** (V2) for imaging; order→result round-trip with IPD/OPD — **[Enterprise / R4+]**
+23.9 **Hospital billing + TPA/cashless + PM-JAY** — **tariff/package** plans, **deposits/advances**, interim + **final IPD bill**, corporate/insurance, **TPA pre-authorization + claims**, **PM-JAY**, refunds; **integer-paise** money — **[Enterprise / R4+]**
+23.10 **MRD & ICD coding + discharge summary** — **ICD-10/ICD-11** coding, **discharge summary**, record completion/deficiency tracking, retention, statutory registers — **[Enterprise / R4+]**
+23.11 **Roster & duty** — staff/clinician duty rosters, on-call, attendance link — **[Enterprise / R4+]**
+23.12 **Extensions (optional)** — **Blood Bank** (licensed), **CSSD**, **Diet/Kitchen**, ambulance/bio-medical equipment, mortuary — **[Enterprise / R4+]**
+23.13 **Full HIS *or* integration** — each hospital chooses the **full MediCircle HIS** or **HL7/FHIR integration** with its existing systems — **[Enterprise / R4+]**
 
 ---
 
