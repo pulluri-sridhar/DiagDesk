@@ -1,0 +1,17 @@
+{
+  "$description": "MediCircle brand theme — program/umbrella (indigo-led, to distinguish from the teal lab brand). Shares the exact token structure; only the brand.* hues differ. Activate with [data-brand=\"medicircle\"].",
+  "brand": {
+    "$type": "color",
+    "name": { "$type": "string", "$value": "MediCircle" },
+    "primary":             {"$value": "#4b41e1"},
+    "primary-dark":        {"$value": "#8b85ff"},
+    "primary-foreground":  {"$value": "#ffffff"},
+    "secondary":           {"$value": "#00685f"},
+    "secondary-dark":      {"$value": "#1aa597"},
+    "secondary-foreground":{"$value": "#ffffff"},
+    "accent":              {"$value": "#e2dfff"},
+    "accent-dark":         {"$value": "#241f4d"},
+    "accent-foreground":   {"$value": "#2a2580"},
+    "gradient":            {"$value": "linear-gradient(135deg,#4b41e1 0%,#008378 100%)"}
+  }
+}

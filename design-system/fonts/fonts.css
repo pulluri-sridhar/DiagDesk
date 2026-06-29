@@ -1,0 +1,10 @@
+/* Self-hosted fonts — India-sovereign / offline (no Google Fonts CDN). */
+@font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: swap; src: url('./inter-400.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: swap; src: url('./inter-500.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url('./inter-600.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 700; font-style: normal; font-display: swap; src: url('./inter-700.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 800; font-style: normal; font-display: swap; src: url('./inter-800.woff2') format('woff2'); }
+@font-face { font-family: 'Material Symbols Outlined'; font-weight: 100 700; font-style: normal; src: url('./ms-outlined.woff2') format('woff2'); }
+
+.material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: 400; font-style: normal;
+  line-height: 1; display: inline-block; white-space: nowrap; direction: ltr; font-feature-settings: 'liga'; vertical-align: middle; }

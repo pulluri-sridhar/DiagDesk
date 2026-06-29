@@ -76,6 +76,24 @@ removed** (see Compliance note).*
   `service_engagements` (paid for services rendered, never per-referral); `b2b_agreements` bill institutions
 - `expense_categories` 1—* `expenses`; `qc_runs` 1—* `lj_points`; `insurance_providers` 1—*
   `insurance_recommendations` 1—* `insurance_leads`
+- **Clinic & Hospital (HIS):** `clinic` / `hospital` 1—1 `hospitals` (extend org); `hospitals` 1—* `encounter`,
+  `ward`, `appointment`, `tariff`, `bill_package`, `formulary_item`, `duty_roster`
+- `patients` 1—* `encounter` (type opd/ipd/er); `encounter` 1—* `clinical_order`, `nursing_note`,
+  `vital_observation`, `intake_output`, `medication_administration`, `care_plan_ipd`; `encounter` 1—0..1 `admission`
+- `admission` 1—1 (current) `bed_allocation` *—1 `bed`; `ward` 1—* `room` 1—* `bed`; `bed` 1—* `bed_allocation`
+  (history); `admission` 1—* `advance_payment`, 1—1 `discharge_summary`
+- `clinical_order` (CPOE) →(opt) `test_orders` / `prescriptions` / `ot_schedule`; `clinical_order` 1—*
+  `medication_administration` (eMAR) and 1—* `bill_line`
+- `encounter` 1—0..1 `ot_schedule` 1—1 `ot_case`; `ot_case` 1—1 `anaesthesia_record`, 1—* `surgical_note`,
+  1—* `implant_log`; `ot_case`/`surgical_note` carry `icd_code` refs
+- `appointment` 1—0..1 `queue_token`, 1—0..1 `encounter`; `clinic` 1—* `appointment` / `queue_token`
+- `admission` 1—1 `mrd_record` *—* `icd_code` via `mrd_coding`; `icd_code` is a global master
+- `hospital_bill` 1—* `bill_line`; `tariff` / `bill_package` 1—* `bill_line` / `hospital_bill`; `advance_payment`
+  →(opt) `payments`; `hospital_bill` →(opt) `payments`
+- `pre_authorization` 1—* `tpa_claim`; `admission` 1—* `pre_authorization` / `pmjay_claim`; `bill_package` 1—*
+  `pmjay_claim` / `pre_authorization`; claims gated by `consents`
+- `formulary_item` *—1 `medicines` / `medicine_compositions`; `ward` 1—* `ward_stock` / `drug_indent`; `ward_stock`
+  *—1 `inventory_batches`; `drug_indent` drives `ward_stock` + `stock_ledger`
 - all sensitive mutations → `audit_logs`; all async side-effects → `outbox_event`
 
 ---
@@ -394,6 +412,158 @@ Every table has `created_at ts`; clinical/user tables add `updated_at ts` and `d
 - **insurance_leads** — `id`(uuid) PK · `recommendation_id`(uuid, nullable) FK · `patient_id`(uuid) FK ·
   `provider_id`(uuid) FK · `consent_id`(uuid) FK · `shared_summary_file_id`(uuid) · `status`(text: created/
   contacted/converted/closed). *Lead-gen on **consented** medical-summary sharing.*
+
+### Clinic & Hospital (HIS)
+*Owner: Clinic Operations (G1), Patient Administration & ADT (G2), Bed & Ward (G3), IPD & Nursing (G4),
+OT & Surgery (G5), Hospital Billing & TPA/Cashless (G6), MRD & Clinical Coding (G7), Hospital Pharmacy &
+Formulary (G8). Org-scoped on `hospital_id` (clinics are hospitals with `type='clinic'`); UUIDv7 PKs, integer-paise
+money, RLS, soft-delete, audit + `outbox_event`. These rows **project to FHIR R4** (`encounter`→`Encounter`,
+`vital_observation`→`Observation`, `medication_administration`→`MedicationAdministration`, `surgical_note`/`ot_case`
+→`Procedure`, `tpa_claim`/`pmjay_claim`→`Claim`) cached in `fhir_resources`.*
+- **clinic** — `id`(uuid) PK · `hospital_id`(uuid, unique) FK *(extends `hospitals` where `type='clinic'`)* ·
+  `practice_type`(enum: solo/multi_practitioner) · `front_desk_enabled`(bool) · `online_booking_enabled`(bool) ·
+  `default_slot_min`(int) · `is_active`(bool) · soft-delete. *Clinic-operations profile over an org.*
+- **hospital** — `id`(uuid) PK · `hospital_id`(uuid, unique) FK *(extends `hospitals` where `type='hospital'/
+  nursing_home`)* · `nabh_status`(enum: none/entry/full) · `bed_count`(int) · `uhid_prefix`(text) ·
+  `his_mode`(enum: full_his/hl7_fhir_integration) · `clinical_establishment_reg_no`(text) · `is_active`(bool) ·
+  soft-delete. *HIS-edition profile; `his_mode` selects full HIS vs integrate-only.*
+- **encounter** — `id`(uuid) PK · `encounter_no`(bigserial) · `hospital_id`(uuid) FK · `patient_id`(uuid) FK ·
+  `type`(enum: **opd/ipd/er**) · `class`(text: ambulatory/inpatient/emergency) · `status`(enum: planned/arrived/
+  triaged/in_progress/onleave/finished/cancelled) · `attending_doctor_id`(uuid, nullable) FK · `department`(text) ·
+  `consultation_id`(uuid, nullable) FK · `referral_source`(text) · `mlc`(bool) · `mlc_no`(text, nullable) ·
+  `started_at`(ts) · `ended_at`(ts) · soft-delete. ***FHIR `Encounter`-aligned spine** unifying OPD·IPD·ER; links
+  orders, notes, meds, bills, discharge.*
+- **admission** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid, unique) FK · `patient_id`(uuid) FK ·
+  `admitting_doctor_id`(uuid) FK · `admission_no`(text, unique per hospital) · `source`(text: opd/er/transfer/
+  direct) · `status`(enum: admitted/transferred/discharged/lama/absconded/expired) · `admitted_at`(ts) ·
+  `expected_discharge_at`(ts) · `discharged_at`(ts) · soft-delete. *ADT in-patient stay header (1—1 `encounter`).*
+- **ward** — `id`(uuid) PK · `hospital_id`(uuid) FK · `name`(text) · `ward_type`(enum: general/private/icu/hdu/
+  emergency/maternity/pediatric) · `floor`(text) · `is_active`(bool). *Ward master.*
+- **room** — `id`(uuid) PK · `hospital_id`(uuid) FK · `ward_id`(uuid) FK · `room_no`(text) · `category`(text:
+  general/semi_private/private/deluxe/suite) · `is_active`(bool) · unique (ward_id, room_no). *Room master.*
+- **bed** — `id`(uuid) PK · `hospital_id`(uuid) FK · `room_id`(uuid) FK · `bed_no`(text) · `tariff_id`(uuid,
+  nullable) FK · `status`(enum: available/occupied/reserved/blocked/housekeeping) · `housekeeping_status`(text:
+  clean/dirty/in_progress) · `is_active`(bool) · unique (room_id, bed_no). *Real-time occupancy unit.*
+- **bed_allocation** — `id`(uuid) PK · `hospital_id`(uuid) FK · `admission_id`(uuid) FK · `bed_id`(uuid) FK ·
+  `is_current`(bool) · `reason`(text: admission/transfer/upgrade/downgrade) · `tariff_id`(uuid, nullable) FK ·
+  `allocated_at`(ts) · `vacated_at`(ts, nullable) · `allocated_by`(uuid) FK. *Allocation/transfer history;
+  `is_current=true` row gives the live bed (admission 1—1 current bed_allocation).*
+- **clinical_order** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK · `ordered_by`(uuid) FK
+  *(doctor — CPOE)* · `order_type`(enum: lab/radiology/medication/procedure/diet/nursing/referral/blood) ·
+  `priority`(enum: routine/urgent/stat) · `status`(enum: draft/placed/acknowledged/in_progress/completed/cancelled)
+  · `ref_type`(text) · `ref_id`(uuid, nullable: links `test_orders`/`prescriptions`/`ot_schedule`) · `details`(jsonb)
+  · `ordered_at`(ts) · soft-delete. *Computerised Physician Order Entry; audited, clinician sign-off.*
+- **nursing_note** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK · `nurse_id`(uuid) FK ·
+  `note_type`(text: assessment/progress/handover/incident) · `shift`(text: morning/evening/night) · `body`(text) ·
+  `recorded_at`(ts) · soft-delete. *Nursing assessments/notes.*
+- **vital_observation** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK · `recorded_by`(uuid) FK
+  · `code`(text: temp/pulse/bp_sys/bp_dia/spo2/rr/gcs/pain/weight/height) · `value_num`(numeric) · `unit`(text) ·
+  `loinc_code`(text, nullable) · `flag`(enum: normal/high/low/critical) · `recorded_at`(ts). *Append-heavy; partition
+  by month; → FHIR `Observation`.*
+- **intake_output** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK · `recorded_by`(uuid) FK ·
+  `direction`(enum: intake/output) · `category`(text: oral/iv/urine/drain/vomit/stool) · `volume_ml`(int) ·
+  `recorded_at`(ts). *I/O fluid-balance chart; append-heavy.*
+- **medication_administration** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK ·
+  `clinical_order_id`(uuid, nullable) FK · `prescription_item_id`(uuid, nullable) FK · `formulary_item_id`(uuid,
+  nullable) FK · `medicine_id`(uuid, nullable) FK · `administered_by`(uuid) FK · `dose`(text) · `route`(text) ·
+  `status`(enum: scheduled/administered/held/refused/missed/self_administered) · `reason_not_given`(text) ·
+  `scheduled_at`(ts) · `administered_at`(ts). ***eMAR**; → FHIR `MedicationAdministration`; append-heavy, audited.*
+- **ot_schedule** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK · `theatre`(text) ·
+  `surgeon_id`(uuid) FK · `procedure_name`(text) · `icd_code_id`(uuid, nullable) FK · `status`(enum: requested/
+  scheduled/pre_op/in_progress/completed/cancelled/postponed) · `scheduled_start`(ts) · `scheduled_end`(ts) ·
+  `pre_op_checklist`(jsonb) · soft-delete. *OT booking + pre-op checklist.*
+- **ot_case** — `id`(uuid) PK · `hospital_id`(uuid) FK · `ot_schedule_id`(uuid, unique) FK · `encounter_id`(uuid) FK
+  · `surgeon_id`(uuid) FK · `anaesthetist_id`(uuid, nullable) FK · `procedure_name`(text) · `wound_class`(text:
+  clean/clean_contaminated/contaminated/dirty) · `status`(enum: in_progress/closed/recovery/completed) ·
+  `wheel_in_at`(ts) · `incision_at`(ts) · `closure_at`(ts) · `wheel_out_at`(ts) · soft-delete. *Actual OT event →
+  FHIR `Procedure`.*
+- **anaesthesia_record** — `id`(uuid) PK · `hospital_id`(uuid) FK · `ot_case_id`(uuid, unique) FK ·
+  `anaesthetist_id`(uuid) FK · `technique`(text: general/spinal/epidural/local/sedation) · `asa_grade`(text: I–V) ·
+  `pre_anaesthetic_assessment`(jsonb) · `intra_op_chart`(jsonb) · `agents`(jsonb) · `recorded_at`(ts) · soft-delete.
+- **surgical_note** — `id`(uuid) PK · `hospital_id`(uuid) FK · `ot_case_id`(uuid) FK · `author_id`(uuid) FK
+  *(surgeon)* · `findings`(text) · `procedure_performed`(text) · `icd_code_id`(uuid, nullable) FK · `specimens`(text)
+  · `blood_loss_ml`(int) · `signed_at`(ts) · soft-delete. *Operative note → FHIR `Procedure`.*
+- **implant_log** — `id`(uuid) PK · `hospital_id`(uuid) FK · `ot_case_id`(uuid) FK · `item_name`(text) ·
+  `inventory_item_id`(uuid, nullable) FK · `serial_no`(text) · `lot_no`(text) · `manufacturer`(text) · `quantity`(int)
+  · `cost_paise`(bigint) · `currency`(char3) · `implanted_at`(ts). *Implant/consumable traceability.*
+- **care_plan_ipd** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK · `created_by`(uuid) FK ·
+  `problem`(text) · `goals`(jsonb) · `interventions`(jsonb) · `status`(enum: active/on_hold/completed/cancelled) ·
+  `reviewed_at`(ts) · soft-delete. *In-patient care plan (distinct from home-care `care_plans`).*
+- **appointment** — `id`(uuid) PK · `hospital_id`(uuid) FK · `clinic_id`(uuid, nullable) FK · `patient_id`(uuid) FK ·
+  `doctor_id`(uuid) FK · `room_id`(uuid, nullable) FK · `channel`(text: online/walk_in/phone) · `status`(enum:
+  booked/confirmed/checked_in/in_consult/completed/no_show/cancelled/rescheduled) · `slot_start`(ts) · `slot_end`(ts)
+  · `encounter_id`(uuid, nullable) FK · `reminder_sent_at`(ts) · soft-delete. *OPD appointment (clinic + hospital
+  OPD).*
+- **queue_token** — `id`(uuid) PK · `hospital_id`(uuid) FK · `clinic_id`(uuid, nullable) FK · `appointment_id`(uuid,
+  nullable) FK · `doctor_id`(uuid) FK · `token_no`(int) · `queue_date`(date) · `status`(enum: waiting/called/
+  in_service/served/skipped/cancelled) · `called_at`(ts) · `served_at`(ts) · unique (hospital_id, doctor_id,
+  queue_date, token_no). *Per-practitioner/room token.*
+- **discharge_summary** — `id`(uuid) PK · `hospital_id`(uuid) FK · `admission_id`(uuid, unique) FK ·
+  `encounter_id`(uuid) FK · `prepared_by`(uuid) FK · `signed_by`(uuid, nullable) FK · `diagnosis`(text) ·
+  `course`(text) · `procedures`(text) · `discharge_meds`(jsonb) · `followup_advice`(text) · `outcome`(text:
+  recovered/referred/lama/expired) · `status`(enum: draft/finalised/signed) · `file_id`(uuid) · `signed_at`(ts) ·
+  soft-delete. *ICD-coded discharge document.*
+- **icd_code** — `id`(uuid) PK · `system`(enum: icd10/icd11) · `code`(text) · `description`(text) · `is_active`(bool)
+  · unique (system, code). *Clinical-coding master (global, not org-scoped).*
+- **mrd_record** — `id`(uuid) PK · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK · `admission_id`(uuid, nullable)
+  FK · `file_no`(text, unique per hospital) · `completion_status`(enum: open/deficient/complete/archived) ·
+  `deficiencies`(jsonb) · `coded_by`(uuid, nullable) FK · `retention_until`(date) · `coded_at`(ts) · soft-delete.
+  *Medical-records completion/deficiency + retention.*
+- **mrd_coding** — `id`(uuid) PK · `mrd_record_id`(uuid) FK · `icd_code_id`(uuid) FK · `rank`(int: primary/
+  secondary) · `coded_by`(uuid) FK · **(mrd_record_id, icd_code_id, rank) unique**. *Encounter↔ICD coding join.*
+- **tariff** — `id`(uuid) PK · `hospital_id`(uuid) FK · `name`(text) · `scheme`(text: cash/cghs/echs/tpa/corporate/
+  pmjay) · `service_code`(text) · `service_name`(text) · `rate_paise`(bigint) · `currency`(char3) ·
+  `valid_from`(date) · `valid_to`(date) · `is_active`(bool). *Service-rate master per scheme (integer paise).*
+- **bill_package** — `id`(uuid) PK · `hospital_id`(uuid) FK · `name`(text) · `procedure_name`(text) ·
+  `icd_code_id`(uuid, nullable) FK · `scheme`(text: cash/tpa/pmjay) · `package_price_paise`(bigint) · `currency`(char3)
+  · `inclusions`(jsonb) · `exclusions`(jsonb) · `los_days`(int) · `is_active`(bool). *Fixed-price surgical/treatment
+  package.*
+- **advance_payment** — `id`(uuid) PK · `hospital_id`(uuid) FK · `admission_id`(uuid) FK · `payment_id`(uuid,
+  nullable) FK · `amount_paise`(bigint) · `currency`(char3) · `mode`(text: cash/upi/card/bank) · `status`(enum:
+  received/adjusted/refunded) · `received_at`(ts). *Deposit/advance against an IPD stay; adjusted into the final
+  bill.*
+- **hospital_bill** — `id`(uuid) PK · `bill_no`(text, unique) · `hospital_id`(uuid) FK · `encounter_id`(uuid) FK ·
+  `admission_id`(uuid, nullable) FK · `patient_id`(uuid) FK · `bill_type`(enum: opd/interim/final) · `scheme`(text:
+  cash/tpa/corporate/pmjay) · `bill_package_id`(uuid, nullable) FK · `gross_paise`(bigint) · `discount_paise`(bigint)
+  · `discount_justification`(text, mandatory when discount>0) · `tax_paise`(bigint) · `advance_adjusted_paise`(bigint)
+  · `payable_paise`(bigint) · `currency`(char3) · `status`(enum: draft/provisional/finalised/paid/partially_paid/
+  cancelled) · `gstin`(text) · `file_id`(uuid) · `finalised_at`(ts) · soft-delete. *Interim/final IPD + OPD bill
+  (1—* `bill_line`).*
+- **bill_line** — `id`(uuid) PK · `hospital_bill_id`(uuid) FK · `tariff_id`(uuid, nullable) FK · `clinical_order_id`
+  (uuid, nullable) FK · `category`(text: bed/consultation/procedure/investigation/pharmacy/consumable/ot/package) ·
+  `description`(text) · `quantity`(int) · `unit_price_paise`(bigint) · `discount_paise`(bigint) · `tax_paise`(bigint)
+  · `line_total_paise`(bigint) · `currency`(char3). *Itemised charge line.*
+- **pre_authorization** — `id`(uuid) PK · `hospital_id`(uuid) FK · `admission_id`(uuid) FK · `patient_id`(uuid) FK ·
+  `payer_type`(enum: tpa/insurer/corporate/pmjay) · `payer_id`(uuid, nullable) FK · `policy_no`(text) ·
+  `consent_id`(uuid) FK · `bill_package_id`(uuid, nullable) FK · `requested_paise`(bigint) · `approved_paise`(bigint)
+  · `currency`(char3) · `status`(enum: requested/queried/approved/partially_approved/rejected/enhanced) ·
+  `documents`(jsonb) · `requested_at`(ts) · `decided_at`(ts) · soft-delete. *Cashless pre-auth (1—* `tpa_claim`);
+  consented sharing.*
+- **tpa_claim** — `id`(uuid) PK · `hospital_id`(uuid) FK · `pre_authorization_id`(uuid, nullable) FK ·
+  `hospital_bill_id`(uuid, nullable) FK · `payer_id`(uuid) FK · `claim_no`(text) · `claimed_paise`(bigint) ·
+  `settled_paise`(bigint) · `disallowed_paise`(bigint) · `currency`(char3) · `status`(enum: submitted/queried/
+  approved/settled/rejected/short_settled) · `documents`(jsonb) · `submitted_at`(ts) · `settled_at`(ts) ·
+  soft-delete. *Cashless/TPA final claim → FHIR `Claim`.*
+- **pmjay_claim** — `id`(uuid) PK · `hospital_id`(uuid) FK · `admission_id`(uuid) FK · `bill_package_id`(uuid) FK ·
+  `pmjay_case_id`(text) · `hbp_package_code`(text) · `card_no`(text, encrypted) · `package_paise`(bigint) ·
+  `approved_paise`(bigint) · `currency`(char3) · `status`(enum: initiated/preauth/in_treatment/claimed/approved/
+  paid/rejected) · `documents`(jsonb) · `submitted_at`(ts) · soft-delete. *PM-JAY (Ayushman Bharat) package claim →
+  FHIR `Claim`.*
+- **formulary_item** — `id`(uuid) PK · `hospital_id`(uuid) FK · `medicine_id`(uuid, nullable) FK ·
+  `composition_id`(uuid, nullable) FK · `generic_name`(text) · `formulary_class`(text) · `is_restricted`(bool) ·
+  `restriction_note`(text) · `is_active`(bool) · unique (hospital_id, medicine_id). *Hospital formulary (extends
+  Pharmacy master).*
+- **ward_stock** — `id`(uuid) PK · `hospital_id`(uuid) FK · `ward_id`(uuid) FK · `formulary_item_id`(uuid, nullable)
+  FK · `inventory_item_id`(uuid, nullable) FK · `batch_id`(uuid, nullable) FK · `quantity`(int) · `par_level`(int) ·
+  `updated_at`(ts). *Ward-level pharmacy/consumable stock (links Inventory `inventory_batches`).*
+- **drug_indent** — `id`(uuid) PK · `hospital_id`(uuid) FK · `ward_id`(uuid) FK · `requested_by`(uuid) FK ·
+  `indent_no`(text, unique per hospital) · `status`(enum: requested/approved/issued/partially_issued/rejected/
+  cancelled) · `items`(jsonb) · `requested_at`(ts) · `issued_at`(ts) · `issued_by`(uuid, nullable) FK · soft-delete.
+  *Ward→pharmacy indent/issue (drives `ward_stock` + `stock_ledger`).*
+- **duty_roster** — `id`(uuid) PK · `hospital_id`(uuid) FK · `staff_user_id`(uuid) FK · `ward_id`(uuid, nullable) FK
+  · `department`(text) · `role`(text: doctor/nurse/technician/on_call) · `shift`(enum: morning/evening/night/full) ·
+  `shift_start`(ts) · `shift_end`(ts) · `is_on_call`(bool) · `status`(text: scheduled/swapped/leave) · soft-delete.
+  *Staff/clinician duty roster + on-call (attendance link).*
 
 ### Quality (NABL)
 *Owner: Lab Quality (NABL).*

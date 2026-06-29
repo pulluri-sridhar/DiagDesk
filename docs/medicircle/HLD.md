@@ -136,6 +136,17 @@ later. **Edge ✅** = also runs at the branch edge. Exact owned tables are in mi
 > adds Analytics/Search + clinical + pharmacy + home-care booking/visits; R3 adds NABL QC, home-care
 > care-plans/payouts, engagement, insurance, deeper Consent/FHIR. See microservices.md build order.
 
+### G. Clinic & Hospital (HIS) — dedicated enterprise track
+MediCircle now includes a **Clinic edition (OPD operations)** and a **Hospital edition (full HIS)** as a
+**dedicated enterprise track** (not folded into the SMB R1–R3 timeline). A single **`encounter`** spine
+(FHIR `Encounter`-aligned) unifies **OPD · IPD · ER**, threading orders, notes, meds, bills, and the
+discharge summary; the **lab node serves as the in-house LIS** (and RIS/PACS as in-house radiology). Each
+hospital chooses **full MediCircle HIS or HL7/FHIR integration** with its existing systems. New services land
+as **Group G** (G1 Clinic Operations, G2 ADT, G3 Bed/Ward, G4 IPD & Nursing/CPOE/eMAR, G5 OT & Surgery, G6
+Hospital Billing & TPA/Cashless, G7 MRD & Clinical Coding, G8 Hospital Pharmacy & Formulary). Conventions
+(integer paise, RLS, AI assistive + sign-off, FHIR) carry over unchanged. Full detail:
+[clinic-hospital-his.md](clinic-hospital-his.md).
+
 ## 5. Core end-to-end flows
 All money is **integer paise** and idempotent; **no commission accrues anywhere** — economics are
 **SaaS subscriptions + patient transaction fees + home-care take-rate + lawful B2B + consented
@@ -172,7 +183,11 @@ payout queued** (via Payments — a lawful per-visit payout to the professional 
 referral commission**) → visit record written to patient history. **Care plans** schedule recurring visits
 with reminders; realtime status flows over WebSockets. The same engine powers **at-home sample collection**.
 
-### 5.5 Provider operations & billing
+### 5.5 Hospital admission → discharge (HIS — enterprise track)
+**admission → CPOE/eMAR/nursing → OT → discharge summary (ICD) → final bill + TPA/cashless** — all hung off
+one FHIR-aligned `encounter`. Detail in [clinic-hospital-his.md](clinic-hospital-his.md).
+
+### 5.6 Provider operations & billing
 Each provider portal (Doctor/Hospital · Lab · Pharmacy · Admin) runs day-to-day operations. Completed
 orders/visits generate **GST-compliant invoices/receipts**, feed the day-book/collections, handle refunds
 and returns (credit notes), and produce exportable financial reports — all in **Billing & Invoicing**.

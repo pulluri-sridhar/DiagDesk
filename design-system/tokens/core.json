@@ -1,0 +1,53 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "Core primitive tokens — brand-agnostic raw values. Never consumed directly by UI; semantic + brand tokens alias these. Source of truth: edit here, run `npm run build`, and every platform output regenerates.",
+  "color": {
+    "$type": "color",
+    "teal":   { "50": {"$value":"#e6f4f1"}, "100": {"$value":"#c9ebe4"}, "300": {"$value":"#89f5e7"}, "500": {"$value":"#008378"}, "600": {"$value":"#00685f"}, "700": {"$value":"#0a534c"}, "900": {"$value":"#06302c"} },
+    "indigo": { "50": {"$value":"#eeecff"}, "100": {"$value":"#e2dfff"}, "300": {"$value":"#b3adff"}, "500": {"$value":"#645efb"}, "600": {"$value":"#4b41e1"}, "700": {"$value":"#382fb0"}, "900": {"$value":"#1d1866"} },
+    "coral":  { "100": {"$value":"#ffe3dd"}, "500": {"$value":"#ff7a66"}, "600": {"$value":"#e85a44"} },
+    "slate":  { "0": {"$value":"#ffffff"}, "25": {"$value":"#f8f9ff"}, "50": {"$value":"#eff4ff"}, "100": {"$value":"#e5eeff"}, "200": {"$value":"#dbe4f0"}, "300": {"$value":"#bcc9c6"}, "500": {"$value":"#6d7a77"}, "600": {"$value":"#3d4947"}, "800": {"$value":"#16233a"}, "900": {"$value":"#0b1c30"}, "950": {"$value":"#0b1320"} },
+    "darksurface": { "bg": {"$value":"#0b1320"}, "card": {"$value":"#121b2b"}, "muted": {"$value":"#1b2740"}, "border": {"$value":"#2a3852"}, "fg": {"$value":"#e7edf5"}, "fg-muted": {"$value":"#9fb0c9"} },
+    "green":  { "soft": {"$value":"#d7f0e3"}, "default": {"$value":"#2e7d57"} },
+    "amber":  { "soft": {"$value":"#fef3c7"}, "default": {"$value":"#b45309"} },
+    "red":    { "soft": {"$value":"#ffdad6"}, "default": {"$value":"#ba1a1a"} }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "sans": {"$value": ["Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"]},
+      "icon": {"$value": ["Material Symbols Outlined"]}
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {"$value": 400}, "medium": {"$value": 500}, "semibold": {"$value": 600}, "bold": {"$value": 700}, "extrabold": {"$value": 800}
+    }
+  },
+  "fontSize": {
+    "$type": "dimension",
+    "xs": {"$value":"0.75rem"}, "sm": {"$value":"0.875rem"}, "base": {"$value":"0.9375rem"}, "md": {"$value":"1rem"}, "lg": {"$value":"1.125rem"}, "xl": {"$value":"1.25rem"}, "2xl": {"$value":"1.5rem"}, "3xl": {"$value":"1.875rem"}, "4xl": {"$value":"2.5rem"}, "5xl": {"$value":"3.25rem"}
+  },
+  "lineHeight": { "tight": {"$value":"1.1"}, "snug": {"$value":"1.3"}, "normal": {"$value":"1.55"} },
+  "letterSpacing": { "tight": {"$value":"-0.02em"}, "normal": {"$value":"0"}, "wide": {"$value":"0.12em"} },
+  "space": {
+    "$type": "dimension",
+    "0": {"$value":"0"}, "1": {"$value":"0.25rem"}, "2": {"$value":"0.5rem"}, "3": {"$value":"0.75rem"}, "4": {"$value":"1rem"}, "5": {"$value":"1.25rem"}, "6": {"$value":"1.5rem"}, "8": {"$value":"2rem"}, "10": {"$value":"2.5rem"}, "12": {"$value":"3rem"}, "16": {"$value":"4rem"}, "20": {"$value":"5rem"}
+  },
+  "radius": {
+    "$type": "dimension",
+    "sm": {"$value":"6px"}, "md": {"$value":"10px"}, "lg": {"$value":"16px"}, "xl": {"$value":"24px"}, "full": {"$value":"999px"}
+  },
+  "shadow": {
+    "$type": "shadow",
+    "sm": {"$value":"0 1px 2px rgba(11,28,48,0.06)"},
+    "md": {"$value":"0 4px 14px rgba(11,28,48,0.08)"},
+    "lg": {"$value":"0 10px 30px rgba(11,28,48,0.10)"},
+    "xl": {"$value":"0 24px 60px rgba(11,28,48,0.14)"}
+  },
+  "motion": {
+    "duration": { "$type":"duration", "fast": {"$value":"120ms"}, "base": {"$value":"200ms"}, "slow": {"$value":"320ms"} },
+    "easing": { "$type":"cubicBezier", "standard": {"$value":[0.2,0,0,1]}, "emphasized": {"$value":[0.2,0,0,1.2]} }
+  },
+  "zIndex": { "base": {"$value":0}, "dropdown": {"$value":1000}, "sticky": {"$value":1100}, "overlay": {"$value":1300}, "modal": {"$value":1400}, "toast": {"$value":1600} },
+  "breakpoint": { "sm": {"$value":"640px"}, "md": {"$value":"768px"}, "lg": {"$value":"1024px"}, "xl": {"$value":"1280px"}, "2xl": {"$value":"1536px"} }
+}
