@@ -10,7 +10,7 @@ Part C for sources and detail.*
 | Item | Status | Software wedge | DiagDesk phase |
 |---|---|---|---|
 | **Anti-kickback — referral commissions** (IMC 2002 Clause 6.4.1; NMC; *Apex Laboratories* SC 2022) | **MANDATORY** — binds the lab as payer | **Do NOT build a commission engine.** Compliant B2B billing (institution = buyer), **professional-services contracts** (`fixed`/`per_service`, never per-referral — [ADR-010](adr/010-compliant-referral-economics.md)), referral **activity** analytics (no payout), guardrail that blocks payouts attached to referrers | **MVP** (design constraint) — see [compliance-anti-kickback.md](compliance-anti-kickback.md) |
-| **DPDP Act 2023 + Rules 2025** | **MANDATORY** (all health data) | Consent mgmt, India data residency, 72-hr breach workflow, audit logs | **MVP** (foundation) |
+| **DPDP Act 2023 + Rules 2025** *(Rules notified 13 Nov 2025; obligations enforceable ~13 May 2027)* | **MANDATORY** (all health data) | Consent mgmt, India data residency, 72-hr breach workflow, audit logs | **MVP** (foundation) |
 | **PC-PNDT Form F** (radiology/USG) | **MANDATORY** where ultrasound present | Online Form-F generation/filing | **V2** (with radiology) |
 | **Biomedical Waste Rules 2016** | **MANDATORY** for BMW generators | Barcode/waste-bag logs, annual-report (digital from 2026) | **V2** |
 | **NABL — ISO 15189:2022** | Voluntary, but **required for CGHS/insurance** | IQC/EQAS logs, auto L-J charts, Westgard, audit-ready controlled docs | **V1** (QC module) |

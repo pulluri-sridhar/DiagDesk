@@ -128,8 +128,10 @@ Governed by the **Telemedicine Practice Guidelines**:
 
 ### 3.4 Data
 
-- **DPDP Act 2023 (+ Rules 2025)** — **consent-first**, **India data residency**, purpose limitation, breach
-  workflow, audit logs; biometric/health data is sensitive personal data.
+- **DPDP Act 2023 (+ DPDP Rules 2025, notified 13 Nov 2025)** — **consent-first**, **India data residency**, purpose
+  limitation, breach workflow, audit logs; biometric/health data is sensitive personal data. **Phased rollout:**
+  Consent-Manager registration rules live **~13 Nov 2026**; substantive obligations (notice, security safeguards,
+  breach reporting) enforceable **~13 May 2027** — build now, full compliance before mid-2027.
 - **CERT-In** — incident reporting / security directions.
 - **ABDM / ABHA + FHIR R4** — consent-driven health records; increasingly mandatory for AB-PMJAY providers.
 
@@ -157,7 +159,7 @@ No RMP referral commissions anywhere — and no commission engine to toggle. Med
 | Item | Status | Software wedge | Phase |
 |---|---|---|---|
 | **Anti-kickback — referral commissions** (IMC 2002 Cl. 6.4.1; NMC 2023 in abeyance; *Apex Laboratories* SC 2022) | **MANDATORY** — binds the payer | **Build NO commission engine.** B2B buyer billing + `professional_service_contract` (`fixed`/`per_service`, never per-referral) + referral **activity** analytics (no payout) + guardrail blocking payouts attached to referrers ([ADR-007](../adr/007-no-referral-commission-tooling.md)/[010](../adr/010-compliant-referral-economics.md)) | **MVP / lab node** (design constraint) |
-| **DPDP Act 2023 + Rules 2025** | **MANDATORY** (all health data) | Consent management, **India residency**, 72-hr breach workflow, audit logs, retention policy | **MVP** (foundation) |
+| **DPDP Act 2023 + Rules 2025** *(Rules notified 13 Nov 2025; obligations enforceable ~13 May 2027)* | **MANDATORY** (all health data) | Consent management, **India residency**, 72-hr breach workflow, audit logs, retention policy | **MVP** (foundation) |
 | **CERT-In directions** | **MANDATORY** | Incident logging + reporting workflow, log retention | **MVP / V1** |
 | **E-pharmacy** (draft rules; Delhi HC; CDSCO; May-2026 shutdown) | **MANDATORY** where dispensing | **Licensed local/in-house only** (not aggregator); valid-Rx enforcement; **anti-forgery + reuse-prevention**; Schedule H/H1/X + narcotics controls | **V2/V3** (pharmacy side) |
 | **Prescription integrity** | **MANDATORY** (supports e-pharmacy + telemed) | E-signed, **ABHA-linked** prescriptions; **reuse-prevention registry**; schedule guardrails; anti-forgery | **V2/V3** |
@@ -218,7 +220,7 @@ No RMP referral commissions anywhere — and no commission engine to toggle. Med
 | Requirement | Type | Trigger (feature that makes it needed) | Notes (2026) |
 |---|---|---|---|
 | Company + **GST** + payment-gateway **merchant KYC** | Mandatory | Operating at all | Pvt Ltd, GST, PAN/TAN; Razorpay merchant onboarding |
-| **DPDP Act 2023** compliance (Data Fiduciary) | Mandatory | Handling any personal/health data | Consent, data-principal rights, breach process, India residency. If notified a **Significant Data Fiduciary** → **DPO in India + DPIA + independent audit**. DPDP Rules being notified/phased 2025–26 — confirm current stage |
+| **DPDP Act 2023** compliance (Data Fiduciary) | Mandatory | Handling any personal/health data | Consent, data-principal rights, breach process, India residency. If notified a **Significant Data Fiduciary** → **DPO in India + DPIA + independent audit**. **DPDP Rules 2025 notified 13 Nov 2025**; phased — Consent-Manager rules ~Nov 2026, substantive obligations enforceable **~13 May 2027** |
 | **CERT-In** Directions (28 Apr 2022) | Mandatory | Internet-facing systems | **180-day logs retained in India**, **6-hour** incident reporting, NTP clock sync |
 | **VAPT by a CERT-In-empanelled auditor** | Mandatory for ABDM · strongly expected otherwise | Go-live; ABDM WASA | Required to clear ABDM production; repeat periodically/after major change |
 | **ISO 27001** (+ **SOC 2 Type II**) | Commercial, *not* legal | Selling to hospitals/insurers/enterprise | ISO 27001 is the priority cert in India; SOC 2 Type II for US buyers; both aid cyber-insurance & due-diligence (~6–12 mo to certify) |

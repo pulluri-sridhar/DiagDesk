@@ -249,6 +249,8 @@ summary table.*
   [Tally](https://tallysolutions.com/gst/e-invoicing-limit-india/)
 
 ### C6. Data privacy — DPDP Act 2023 + Rules 2025 — **MANDATORY**
+- **DPDP Rules 2025 notified 13 Nov 2025**; phased rollout — Consent-Manager rules live ~Nov 2026, substantive
+  obligations (notice, security, breach) enforceable **~13 May 2027** (build now; comply before mid-2027).
 - Health data is highly sensitive under DPDP. Consent must be free, specific, informed, by clear affirmative
   action, with a **standalone plain-language notice in all 22 scheduled languages**.
 - **Data Fiduciary duties:** itemized notices, purpose-based **retention**, security safeguards, **breach
