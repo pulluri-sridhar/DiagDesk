@@ -61,9 +61,10 @@ Hosting is **provider-agnostic, India-region, managed-first**. Rather than namin
 **posture and a tiered shortlist**; the actual provider is an open decision recorded in
 [ADR-004](adr/004-hosting-and-data-residency.md).
 
-**Start tier (cost-optimized): DigitalOcean Bangalore / Fly.io Mumbai.** Begin here — fast to stand up,
-cost-effective, full managed Postgres/K8s/Redis/object-store (on Fly, pair app compute with an external
-managed Postgres, since Fly Postgres is unmanaged). Good for pilot/MVP and non-regulated workloads.
+**Start tier (cost-optimized): ✅ selected — DigitalOcean Bangalore** (Fly.io Mumbai was the considered
+alternative; deprioritised because Fly Postgres is unmanaged and would need an external managed PG). Begin here
+— fast to stand up, cost-effective, full managed **Postgres + DOKS + Redis + Spaces** in the India (BLR1)
+region. Good for pilot/MVP and non-regulated workloads. *(Decision 2026-06-29 — see ADR-004.)*
 
 **Hyperscaler tier: AWS Mumbai / Azure India.** Graduate here when a contract needs an explicit **HIPAA BAA**,
 the broadest managed service set, or an enterprise compliance portfolio (SOC/ISO/HITRUST). Sign the **BAA

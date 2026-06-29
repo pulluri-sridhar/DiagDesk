@@ -30,6 +30,7 @@ DiagDesk ships first; MediCircle is the program it grows into.
 | Doc | What's inside |
 |---|---|
 | [docs/stakeholder-plan.md](docs/stakeholder-plan.md) | **Start here** — consolidated plan for stakeholder/end-user review & sign-off |
+| [docs/build-readiness-checklist.md](docs/build-readiness-checklist.md) | **Go / No-Go** — one-page build-readiness checklist (sign-off gates · Phase-0 prerequisites · compliance long-poles) |
 | [docs/stakeholder-call-2026-06-28.md](docs/stakeholder-call-2026-06-28.md) | **Latest owner call** — 22 requirements + traceability matrix (inventory, RBAC, letterhead, handover, referral economics, MediCircle…) |
 | [docs/rbac-permissions.md](docs/rbac-permissions.md) | Owner-defined **granular RBAC** — user types + per-feature permission catalogue + overrides |
 | [docs/medicircle-vision.md](docs/medicircle-vision.md) | **MediCircle** V3 north star — per-participant build for Doctors/Hospitals · Pharmacies · Home-Care · Patients (DiagDesk = lab node) |

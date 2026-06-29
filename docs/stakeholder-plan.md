@@ -138,9 +138,10 @@ on a provider-agnostic managed, India-region cloud** (portable — the provider 
 2. **MVP wedge** — Core LIS + billing + delivery first; B2B & Partner management in V1 *(recommended)*.
 3. **Backend language** — **LOCKED: Java 21 + Spring Boot 3** (team expertise, richest FHIR/HL7 + enterprise
    durability); Go for the device gateway + sync engine; TypeScript frontend/mobile only. *Confirm for hiring.*
-4. **Hosting posture** — **LOCKED: provider-agnostic managed, India-region** — start on **DigitalOcean
-   Bangalore / Fly.io Mumbai**; graduate to **AWS Mumbai / Azure India** (HIPAA BAA) or **E2E / Yotta**
-   (sovereign) per contract. *The specific start provider is the remaining open call (founders, within days).*
+4. **Hosting posture** — **LOCKED: provider-agnostic managed, India-region** — graduate to **AWS Mumbai / Azure
+   India** (HIPAA BAA) or **E2E / Yotta** (sovereign) per contract. **Start provider chosen (2026-06-29):
+   ✅ DigitalOcean Bangalore** (managed Postgres + DOKS + Redis + Spaces, BLR1); provider stays a swap, not a
+   rewrite. *(See [ADR-004](adr/004-hosting-and-data-residency.md).)*
 5. **Compliance ambition for V2** — ABDM HIP certification (unlocks ₹15/txn) timing and whether to pursue
    government/CGHS contracts (drives MeitY-empanelled CSP choice).
 6. **Database** — **PostgreSQL confirmed** (MongoDB not adopted) — confirm.
