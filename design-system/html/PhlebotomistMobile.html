@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#001848",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#7de2fe",
+                        "on-background": "#191b23",
+                        "surface-bright": "#faf8ff",
+                        "tertiary": "#7b2600",
+                        "secondary-fixed-dim": "#6ed4ef",
+                        "on-surface": "#191b23",
+                        "surface-tint": "#0c56d0",
+                        "inverse-surface": "#2e3038",
+                        "on-secondary-fixed": "#001f26",
+                        "secondary": "#00687b",
+                        "outline-variant": "#c3c6d6",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e1e2ec",
+                        "surface-dim": "#d9d9e4",
+                        "primary-fixed": "#dae2ff",
+                        "inverse-primary": "#b2c5ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "tertiary-fixed": "#ffdbcf",
+                        "on-tertiary-container": "#ffc6b2",
+                        "on-secondary-container": "#006577",
+                        "surface-container-highest": "#e1e2ec",
+                        "on-secondary-fixed-variant": "#004e5d",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "surface-container": "#ededf8",
+                        "primary": "#003d9b",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-low": "#f3f3fd",
+                        "primary-container": "#0052cc",
+                        "tertiary-container": "#a33500",
+                        "surface-container-high": "#e7e7f2",
+                        "background": "#faf8ff",
+                        "outline": "#737685",
+                        "surface": "#faf8ff",
+                        "secondary-fixed": "#aeecff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-fixed": "#380d00",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#812800",
+                        "tertiary-fixed-dim": "#ffb59b",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#c4d2ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "32px",
+                        "md": "24px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "gutter": "24px",
+                        "lg": "40px",
+                        "margin-mobile": "16px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "stat-lg": ["Inter"],
+                        "headline-md-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-bold": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "stat-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-bold": ["16px", {"lineHeight": "24px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 82, 204, 0.1);
+            box-shadow: 0 4px 20px -2px rgba(0, 82, 204, 0.08);
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(0, 82, 204, 0.15);
+        }
+        .custom-grid-bg {
+            background-image: linear-gradient(rgba(250, 248, 255, 0.92), rgba(250, 248, 255, 0.92)), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfkAFBAInS_ciupsGDdDlo1yvFt0YwaqXM-zL-onYLM8IqL-aHqXUFOHrMrzfZjMRThOeX30wC3SYLj-hudL60q4ncvJKIoFpW-YUXUCq46Mv9OgdmpfizSBqrJJPJ9pIIWYQMyfCtVwFzcpBKrrrr-WTpP__lQPq8weVkXSIDf1yDS02RKNZMXMYkQmCrms-BhXZCMoHqGFVV_CFSMy_v7LmuxgKTIqcaXpGnTd7MOMyHk_dWDo2DhLKhicZov_xUYv2a5jx_3Bk");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-base overflow-x-hidden custom-grid-bg min-h-screen">
+<!-- Offline Sync Status Bar -->
+<div class="fixed top-0 left-0 w-full z-50 px-md py-xs bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center h-8">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[12px] text-primary" style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Offline Sync: Active</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="font-label-caps text-[10px] text-on-surface-variant">Lat: 24ms</span>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+</div>
+</div>
+<!-- Main Mobile Content Area -->
+<main class="pt-12 pb-24 px-margin-mobile flex flex-col gap-lg min-h-screen">
+<!-- Header Section -->
+<header class="flex justify-between items-center py-sm">
+<div>
+<h1 class="font-headline-md-mobile text-headline-md-mobile text-primary-container tracking-tight">Daily Route</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant font-bold">ID: PB-9904 • OCTOBER 24</p>
+</div>
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-outline-variant bg-surface-container shadow-sm">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQXlOK0SPabjmQuICQVlENdgaeLRy0TPAid0RxnZKjbibYULpf70x7vEnWUpwH7qcEQhvTvIRdzwaMGT7NdCi05DZY_4mdP3eW-ZUv6cR0MBZzkYbOb0-1ZzbMXt0ddKCXP5FkyUxiC_fz9I_CEgf3PLpfaJgHjltLAhB-_oxllPuHZGUKY4iaa4gDzt0KNb9DLhATkqpd9pKtPIqJikfarGI2LQVSTS4KbKTpC066HNBK7mqpzH_waqADc6J1a_9kQPVH4FcfZyw"/>
+</div>
+</header>
+<!-- Route Progress Card -->
+<div class="glass-panel rounded-xl p-md flex flex-col gap-md relative overflow-hidden bg-white">
+<div class="absolute top-0 left-0 w-full h-[3px] bg-primary-container"></div>
+<div class="flex justify-between items-end">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">TOTAL PROGRESS</span>
+<div class="font-stat-lg text-stat-lg text-primary-container leading-none mt-xs">08/12</div>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-label-caps text-on-surface-variant">EST. REMAINING</span>
+<div class="font-body-bold text-body-bold text-on-surface">2h 15m</div>
+</div>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-2/3"></div>
+</div>
+</div>
+<!-- Section: ACTIVE COLLECTION -->
+<section class="flex flex-col gap-sm">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase flex items-center gap-sm font-bold">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+            Active Collection
+        </h2>
+<div class="glass-panel rounded-xl p-md border-primary-container/20 active-glow bg-white">
+<div class="flex items-start justify-between mb-md">
+<div>
+<h3 class="font-body-bold text-body-bold text-on-surface text-lg">Sarah Jenkins</h3>
+<p class="text-[14px] text-on-surface-variant font-medium">Patient ID: #882190 • Age: 42</p>
+</div>
+<div class="bg-error/10 border border-error/20 px-sm py-1 rounded text-[10px] font-bold text-error tracking-wider">URGENT</div>
+</div>
+<div class="space-y-sm">
+<!-- Task 1 -->
+<div class="flex items-center gap-md bg-surface-container-low p-sm rounded-lg border border-outline-variant/40">
+<div class="w-9 h-9 rounded bg-error/10 flex items-center justify-center border border-error/20">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">science</span>
+</div>
+<div class="flex-1">
+<div class="text-[14px] font-bold text-on-surface">Lavender Top (EDTA)</div>
+<div class="text-[12px] text-on-surface-variant font-medium">CBC, HbA1c</div>
+</div>
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Task 2 -->
+<div class="flex items-center gap-md bg-surface-container-low p-sm rounded-lg border border-outline-variant/40">
+<div class="w-9 h-9 rounded bg-primary-container/10 flex items-center justify-center border border-primary-container/20">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">science</span>
+</div>
+<div class="flex-1">
+<div class="text-[14px] font-bold text-on-surface">Gold Top (SST)</div>
+<div class="text-[12px] text-on-surface-variant font-medium">Lipid Panel, CMP</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">circle</span>
+</div>
+</div>
+<button class="w-full mt-md bg-primary-container text-on-primary font-bold text-[14px] py-md rounded-lg active:scale-95 transition-transform flex items-center justify-center gap-sm shadow-md">
+                COMPLETE COLLECTION
+            </button>
+</div>
+</section>
+<!-- Section: Daily Route List -->
+<section class="flex flex-col gap-sm">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase flex items-center gap-sm font-bold">
+<span class="w-2 h-2 rounded-full bg-on-surface-variant"></span>
+            Next Stops
+        </h2>
+<div class="space-y-sm">
+<!-- Route Item 1 -->
+<div class="glass-panel p-md rounded-xl flex items-center gap-md bg-white">
+<div class="text-center w-12 border-r border-outline-variant pr-md flex flex-col justify-center">
+<div class="font-label-caps text-on-surface-variant text-[10px] font-bold">ETA</div>
+<div class="font-body-bold text-primary-container">10:45</div>
+</div>
+<div class="flex-1">
+<div class="font-bold text-on-surface">James Wilson</div>
+<div class="text-[13px] text-on-surface-variant flex items-center gap-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-primary-container">location_on</span>
+                        452 Oak Lane, Suite 4
+                    </div>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Route Item 2 -->
+<div class="glass-panel p-md rounded-xl flex items-center gap-md opacity-70 bg-white">
+<div class="text-center w-12 border-r border-outline-variant pr-md flex flex-col justify-center">
+<div class="font-label-caps text-on-surface-variant text-[10px] font-bold">ETA</div>
+<div class="font-body-bold text-on-surface-variant">11:15</div>
+</div>
+<div class="flex-1">
+<div class="font-bold text-on-surface">Maria Garcia</div>
+<div class="text-[13px] text-on-surface-variant flex items-center gap-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+                        12 Highview Ct.
+                    </div>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Map Mini-preview -->
+<section class="flex flex-col gap-sm">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase flex items-center gap-sm font-bold">Route Visualization</h2>
+<div class="h-32 w-full rounded-xl overflow-hidden glass-panel relative bg-white border border-outline-variant/30">
+<div class="w-full h-full bg-cover bg-center opacity-80" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAyxudtpKp64xgFHJUSbZlymDLP9NZAQFAfDtNts5BtTH_3dvJGFnp6wyNFQ3wfwIRX0kAOq1-iOtJ420jjjnLRaR5JTmtWc-QdblWxBLC4MxNuRp0Jv4zDlX1O0TBrCpWpIzmGZ4i4067G0dNXUXQHHYW7i84OXk8JZ385lBIByzDeQrgPPQjdbDH1xjxxs5UXnJRkyiC-OM9YlQ1fM3DMw1gD2yyldBKkbk97pCsJ1jsLJNnhcv87v8Bd8gGL3ZDND4NrHTuMIy0')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-white/90 via-white/20 to-transparent"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<button class="bg-white/90 backdrop-blur shadow-sm border border-outline-variant px-md py-sm rounded-lg font-label-caps text-label-caps text-primary-container flex items-center gap-sm font-bold">
+<span class="material-symbols-outlined text-[18px]">map</span>
+                    EXPAND NAVIGATION
+                </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Scan Barcode Floating Action Button -->
+<button class="fixed bottom-24 right-md w-16 h-16 bg-primary-container text-on-primary rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined text-[32px]">barcode_scanner</span>
+</button>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full h-20 bg-white/95 backdrop-blur-xl border-t border-outline-variant/30 flex items-center justify-around px-md z-40 pb-4 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="p-2 rounded-xl bg-primary-container text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<span class="font-label-caps text-[10px] text-primary-container font-bold">HOME</span>
+</a>
+<a class="flex flex-col items-center gap-1 group text-on-surface-variant" href="#">
+<div class="p-2 rounded-xl group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">assignment</span>
+</div>
+<span class="font-label-caps text-[10px] font-medium">TASKS</span>
+</a>
+<a class="flex flex-col items-center gap-1 group text-on-surface-variant" href="#">
+<div class="p-2 rounded-xl group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</div>
+<span class="font-label-caps text-[10px] font-medium">PROFILE</span>
+</a>
+</nav>
+<!-- CLI Style Footer / Environment Status -->
+<footer class="fixed bottom-0 left-0 w-full h-6 bg-surface-container-lowest flex items-center justify-between px-md text-on-surface-variant z-50 border-t border-outline-variant/20">
+<div class="font-label-caps text-[9px] flex items-center gap-2">
+<span class="text-primary-container font-bold">diagdesk&gt;</span>
+<span class="">session_active: pb_9904</span>
+</div>
+<div class="font-label-caps text-[9px]">
+        v2.4.0-stable | 24ms
+    </div>
+</footer>
+<!-- Interactive Micro-Overlay -->
+<div class="fixed inset-0 bg-background/95 z-[60] flex flex-col items-center justify-center hidden" id="scan-overlay">
+<div class="w-64 h-64 border-4 border-primary-container rounded-3xl relative overflow-hidden glass-panel bg-white/50">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container animate-pulse"></div>
+<div class="absolute inset-0 flex items-center justify-center opacity-10">
+<span class="material-symbols-outlined text-[128px]">qr_code_scanner</span>
+</div>
+<div class="absolute top-1/2 left-0 w-full h-0.5 bg-primary-container/50 shadow-[0_0_10px_rgba(0,82,204,0.5)]"></div>
+</div>
+<h3 class="font-headline-md text-primary-container mt-lg">Scanning Barcode...</h3>
+<p class="font-label-caps text-on-surface-variant mt-sm font-bold">Align patient wristband within frame</p>
+<button class="mt-xl border-2 border-outline-variant px-lg py-sm rounded-full font-label-caps text-label-caps text-on-surface-variant font-bold" onclick="toggleScan()">CANCEL</button>
+</div>
+<script>
+    function toggleScan() {
+        const overlay = document.getElementById('scan-overlay');
+        overlay.classList.toggle('hidden');
+    }
+
+    document.querySelector('.fixed.bottom-24.right-md').addEventListener('click', toggleScan);
+</script>
+</body></html>

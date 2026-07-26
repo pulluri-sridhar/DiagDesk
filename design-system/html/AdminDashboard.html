@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#001848",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#7de2fe",
+                        "on-background": "#191b23",
+                        "surface-bright": "#faf8ff",
+                        "tertiary": "#006b5d",
+                        "secondary-fixed-dim": "#6ed4ef",
+                        "on-surface": "#191b23",
+                        "surface-tint": "#0c56d0",
+                        "inverse-surface": "#2e3038",
+                        "on-secondary-fixed": "#001f26",
+                        "secondary": "#00687b",
+                        "outline-variant": "#dbe2ef",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e1e2ec",
+                        "surface-dim": "#d9d9e4",
+                        "primary-fixed": "#dae2ff",
+                        "inverse-primary": "#b2c5ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "tertiary-fixed": "#9cf2e3",
+                        "on-tertiary-container": "#00201a",
+                        "on-secondary-container": "#001f24",
+                        "surface-container-highest": "#e1e2ec",
+                        "on-secondary-fixed-variant": "#004e5d",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "surface-container": "#f0f4f9",
+                        "primary": "#0052cc",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-low": "#f8fafd",
+                        "primary-container": "#dae2ff",
+                        "tertiary-container": "#005045",
+                        "surface-container-high": "#e7e7f2",
+                        "background": "#ffffff",
+                        "outline": "#737685",
+                        "surface": "#ffffff",
+                        "secondary-fixed": "#aeecff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-fixed": "#00201a",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#005045",
+                        "tertiary-fixed-dim": "#80d6c7",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#001848"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "32px",
+                        "md": "24px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "gutter": "24px",
+                        "lg": "40px",
+                        "margin-mobile": "16px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "stat-lg": ["JetBrains Mono"],
+                        "headline-md": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid #dbe2ef;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            border-radius: 0.5rem;
+        }
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0, 82, 204, 0) 0%, rgba(0, 82, 204, 0.05) 50%, rgba(0, 82, 204, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+        }
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .5; transform: scale(0.9); }
+        }
+        .glow-text {
+            text-shadow: 0 0 10px rgba(0, 82, 204, 0.1);
+        }
+    </style>
+</head>
+<body class="font-body-base bg-white text-on-surface" style="background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBEiIHkjaWaNbC_otuuv71zhyV-EHWWi2NpQwAOYqup0gw4vnC3IY8rlDoRjGo3nwb9R2HW5evLhZ0KocbDtDHub5ibjzoOHUZu2DISVdLmV59COE-sGeiQR5gv3J0B5dBMr5MzsHfXqsghh86jF9S6_1vGNKszmMUcqdFMU5zZoa1m_r4jASlamH3gczriskNa9b2lMl9mPIls2U5AMgOzx171Jj5mrY38WxZ2XEzUWf2U2kZof3uIFx-s5Lt3KajnCCrVUPHTi6s'); background-size: cover; background-position: center center; background-attachment: fixed; background-repeat: no-repeat;">
+<!-- SideNavBar Anchor -->
+<aside class="h-screen w-64 flex-col fixed left-0 top-0 border-r border-outline-variant bg-white flex py-lg z-50">
+<div class="px-lg mb-xl">
+<h1 class="font-headline-md text-2xl font-extrabold text-primary tracking-tight">DiagDesk</h1>
+<p class="font-label-caps text-[10px] text-on-surface-variant tracking-widest uppercase mt-xs">Mission Control</p>
+</div>
+<nav class="flex-1 space-y-base px-sm">
+<!-- Active State: Dashboard -->
+<a class="flex items-center gap-md px-md py-sm text-primary font-bold border-r-4 border-primary bg-primary/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-caps text-[12px] uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors group" href="#">
+<span class="material-symbols-outlined text-lg">inventory_2</span>
+<span class="font-label-caps text-[12px] uppercase tracking-wider">Inventory</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors group" href="#">
+<span class="material-symbols-outlined text-lg">group</span>
+<span class="font-label-caps text-[12px] uppercase tracking-wider">Patients</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors group" href="#">
+<span class="material-symbols-outlined text-lg">assessment</span>
+<span class="font-label-caps text-[12px] uppercase tracking-wider">Reports</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors group" href="#">
+<span class="material-symbols-outlined text-lg">health_metrics</span>
+<span class="font-label-caps text-[12px] uppercase tracking-wider">System Health</span>
+</a>
+</nav>
+<div class="px-sm mt-auto space-y-xs">
+<button class="w-full bg-primary text-white font-label-caps text-[11px] py-md rounded-lg flex items-center justify-center gap-sm active:scale-95 transition-transform shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-md">terminal</span>
+            RUN DIAGNOSTICS
+        </button>
+<div class="pt-lg">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-md">settings</span>
+<span class="font-label-caps text-[11px] uppercase">Settings</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-md">help</span>
+<span class="font-label-caps text-[11px] uppercase">Support</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- TopAppBar Anchor -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-white/80 backdrop-blur-md border-b border-outline-variant flex items-center justify-between px-lg z-40">
+<div class="flex items-center gap-xl">
+<div class="relative">
+<span class="absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant material-symbols-outlined">search</span>
+<input class="bg-surface-container-low border border-outline-variant rounded-full pl-xl pr-lg py-xs text-sm w-80 focus:ring-1 focus:ring-primary focus:outline-none font-medium placeholder:text-on-surface-variant/50" placeholder="CMD + K to search diagnostics..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">sync</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors" style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+<div class="relative">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant mx-sm"></div>
+<div class="flex items-center gap-sm">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface leading-tight">Dr. Aris Thorne</p>
+<p class="text-[10px] text-primary font-bold uppercase tracking-wider">Chief Pathologist</p>
+</div>
+<div class="h-10 w-10 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden">
+<img alt="Dr. Aris Thorne" class="h-full w-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU-d8OZ9zE81UA-odzy9D3t9tqcF4kB9ooYVRDGL6q2kgnhNAMbMRSY9PPOws_6SjiUh2Xw_ITBLtMMjGcUAk220aj9WopJdlg-2VXo5c66ohCtEZg6OqLNrf2LsLhzSkwKO52CjqkXqUpJRo03RByDiYDgiJQE6AlY38L7teaUaVCez2riib89Nrr5kSuawo8RZ99a9AOIF11CiQld7ZDSguQRJiJ5d_ueFL5r44gkI9JHsEJrfPx9H8TRFz5iBxwrrgg1Fqx_5A"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-lg pb-12 min-h-screen">
+<!-- Hero Section: System Pulse -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-lg">
+<!-- Live Diagnostic Count -->
+<div class="glass-panel p-lg relative overflow-hidden group border-l-4 border-l-primary">
+<div class="scanline"></div>
+<div class="flex justify-between items-start mb-md">
+<div>
+<p class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-xs">Live Diagnostic Count</p>
+<h2 class="font-stat-lg text-4xl text-primary font-bold tracking-tighter">12,842</h2>
+</div>
+<div class="p-sm bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">biotech</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<span class="text-tertiary text-xs font-bold">+12.4%</span>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-3/4"></div>
+</div>
+</div>
+</div>
+<!-- Active Phlebotomists -->
+<div class="glass-panel p-lg relative overflow-hidden border-l-4 border-l-secondary">
+<div class="flex justify-between items-start mb-md">
+<div class="">
+<p class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-xs">Active Phlebotomists</p>
+<h2 class="font-stat-lg text-4xl text-on-surface font-bold tracking-tighter">148</h2>
+</div>
+<div class="p-sm bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary">person_search</span>
+</div>
+</div>
+<div class="flex -space-x-2">
+<div class="h-8 w-8 rounded-full border-2 border-white bg-surface-container-highest"></div>
+<div class="h-8 w-8 rounded-full border-2 border-white bg-surface-container-highest"></div>
+<div class="h-8 w-8 rounded-full border-2 border-white bg-surface-container-highest"></div>
+<div class="h-8 w-8 rounded-full border-2 border-white flex items-center justify-center bg-surface-container-high text-[10px] font-bold text-on-surface-variant">+144</div>
+</div>
+</div>
+<!-- Ingestion Health -->
+<div class="glass-panel p-lg relative overflow-hidden border-l-4 border-l-tertiary">
+<div class="flex justify-between items-start mb-md">
+<div>
+<p class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-xs">Ingestion Health</p>
+<h2 class="font-stat-lg text-4xl text-tertiary font-bold tracking-tighter">99.98%</h2>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary pulse-dot shadow-[0_0_8px_rgba(0,107,93,0.4)]"></div>
+<span class="font-label-caps text-[10px] text-tertiary font-bold uppercase">Elastic Active</span>
+</div>
+</div>
+<div class="flex items-end gap-1.5 h-10">
+<div class="w-full bg-tertiary/10 h-4 rounded-t-sm"></div>
+<div class="w-full bg-tertiary/20 h-6 rounded-t-sm"></div>
+<div class="w-full bg-tertiary h-9 rounded-t-sm"></div>
+<div class="w-full bg-tertiary/40 h-5 rounded-t-sm"></div>
+<div class="w-full bg-tertiary h-7 rounded-t-sm"></div>
+</div>
+</div>
+</section>
+<!-- Central Visualization & Alerts Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Diagnostics Flow Chart (8 Cols) -->
+<div class="col-span-12 lg:col-span-8 glass-panel p-lg">
+<div class="flex justify-between items-center mb-lg">
+<div>
+<h3 class="text-xl font-bold text-on-surface tracking-tight">Diagnostics Flow</h3>
+<p class="font-label-caps text-[10px] text-on-surface-variant font-medium">Real-time throughput analysis via Prometheus hook</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 bg-white text-[10px] font-bold font-label-caps rounded-md border border-outline-variant hover:bg-surface-container transition-colors shadow-sm">1H</button>
+<button class="px-3 py-1.5 bg-primary text-white text-[10px] font-bold font-label-caps rounded-md shadow-md shadow-primary/20">24H</button>
+<button class="px-3 py-1.5 bg-white text-[10px] font-bold font-label-caps rounded-md border border-outline-variant hover:bg-surface-container transition-colors shadow-sm">7D</button>
+</div>
+</div>
+<div class="h-80 w-full relative flex items-end">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 300">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#0052cc" stop-opacity="0.15"></stop>
+<stop offset="100%" stop-color="#0052cc" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 250 Q 50 200, 100 220 T 200 150 T 300 180 T 400 100 T 500 130 T 600 80 T 700 110 T 800 50 L 800 300 L 0 300 Z" fill="url(#chartGradient)"></path>
+<path d="M0 250 Q 50 200, 100 220 T 200 150 T 300 180 T 400 100 T 500 130 T 600 80 T 700 110 T 800 50" fill="none" stroke="#0052cc" stroke-linecap="round" stroke-width="4"></path>
+<circle class="animate-pulse" cx="400" cy="100" fill="#0052cc" r="6"></circle>
+<circle cx="800" cy="50" fill="#0052cc" r="6"></circle>
+</svg>
+<div class="absolute left-[50%] top-12 transform -translate-x-1/2 p-md bg-white/95 border border-primary/30 rounded-lg text-center shadow-xl pointer-events-none">
+<p class="text-[10px] font-bold font-label-caps text-on-surface-variant uppercase">PEAK LOAD</p>
+<p class="text-lg font-black text-primary">1,402 req/sec</p>
+</div>
+</div>
+</div>
+<!-- Critical Alerts Widget (4 Cols) -->
+<div class="col-span-12 lg:col-span-4 glass-panel flex flex-col">
+<div class="p-lg border-b border-outline-variant bg-surface-container-low/50 rounded-t-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-error font-bold" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h3 class="text-lg font-bold text-on-surface">Critical Alerts</h3>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-md space-y-md max-h-[400px]">
+<!-- Alert Item -->
+<div class="p-md rounded-lg border border-outline-variant border-l-4 border-l-error bg-white hover:shadow-md transition-shadow cursor-pointer group">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-caps text-[10px] text-error uppercase font-black tracking-widest">Inventory Conflict</span>
+<span class="text-[10px] text-on-surface-variant font-bold font-label-caps">2m ago</span>
+</div>
+<p class="text-sm font-bold text-on-surface mb-sm">Expired Reagent: CRP-24 Lot #402</p>
+<div class="flex gap-sm">
+<button class="text-[10px] font-bold font-label-caps px-sm py-1.5 border border-outline-variant rounded hover:bg-surface-container transition-colors bg-surface-container-low">QUARANTINE</button>
+<button class="text-[10px] font-bold font-label-caps px-sm py-1.5 border border-outline-variant rounded hover:bg-surface-container transition-colors bg-surface-container-low">REORDER</button>
+</div>
+</div>
+<!-- Alert Item -->
+<div class="p-md rounded-lg border border-outline-variant border-l-4 border-l-amber-500 bg-white hover:shadow-md transition-shadow cursor-pointer group">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-caps text-[10px] text-amber-600 uppercase font-black tracking-widest">Patient Result</span>
+<span class="text-[10px] text-on-surface-variant font-bold font-label-caps">14m ago</span>
+</div>
+<p class="text-sm font-bold text-on-surface mb-sm">Critical Troponin Level: Patient ID #99283</p>
+<div class="flex gap-sm">
+<button class="text-[10px] font-bold font-label-caps px-sm py-1.5 border border-outline-variant rounded hover:bg-surface-container transition-colors bg-surface-container-low">NOTIFY MD</button>
+</div>
+</div>
+<!-- Alert Item -->
+<div class="p-md rounded-lg border border-outline-variant border-l-4 border-l-error bg-white hover:shadow-md transition-shadow cursor-pointer group">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-caps text-[10px] text-error uppercase font-black tracking-widest">Network Error</span>
+<span class="text-[10px] text-on-surface-variant font-bold font-label-caps">38m ago</span>
+</div>
+<p class="text-sm font-bold text-on-surface mb-sm">HPLC Analyzer #04: Connectivity Lost</p>
+</div>
+</div>
+</div>
+</div>
+<!-- System Health Grid -->
+<section class="mt-lg">
+<h3 class="font-label-caps text-[11px] text-on-surface-variant font-black uppercase tracking-[0.25em] mb-md ml-1">Infrastructure Telemetry</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Kong API -->
+<div class="glass-panel p-md flex items-center gap-lg hover:border-primary/50 transition-colors">
+<div class="h-12 w-12 flex items-center justify-center rounded-lg bg-primary/5 text-primary">
+<span class="material-symbols-outlined text-2xl font-bold">hub</span>
+</div>
+<div>
+<p class="font-label-caps text-[11px] text-on-surface-variant font-bold uppercase">Kong Gateway</p>
+<div class="flex items-center gap-sm">
+<span class="text-sm font-black text-on-surface">ONLINE</span>
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(0,107,93,0.3)]"></div>
+</div>
+</div>
+</div>
+<!-- PostgreSQL -->
+<div class="glass-panel p-md flex items-center gap-lg hover:border-primary/50 transition-colors">
+<div class="h-12 w-12 flex items-center justify-center rounded-lg bg-primary/5 text-primary">
+<span class="material-symbols-outlined text-2xl font-bold">database</span>
+</div>
+<div>
+<p class="font-label-caps text-[11px] text-on-surface-variant font-bold uppercase">PostgreSQL Cluster</p>
+<div class="flex items-center gap-sm">
+<span class="text-sm font-black text-on-surface">HEALTHY</span>
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(0,107,93,0.3)]"></div>
+</div>
+</div>
+</div>
+<!-- K8s -->
+<div class="glass-panel p-md flex items-center gap-lg hover:border-primary/50 transition-colors">
+<div class="h-12 w-12 flex items-center justify-center rounded-lg bg-primary/5 text-primary">
+<span class="material-symbols-outlined text-2xl font-bold">grid_view</span>
+</div>
+<div>
+<p class="font-label-caps text-[11px] text-on-surface-variant font-bold uppercase">K8s Clusters</p>
+<div class="flex items-center gap-sm">
+<span class="text-sm font-black text-on-surface">12/12 NODES</span>
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(0,107,93,0.3)]"></div>
+</div>
+</div>
+</div>
+<!-- Redis Cache -->
+<div class="glass-panel p-md flex items-center gap-lg hover:border-amber-500/50 transition-colors">
+<div class="h-12 w-12 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+<span class="material-symbols-outlined text-2xl font-bold">memory</span>
+</div>
+<div>
+<p class="font-label-caps text-[11px] text-on-surface-variant font-bold uppercase">Redis Cache</p>
+<div class="flex items-center gap-sm">
+<span class="text-sm font-black text-on-surface">STRESSED</span>
+<div class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)] pulse-dot"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Command Bar CLI -->
+<div class="fixed bottom-12 right-lg left-[calc(16rem+1.5rem)] glass-panel bg-white/95 border-primary/20 p-xs flex items-center gap-md shadow-2xl">
+<span class="font-label-caps text-primary text-xs ml-md select-none font-black tracking-widest">DIAGDESK&gt;</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface font-label-caps text-xs py-2 placeholder:text-on-surface-variant/30 font-medium" placeholder="Enter clinical protocol command (e.g. /reboot-hplc-04) or '?'..." type="text"/>
+<div class="flex gap-xs pr-sm">
+<kbd class="px-2 py-1 rounded bg-surface-container border border-outline-variant text-[9px] text-on-surface-variant font-bold font-label-caps shadow-sm">CTRL</kbd>
+<kbd class="px-2 py-1 rounded bg-surface-container border border-outline-variant text-[9px] text-on-surface-variant font-bold font-label-caps shadow-sm">ENTER</kbd>
+</div>
+</div>
+</main>
+<!-- Footer Anchor -->
+<footer class="fixed bottom-0 right-0 left-64 h-8 bg-white border-t border-outline-variant flex items-center justify-between px-md w-full z-40">
+<div class="flex items-center gap-lg">
+<span class="text-primary text-[10px] font-label-caps font-black tracking-wider uppercase">DiagDesk v2.4.0-stable</span>
+<div class="flex items-center gap-md text-on-surface-variant text-[9px] font-bold font-label-caps uppercase tracking-widest">
+<span class="flex items-center gap-xs"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Branch: Central Hub</span>
+<span class="flex items-center gap-xs"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Env: Production</span>
+</div>
+</div>
+<div class="flex items-center gap-lg text-[9px] text-on-surface-variant font-bold font-label-caps uppercase tracking-widest">
+<span class="hover:text-primary cursor-pointer transition-colors">Latency: 24ms</span>
+<span class="hover:text-primary cursor-pointer transition-colors">Uptime: 99.9%</span>
+</div>
+</footer>
+<script>
+    // Micro-interaction for the command bar input
+    const cmdInput = document.querySelector('input[placeholder*="protocol command"]');
+    cmdInput.addEventListener('focus', () => {
+        cmdInput.parentElement.classList.add('border-primary');
+        cmdInput.parentElement.style.boxShadow = '0 0 20px rgba(0, 82, 204, 0.15)';
+    });
+    cmdInput.addEventListener('blur', () => {
+        cmdInput.parentElement.classList.remove('border-primary');
+        cmdInput.parentElement.style.boxShadow = '0 10px 15px -3px rgb(0 0 0 / 0.1)';
+    });
+
+    // Simulating live data updates
+    setInterval(() => {
+        const liveCount = document.querySelector('h2.font-stat-lg');
+        if (liveCount) {
+            const currentText = liveCount.innerText.replace(/,/g, '');
+            const current = parseInt(currentText);
+            const next = current + Math.floor(Math.random() * 5);
+            liveCount.innerText = next.toLocaleString();
+        }
+    }, 3000);
+</script>
+</body></html>

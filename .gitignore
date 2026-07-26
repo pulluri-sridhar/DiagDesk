@@ -2,3 +2,9 @@
 # Session-local tooling / temporary render workspace
 scratchpad/
 .env
+
+# Maven build output
+**/target/
+
+# Claude Code local session files
+.claude/
