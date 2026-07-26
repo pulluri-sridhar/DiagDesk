@@ -469,6 +469,13 @@ Response 200: { "new_accession_numbers": ["ACC-2026-002"] }
 
 ### Samples (Pre-analytical)
 
+#### DB Migration — Barcode Column
+The frontend auto-generates and saves barcodes to the `orders` table. Run once in Supabase SQL editor:
+```sql
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS barcode text;
+COMMENT ON COLUMN orders.barcode IS 'Client-generated Code128 barcode value (numeric, 9 digits). Format: YYYY + 5-digit djb2 hash of order_id.';
+```
+
 #### `POST /v1/samples`
 Accession a sample — generates barcode label.
 ```
@@ -2910,13 +2917,26 @@ Services: MPI=Patient, CAT=Catalog, ORD=Order, DEV=Device Gateway, RES=Result, R
 
 | UI Action | Trigger | Method | Service | Endpoint |
 |---|---|---|---|---|
-| Page load — stock levels | Auto | GET | MIS | `/v1/analytics/inventory` (for alerts) |
-| Page load — full stock list | Auto | GET | Inventory | `/v1/inventory/items?branch_id=X` |
-| Click **Raise Purchase Requisition** | Button | POST | Inventory | `/v1/inventory/purchase-requisitions` |
-| Click **Receive New Stock** | Button | POST | Inventory | `/v1/inventory/receipts` |
-| Click **Record Manual Issue** | Button | POST | Inventory | `/v1/inventory/issues` |
-| Click **View Consumption Log** | Button | GET | Inventory | `/v1/inventory/consumption-log` |
-| Click **Edit Reorder Thresholds** | Button | PUT | Inventory | `/v1/inventory/items/{item_id}` |
+| Page load — full stock list | Auto | GET | Supabase/PostgREST | `GET /inventory?tenant_id=eq.{id}&deleted_at=is.null` |
+| Search / filter items | Client | — | — | Client-side filter on loaded data (no extra round-trip) |
+| Click **Add Item** | Button | POST | Supabase/PostgREST | `POST /inventory` |
+| Click **Scan New Batch** | Button | PATCH | Supabase/PostgREST | `PATCH /inventory?id=eq.{item_id}` (increments `qty_on_hand`, sets `batch_no`) |
+| Click **Upload Invoice** → Parse with AI | Button | POST | Supabase Edge Function | `POST /functions/v1/parse-invoice` `{file_base64, file_type}` → returns `{items:[{name,quantity,unit}]}` |
+| Confirm invoice update (per item) | Button | PATCH | Supabase/PostgREST | `PATCH /inventory?id=eq.{item_id}` (increments `qty_on_hand`) |
+| Click **Record Issue** | Button | PATCH | Supabase/PostgREST | `PATCH /inventory?id=eq.{item_id}` (decrements `qty_on_hand`, floor 0) |
+| Click threshold value → inline edit | Click | PATCH | Supabase/PostgREST | `PATCH /inventory?id=eq.{item_id}` `{reorder_threshold}` |
+| Click **Generate Order** | Button | POST | Supabase/PostgREST | `POST /purchase_requisitions` |
+| Click **Export CSV** | Button | — | — | Client-side CSV generation from loaded data |
+| Click **Movement Log** | Button | — | — | Client-side in-memory log (session cache; no DB table) |
+
+**Edge Function: `parse-invoice`**
+- Location: `supabase/functions/parse-invoice/index.ts`
+- Runtime: Deno (Supabase Edge Functions)
+- Requires secret: `ANTHROPIC_API_KEY` (set via `supabase secrets set ANTHROPIC_API_KEY=sk-ant-...`)
+- Request: `POST /functions/v1/parse-invoice` with JSON `{ file_base64: string, file_type: "image/jpeg"|"image/png"|"image/webp"|"application/pdf" }`
+- Response: `{ items: Array<{ name: string, quantity: number, unit?: string }> }`
+- Internally calls `claude-haiku-4-5-20251001` vision/document API to extract line items
+- No new database tables required; movement history held in client-side in-memory cache (useRef)
 
 ---
 
