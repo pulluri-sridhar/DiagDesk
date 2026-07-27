@@ -16,6 +16,7 @@
         <module>patient-service</module>
         <module>catalog-service</module>
         <module>order-service</module>
+        <module>result-service</module>
     </modules>
 
     <properties>
