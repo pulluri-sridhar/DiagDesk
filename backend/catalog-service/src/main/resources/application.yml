@@ -1,0 +1,103 @@
+server:
+  port: 8082
+  shutdown: graceful
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: catalog-service
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:catalog_db}?currentSchema=catalog
+    username: ${DB_USER:diagdesk}
+    password: ${DB_PASSWORD:diagdesk}
+    hikari:
+      pool-name:              catalog-hikari
+      minimum-idle:           5
+      maximum-pool-size:      20
+      connection-timeout:     30000
+      idle-timeout:           600000
+      max-lifetime:           1800000
+      connection-init-sql:    "SET app.tenant_id = ''"
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect:              org.hibernate.dialect.PostgreSQLDialect
+        default_schema:       catalog
+        jdbc:
+          batch_size:         50
+          time_zone:          UTC
+        order_inserts:        true
+        order_updates:        true
+
+  flyway:
+    enabled:              true
+    baseline-on-migrate:  true
+    schemas:              catalog
+    locations:            classpath:db/migration
+
+  data:
+    redis:
+      host:     ${REDIS_HOST:localhost}
+      port:     ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout:  2000ms
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/diagdesk}
+          jwk-set-uri: ${KEYCLOAK_JWK_URI:http://localhost:8080/realms/diagdesk/protocol/openid-connect/certs}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer:   org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks:             all
+      retries:          5
+      properties:
+        enable.idempotence:                        true
+        max.in.flight.requests.per.connection:     1
+        spring.json.add.type.headers:             false
+
+  servlet:
+    multipart:
+      max-file-size:    10MB
+      max-request-size: 12MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      service: catalog-service
+      env: ${DEPLOY_ENV:local}
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_RATE:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  level:
+    com.diagdesk:                INFO
+    org.hibernate.SQL:           ${LOG_SQL:WARN}
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId},%X{spanId}] [%X{tenantId}] %-5level %logger{40} - %msg%n"

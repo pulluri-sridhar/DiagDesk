@@ -14,6 +14,7 @@
     <modules>
         <module>common-lib</module>
         <module>patient-service</module>
+        <module>catalog-service</module>
     </modules>
 
     <properties>
