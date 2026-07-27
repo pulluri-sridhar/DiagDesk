@@ -32,6 +32,8 @@ public enum ErrorCode {
     RESULT_ALREADY_SIGNED("RESULT_002", "Result is already signed off", HttpStatus.CONFLICT),
 
     // ── Common (COMMON_xxx) ───────────────────────────────────────────────────
+    NOT_FOUND("COMMON_010", "Resource not found", HttpStatus.NOT_FOUND),
+    CONFLICT("COMMON_011", "Resource conflict", HttpStatus.CONFLICT),
     VALIDATION_ERROR("COMMON_001", "Request validation failed", HttpStatus.BAD_REQUEST),
     IDEMPOTENCY_CONFLICT("COMMON_002", "Duplicate request — already processed", HttpStatus.CONFLICT),
     UNAUTHORIZED("COMMON_003", "Authentication required", HttpStatus.UNAUTHORIZED),
