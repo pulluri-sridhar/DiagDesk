@@ -228,9 +228,9 @@ function ReviewPanel({
 
       {/* Collapsible report preview */}
       <div className="border border-gray-200 rounded-2xl overflow-hidden">
-        <button
+        <div
           onClick={() => setShowPreview(v => !v)}
-          className="w-full bg-gray-50 px-4 py-2.5 flex items-center justify-between hover:bg-gray-100 transition-colors">
+          className="w-full bg-gray-50 px-4 py-2.5 flex items-center justify-between hover:bg-gray-100 transition-colors cursor-pointer">
           <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">description</span>
             Report Preview
@@ -249,7 +249,7 @@ function ReviewPanel({
               {showPreview ? 'expand_less' : 'expand_more'}
             </span>
           </div>
-        </button>
+        </div>
         {showPreview && (
           previewHtml
             ? <iframe srcDoc={previewHtml} className="w-full" style={{ height: 400, border: 'none' }} title="Report Preview" />

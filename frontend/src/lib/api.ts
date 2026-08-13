@@ -380,24 +380,13 @@ export interface Doctor {
 export async function fetchDoctors(query?: string): Promise<Doctor[]> {
   let q = supabase
     .from('users')
-    .select('id, name, specialization')
+    .select('id, name')
     .eq('tenant_id', TENANT_ID)
     .eq('role', 'doctor')
     .order('name')
     .limit(20);
   if (query?.trim()) q = q.ilike('name', `%${query.trim()}%`);
-  const { data, error } = await q;
-  if (error) {
-    // users table may not have specialization column — retry without it
-    const { data: d2 } = await supabase
-      .from('users')
-      .select('id, name')
-      .eq('tenant_id', TENANT_ID)
-      .eq('role', 'doctor')
-      .order('name')
-      .limit(20);
-    return d2 ?? [];
-  }
+  const { data } = await q;
   return data ?? [];
 }
 

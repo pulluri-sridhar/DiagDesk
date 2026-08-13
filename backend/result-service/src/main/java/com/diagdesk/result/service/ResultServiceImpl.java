@@ -17,7 +17,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +54,7 @@ public class ResultServiceImpl implements ResultService {
         }
 
         TestResult result = new TestResult();
-        result.setResultId(UUIDv7.generate());
+        result.setResultId(UUIDv7.generateAsString());
         result.setAccessionId(req.getAccessionId());
         result.setTestId(req.getTestId());
         result.setOrderId(accession.getOrderId());
@@ -69,7 +71,7 @@ public class ResultServiceImpl implements ResultService {
         // Evaluate flags against catalog reference ranges
         FlagEvaluator.EvaluationResult eval = flagEvaluator.evaluate(req.getTestId(), req.getValue(), tenantId);
         result.setFlags(eval.flagsAsString());
-        result.setReferenceRange(eval.referenceRange());
+        result.setReferenceRange(eval.referenceRange);
 
         // Determine initial validation status
         if (TestResult.ResultSource.ANALYZER == result.getSource() && !eval.hasCriticalFlag()) {
@@ -80,7 +82,7 @@ public class ResultServiceImpl implements ResultService {
 
         resultRepository.save(result);
 
-        auditPublisher.publish("result.submitted", result.getResultId(), tenantId, userId, null);
+        auditPublisher.publish("result", result.getResultId(), "SUBMIT", null);
 
         log.info("Result submitted: {} for accession {} status={}", result.getResultId(), result.getAccessionId(), result.getValidationStatus());
         return toResponse(result);
@@ -117,7 +119,7 @@ public class ResultServiceImpl implements ResultService {
 
         // Record amendment history
         ResultAmendment amendment = new ResultAmendment();
-        amendment.setAmendmentId(UUIDv7.generate());
+        amendment.setAmendmentId(UUIDv7.generateAsString());
         amendment.setResult(result);
         amendment.setPreviousValue(previousValue);
         amendment.setNewValue(req.getValue());
@@ -139,7 +141,7 @@ public class ResultServiceImpl implements ResultService {
         result.setValidationStatus(ValidationStatus.PENDING_MANUAL_VALIDATION);
         resultRepository.save(result);
 
-        auditPublisher.publish("result.amended", resultId, TenantContext.getTenantId(), userId, null);
+        auditPublisher.publish("result", resultId, "AMEND", null);
 
         return AmendResultResponse.builder()
                 .resultId(resultId)
@@ -160,7 +162,7 @@ public class ResultServiceImpl implements ResultService {
         stateMachine.validateTransition(result.getValidationStatus(), ValidationStatus.PENDING_SIGNOFF);
 
         ResultValidation validation = new ResultValidation();
-        validation.setValidationId(UUIDv7.generate());
+        validation.setValidationId(UUIDv7.generateAsString());
         validation.setResult(result);
         validation.setLevel(1);
         validation.setNotes(req.getNotes());
@@ -171,7 +173,7 @@ public class ResultServiceImpl implements ResultService {
         result.setValidationStatus(ValidationStatus.PENDING_SIGNOFF);
         resultRepository.save(result);
 
-        auditPublisher.publish("result.validated_l1", resultId, TenantContext.getTenantId(), userId, null);
+        auditPublisher.publish("result", resultId, "VALIDATE_L1", null);
 
         return ValidationResponse.builder()
                 .validationId(validation.getValidationId())
@@ -196,7 +198,7 @@ public class ResultServiceImpl implements ResultService {
         }
 
         ResultSignoff signoff = new ResultSignoff();
-        signoff.setSignoffId(UUIDv7.generate());
+        signoff.setSignoffId(UUIDv7.generateAsString());
         signoff.setResult(result);
         signoff.setSignatureType(ResultSignoff.SignatureType.valueOf(req.getSignatureType().toUpperCase()));
         signoff.setNotes(req.getNotes());
@@ -207,7 +209,7 @@ public class ResultServiceImpl implements ResultService {
         result.setValidationStatus(ValidationStatus.SIGNED_OFF);
         resultRepository.save(result);
 
-        auditPublisher.publish("result.signed_off", resultId, TenantContext.getTenantId(), userId, null);
+        auditPublisher.publish("result", resultId, "SIGN_OFF", null);
 
         log.info("Result {} signed off by {}", resultId, userId);
 
@@ -230,8 +232,7 @@ public class ResultServiceImpl implements ResultService {
         result.setValidationStatus(ValidationStatus.PENDING_RERUN);
         resultRepository.save(result);
 
-        auditPublisher.publish("result.validation_rejected", resultId, TenantContext.getTenantId(), userId,
-                req.getReason());
+        auditPublisher.publish("result", resultId, "REJECT_VALIDATION", req.getReason());
 
         return toResponse(result);
     }
@@ -249,7 +250,7 @@ public class ResultServiceImpl implements ResultService {
         String userId = TenantContext.getUserId();
 
         RepeatRequest repeat = new RepeatRequest();
-        repeat.setRepeatRequestId(UUIDv7.generate());
+        repeat.setRepeatRequestId(UUIDv7.generateAsString());
         repeat.setResultId(resultId);
         repeat.setReason(req.getReason());
         repeat.setPriority(req.getPriority());
@@ -257,7 +258,7 @@ public class ResultServiceImpl implements ResultService {
         repeat.setCreatedAt(LocalDateTime.now());
         repeatRepository.save(repeat);
 
-        auditPublisher.publish("result.repeat_requested", resultId, TenantContext.getTenantId(), userId, req.getReason());
+        auditPublisher.publish("result", resultId, "REPEAT_REQUEST", req.getReason());
 
         return RepeatRequestResponse.builder()
                 .repeatRequestId(repeat.getRepeatRequestId())
@@ -289,7 +290,7 @@ public class ResultServiceImpl implements ResultService {
                         .patientId(r.getPatientId())
                         .value(r.getValue())
                         .flag(extractCriticalFlag(r.getFlags()))
-                        .createdAt(r.getCreatedAt())
+                        .createdAt(toLocalDateTime(r.getCreatedAt()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -300,7 +301,7 @@ public class ResultServiceImpl implements ResultService {
         findResult(resultId); // existence check
 
         CriticalAcknowledgement ack = new CriticalAcknowledgement();
-        ack.setAcknowledgementId(UUIDv7.generate());
+        ack.setAcknowledgementId(UUIDv7.generateAsString());
         ack.setResultId(resultId);
         ack.setCalledAt(req.getCalledAt() != null ? req.getCalledAt() : LocalDateTime.now());
         ack.setCalledToPhone(req.getCalledToPhone());
@@ -309,8 +310,7 @@ public class ResultServiceImpl implements ResultService {
         ack.setCreatedAt(LocalDateTime.now());
         ackRepository.save(ack);
 
-        auditPublisher.publish("critical.acknowledged", resultId, TenantContext.getTenantId(),
-                TenantContext.getUserId(), "Called: " + req.getCalledToPhone());
+        auditPublisher.publish("critical_ack", resultId, "ACKNOWLEDGE", "Called: " + req.getCalledToPhone());
 
         return AcknowledgementResponse.builder().acknowledgementId(ack.getAcknowledgementId()).build();
     }
@@ -327,7 +327,7 @@ public class ResultServiceImpl implements ResultService {
                 .version(1)
                 .value(null)
                 .actor(result.getCreatedBy())
-                .timestamp(result.getCreatedAt())
+                .timestamp(toLocalDateTime(result.getCreatedAt()))
                 .build());
 
         // Amendments
@@ -386,9 +386,13 @@ public class ResultServiceImpl implements ResultService {
                 .referenceRange(r.getReferenceRange())
                 .validationStatus(r.getValidationStatus().name())
                 .version(r.getVersion())
-                .createdAt(r.getCreatedAt())
-                .updatedAt(r.getUpdatedAt())
+                .createdAt(toLocalDateTime(r.getCreatedAt()))
+                .updatedAt(toLocalDateTime(r.getUpdatedAt()))
                 .build();
+    }
+
+    private static LocalDateTime toLocalDateTime(Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 
     private String extractCriticalFlag(String flags) {

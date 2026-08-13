@@ -77,14 +77,10 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
-        <!-- OpenTelemetry tracing -->
+        <!-- OpenTelemetry tracing bridge (no OTLP exporter in local dev; add back with prod profile) -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-exporter-otlp</artifactId>
         </dependency>
 
         <!-- Kafka producer (audit events) -->

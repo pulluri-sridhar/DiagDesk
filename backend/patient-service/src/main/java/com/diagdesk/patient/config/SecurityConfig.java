@@ -10,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.Collection;
@@ -17,21 +18,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Security configuration for the Patient Service.
- *
- * Auth model:
- *  - Kong Gateway validates the JWT before the request reaches this service
- *    (X-Consumer-Username / X-Authenticated-Userid headers populated).
- *  - Spring Security re-validates the JWT against Keycloak's JWKS endpoint
- *    as a defense-in-depth measure (in case a request bypasses Kong).
- *  - Authorities are extracted from the "realm_access.roles" Keycloak claim.
- *  - TenantFilter runs AFTER JWT auth — populates TenantContext from the JWT.
- *  - Method security (@PreAuthorize) enforces permission per endpoint.
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@Profile("!local")
 public class SecurityConfig {
 
     @Bean

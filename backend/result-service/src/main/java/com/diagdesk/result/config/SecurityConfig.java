@@ -1,10 +1,11 @@
 package com.diagdesk.result.config;
 
 import com.diagdesk.common.security.TenantFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.diagdesk.common.security.TenantContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,13 +22,11 @@ import java.util.Optional;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Profile("!local")
 public class SecurityConfig {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;
-
-    @Autowired
-    private TenantFilter tenantFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,7 +38,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder())))
-            .addFilterAfter(tenantFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterAfter(new TenantFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -55,8 +54,6 @@ public class SecurityConfig {
 
     @Bean
     public AuditorAware<String> auditorAware() {
-        return () -> Optional.ofNullable(
-            com.diagdesk.common.security.TenantContext.getUserId()
-        );
+        return () -> Optional.ofNullable(TenantContext.getUserId());
     }
 }

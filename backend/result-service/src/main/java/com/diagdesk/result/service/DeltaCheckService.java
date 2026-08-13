@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -46,7 +47,7 @@ public class DeltaCheckService {
             return DeltaCheckResponse.builder()
                     .deltaPct(null)
                     .previousValue(prev.getValue())
-                    .previousDate(prev.getCreatedAt().toLocalDate().toString())
+                    .previousDate(prev.getCreatedAt().atOffset(ZoneOffset.UTC).toLocalDate().toString())
                     .deltaFlag(false)
                     .alertMessage("Non-numeric values — delta check not applicable")
                     .build();
@@ -66,7 +67,7 @@ public class DeltaCheckService {
         return DeltaCheckResponse.builder()
                 .deltaPct(changePct.setScale(1, RoundingMode.HALF_UP))
                 .previousValue(prev.getValue())
-                .previousDate(prev.getCreatedAt().toLocalDate().toString())
+                .previousDate(prev.getCreatedAt().atOffset(ZoneOffset.UTC).toLocalDate().toString())
                 .deltaFlag(exceeded)
                 .alertMessage(message)
                 .build();
