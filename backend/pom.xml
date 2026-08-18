@@ -17,6 +17,11 @@
         <module>catalog-service</module>
         <module>order-service</module>
         <module>result-service</module>
+        <module>reporting-service</module>
+        <module>mis-analytics-service</module>
+        <module>notification-service</module>
+        <module>audit-consent-service</module>
+        <module>b2b-billing-service</module>
     </modules>
 
     <properties>
