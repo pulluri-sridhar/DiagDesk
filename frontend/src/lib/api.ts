@@ -165,7 +165,34 @@ export async function fetchOrderStats(): Promise<{
   };
 }
 
+async function fetchPatientsHttp(): Promise<Patient[]> {
+  const res = await fetch('/v1/patients?size=200', {
+    headers: { 'X-Tenant-Id': TENANT_ID },
+  });
+  if (!res.ok) return [];
+  const body = await res.json();
+  const rows: any[] = body.data ?? [];
+  return rows.map(r => {
+    const genderMap: Record<string, string> = { male: 'M', female: 'F', other: 'O' };
+    return {
+      id:         r.patientId,
+      mpi_no:     r.uhid,
+      name:       r.name,
+      age:        r.dob ? Math.floor((Date.now() - new Date(r.dob).getTime()) / (365.25 * 24 * 3600 * 1000)) : null,
+      sex:        genderMap[r.gender ?? ''] ?? null,
+      phone:      r.phone ?? null,
+      email:      null,
+      address:    null,
+      created_at: r.createdAt ?? '',
+    };
+  });
+}
+
 export async function fetchPatients(): Promise<Patient[]> {
+  try {
+    const patients = await fetchPatientsHttp();
+    if (patients.length > 0) return patients;
+  } catch { /* fall through */ }
   const { data, error } = await supabase
     .from('patients')
     .select('id, mpi_no, name, age, sex, phone, email, address, created_at')
@@ -177,7 +204,53 @@ export async function fetchPatients(): Promise<Patient[]> {
   return data ?? [];
 }
 
+async function fetchPatientOrdersHttp(patientId: string): Promise<Order[]> {
+  const res = await fetch(`/v1/orders?patient_id=${encodeURIComponent(patientId)}&size=100`, {
+    headers: { 'X-Tenant-Id': TENANT_ID },
+  });
+  if (!res.ok) return [];
+  const body = await res.json();
+  const rows: any[] = body.data ?? [];
+  const testMap = new Map(LOCAL_TESTS.map(t => [t.id, t]));
+  return rows.map(r => {
+    const items = (r.items ?? []).map((i: any) => {
+      const test = testMap.get(i.testId);
+      return {
+        test_id:    i.testId,
+        test_name:  test?.name ?? i.testId,
+        department: test?.department ?? '—',
+        price:      test?.price ?? 0,
+        status:     i.status,
+        result:     null,
+      };
+    });
+    const subtotal = items.reduce((s: number, t: any) => s + t.price, 0);
+    return {
+      id:               r.orderId,
+      patient_id:       r.patientId,
+      assigned_to:      null,
+      doctor_id:        null,
+      status:           r.status,
+      items,
+      subtotal,
+      discount:         0,
+      total:            subtotal,
+      payment_mode:     null,
+      payment_status:   'pending',
+      notes:            r.clinicalNotes ?? null,
+      ordered_at:       r.createdAt,
+      patient_name:     null,
+      doctor_name:      r.referredByDoctorId ?? null,
+      phlebotomist_name: null,
+    } as Order;
+  });
+}
+
 export async function fetchPatientOrders(patientId: string): Promise<Order[]> {
+  try {
+    const orders = await fetchPatientOrdersHttp(patientId);
+    if (orders.length > 0) return orders;
+  } catch { /* fall through */ }
   const { data, error } = await supabase
     .from('orders')
     .select('id, status, items, total, payment_status, ordered_at')

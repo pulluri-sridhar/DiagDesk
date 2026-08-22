@@ -3,6 +3,7 @@ package com.diagdesk.patient.dto.response;
 import lombok.Builder;
 import lombok.Value;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 /** Compact patient projection returned by GET /v1/patients (search/list). */
@@ -14,4 +15,6 @@ public class PatientSummaryResponse {
     String name;
     String phone;
     LocalDate dob;
+    String gender;
+    Instant createdAt;
 }

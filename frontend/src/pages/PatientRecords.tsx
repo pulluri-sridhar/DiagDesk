@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  fetchPatients, fetchPatientOrders, fetchAllReports,
+  fetchPatients, fetchPatientOrders, fetchAllReports, fetchPatientByIdHttp,
   type Patient, type Order, type Report,
 } from '../lib/api';
 import { findTemplate, renderReportHTML } from '../lib/reportTemplates';
@@ -241,8 +241,13 @@ export default function PatientRecords() {
     setOrders([]);
     setOrdersLoading(true);
     setActiveTab('orders');
-    const o = await fetchPatientOrders(p.id);
+    const [o, full] = await Promise.all([
+      fetchPatientOrders(p.id),
+      // Enrich with email/address when loaded from Java summary (which omits those fields)
+      p.email == null ? fetchPatientByIdHttp(p.id) : Promise.resolve(null),
+    ]);
     setOrders(o);
+    if (full) setSelected(full);
     setOrdersLoading(false);
   }, []);
 

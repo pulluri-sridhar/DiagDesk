@@ -52,8 +52,10 @@ public interface PatientMapper {
 
     // ── Entity → List Summary ─────────────────────────────────────────────────
 
-    @Mapping(target = "name", expression = "java(patient.getFirstName() + \" \" + patient.getLastName())")
-    @Mapping(target = "dob",  source = "dateOfBirth")
+    @Mapping(target = "name",      expression = "java(patient.getFirstName() + \" \" + patient.getLastName())")
+    @Mapping(target = "dob",       source = "dateOfBirth")
+    @Mapping(target = "gender",    expression = "java(patient.getGender() != null ? patient.getGender().name() : null)")
+    @Mapping(target = "createdAt", source = "createdAt")
     PatientSummaryResponse toSummary(Patient patient);
 
     // ── Partial Update (PUT) ──────────────────────────────────────────────────
