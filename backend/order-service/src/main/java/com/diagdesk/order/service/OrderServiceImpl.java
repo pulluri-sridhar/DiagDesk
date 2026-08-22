@@ -199,10 +199,20 @@ public class OrderServiceImpl implements OrderService {
         s.setCollectedAt(Instant.now());
         s.setTatDeadline(order.getEstimatedTat());
         if (req != null) {
-            s.setCollectionLocation(
-                Sample.CollectionLocation.valueOf(req.getCollectionType() != null ? req.getCollectionType() : "counter"));
+            s.setCollectionLocation(toCollectionLocation(req.getCollectionType()));
         }
         return s;
+    }
+
+    // Order.CollectionType and Sample.CollectionLocation use different names for the same concept.
+    private static Sample.CollectionLocation toCollectionLocation(String collectionType) {
+        if (collectionType == null) return Sample.CollectionLocation.counter;
+        return switch (collectionType) {
+            case "walk_in"         -> Sample.CollectionLocation.counter;
+            case "home_collection" -> Sample.CollectionLocation.home;
+            case "b2b"             -> Sample.CollectionLocation.b2b_site;
+            default                -> Sample.CollectionLocation.counter;
+        };
     }
 
     private OrderResponse toResponse(Order o) {

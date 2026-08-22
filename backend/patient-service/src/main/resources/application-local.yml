@@ -4,9 +4,9 @@
 
 spring:
   datasource:
-    url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?currentSchema=patient
-    username: postgres.eahvsmbggamertymxukm
-    password: "Diagdesk@2026"
+    url: jdbc:postgresql://localhost:5432/diagdesk?currentSchema=patient
+    username: diagdesk
+    password: diagdesk
 
   data:
     redis:
