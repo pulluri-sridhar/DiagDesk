@@ -98,6 +98,12 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
 }
 
 export async function fetchOrders(): Promise<Order[]> {
+  // Try order-service first; Supabase fallback retains richer joins (patient/doctor names)
+  try {
+    const orders = await fetchOrdersHttp();
+    if (orders.length > 0) return orders;
+  } catch { /* fall through */ }
+
   const { data, error } = await supabase
     .from('orders')
     .select(`
