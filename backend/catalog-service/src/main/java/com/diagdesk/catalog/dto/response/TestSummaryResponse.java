@@ -12,4 +12,5 @@ public class TestSummaryResponse {
     private Integer tatHours;
     private String department;
     private boolean custom;
+    private java.math.BigDecimal price;
 }

@@ -241,6 +241,7 @@ public class TestServiceImpl implements TestService {
         return TestSummaryResponse.builder()
                 .testId(t.getTestId()).code(t.getCode()).name(t.getName())
                 .unit(t.getUnit()).tatHours(t.getTatHours()).custom(t.isCustom())
+                .price(t.getDefaultPrice())
                 .build();
     }
 

@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/v1/patients': { target: 'http://localhost:8081', changeOrigin: true },
+      '/v1/tests':    { target: 'http://localhost:8082', changeOrigin: true },
       '/v1/orders':   { target: 'http://localhost:8083', changeOrigin: true },
     },
   },

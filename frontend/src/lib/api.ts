@@ -357,7 +357,7 @@ export async function saveOrderBarcode(orderId: string, barcode: string): Promis
   if (error) console.warn('saveOrderBarcode skipped (column may not exist):', error.message);
 }
 
-// Local dev seed — replaced by catalog-service when that service is built.
+// Fallback when catalog-service is unreachable.
 const LOCAL_TESTS: Test[] = [
   { id: 'CBC-001',  code: 'CBC',    name: 'Complete Blood Count (CBC)',         department: 'Hematology',     price: 250,  tat_hours: 4,  active: true },
   { id: 'ESR-001',  code: 'ESR',    name: 'ESR (Erythrocyte Sedimentation Rate)', department: 'Hematology',   price: 80,   tat_hours: 2,  active: true },
@@ -387,6 +387,30 @@ const LOCAL_TESTS: Test[] = [
 ];
 
 export async function fetchTests(): Promise<Test[]> {
+  // Try catalog-service first (real data with live prices).
+  try {
+    const res = await fetch('/v1/tests?size=100', {
+      headers: { 'X-Tenant-Id': TENANT_ID },
+    });
+    if (res.ok) {
+      const body = await res.json();
+      const items: any[] = body.data ?? body;
+      if (items.length > 0) {
+        return items.map((t: any) => ({
+          id:        t.testId,
+          code:      t.code,
+          name:      t.name,
+          department: t.department ?? '',
+          price:     Number(t.price ?? 0),
+          tat_hours: t.tatHours ?? 0,
+          active:    true,
+        }));
+      }
+    }
+  } catch {
+    // catalog-service unreachable — fall through
+  }
+  // Supabase fallback
   try {
     const { data, error } = await supabase
       .from('tests')

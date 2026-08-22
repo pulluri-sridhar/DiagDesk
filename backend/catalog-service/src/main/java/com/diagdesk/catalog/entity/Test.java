@@ -60,6 +60,10 @@ public class Test extends BaseEntity {
     @Column(name = "nabl_code", length = 30)
     private String nablCode;
 
+    /** Walk-in / list price before rate-card overrides. */
+    @Column(name = "default_price", nullable = false)
+    private java.math.BigDecimal defaultPrice = java.math.BigDecimal.ZERO;
+
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TestReferenceRange> referenceRanges = new ArrayList<>();
 }
