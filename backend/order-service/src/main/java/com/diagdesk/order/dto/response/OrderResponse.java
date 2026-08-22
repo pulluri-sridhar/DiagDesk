@@ -14,6 +14,7 @@ public class OrderResponse {
     private String branchId;
     private String b2bPartnerId;
     private String referredByDoctorId;
+    private String assignedTo;
     private String priority;
     private String status;
     private String collectionType;

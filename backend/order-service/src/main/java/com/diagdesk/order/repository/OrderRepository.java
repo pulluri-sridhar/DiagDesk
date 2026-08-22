@@ -21,16 +21,18 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     @Query("""
             SELECT o FROM Order o
             WHERE o.tenantId = :tenantId
-              AND (:patientId IS NULL OR o.patientId = :patientId)
-              AND (:branchId  IS NULL OR o.branchId  = :branchId)
-              AND (:status    IS NULL OR CAST(o.status AS string) = :status)
+              AND (:patientId  IS NULL OR o.patientId  = :patientId)
+              AND (:branchId   IS NULL OR o.branchId   = :branchId)
+              AND (:status     IS NULL OR CAST(o.status AS string) = :status)
+              AND (:assignedTo IS NULL OR o.assignedTo = :assignedTo)
             ORDER BY o.createdAt DESC
             """)
     Page<Order> search(
-            @Param("tenantId")  String tenantId,
-            @Param("patientId") String patientId,
-            @Param("branchId")  String branchId,
-            @Param("status")    String status,
+            @Param("tenantId")   String tenantId,
+            @Param("patientId")  String patientId,
+            @Param("branchId")   String branchId,
+            @Param("status")     String status,
+            @Param("assignedTo") String assignedTo,
             Pageable pageable);
 
     /** Orders whose TAT has been breached and are not yet complete. */

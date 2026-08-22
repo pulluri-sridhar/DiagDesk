@@ -37,18 +37,27 @@ public class OrderController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PageResponse<OrderResponse>> search(
-            @RequestParam(name = "patient_id", required = false) String patientId,
+            @RequestParam(name = "patient_id",  required = false) String patientId,
             @RequestParam(required = false) String status,
-            @RequestParam(name = "branch_id", required = false) String branchId,
-            @RequestParam(name = "date_from", required = false)
+            @RequestParam(name = "branch_id",   required = false) String branchId,
+            @RequestParam(name = "date_from",   required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant dateFrom,
-            @RequestParam(name = "date_to", required = false)
+            @RequestParam(name = "date_to",     required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant dateTo,
             @RequestParam(required = false) String priority,
+            @RequestParam(name = "assigned_to", required = false) String assignedTo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(
-                orderService.search(patientId, status, branchId, dateFrom, dateTo, priority, page, size));
+                orderService.search(patientId, status, branchId, dateFrom, dateTo, priority,
+                        assignedTo, page, size));
+    }
+
+    @PatchMapping("/{orderId}/status")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponse> updateStatus(@PathVariable String orderId,
+                                                      @Valid @RequestBody UpdateOrderStatusRequest req) {
+        return ResponseEntity.ok(orderService.updateStatus(orderId, req));
     }
 
     @PatchMapping("/{orderId}/cancel")

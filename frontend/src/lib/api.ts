@@ -88,7 +88,26 @@ export interface Report {
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
+// Maps Supabase-side status strings to Java order-service enum values.
+// Java enum: pending_collection | collected | in_processing | partially_complete | complete | cancelled
+const SUPABASE_TO_JAVA_STATUS: Record<string, string> = {
+  sample_collected: 'collected',
+  processing:       'in_processing',
+  completed:        'complete',
+};
+
 export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
+  const javaStatus = SUPABASE_TO_JAVA_STATUS[status];
+  if (javaStatus) {
+    try {
+      const res = await fetch(`/v1/orders/${encodeURIComponent(orderId)}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': TENANT_ID },
+        body: JSON.stringify({ status: javaStatus }),
+      });
+      if (res.ok) return;
+    } catch { /* fall through to Supabase */ }
+  }
   const { error } = await supabase
     .from('orders')
     .update({ status })
@@ -131,6 +150,20 @@ export async function fetchOrders(): Promise<Order[]> {
 }
 
 export async function fetchOrdersByPhlebotomist(userId: string): Promise<Order[]> {
+  try {
+    const [res, testMap] = await Promise.all([
+      fetch(`/v1/orders?assigned_to=${encodeURIComponent(userId)}&size=100`, {
+        headers: { 'X-Tenant-Id': TENANT_ID },
+      }),
+      getTestCatalog(),
+    ]);
+    if (res.ok) {
+      const body = await res.json();
+      const orders = mapOrderRows(body.data ?? [], testMap);
+      if (orders.length > 0) return orders;
+    }
+  } catch { /* fall through */ }
+
   const { data, error } = await supabase
     .from('orders')
     .select(`
@@ -846,8 +879,8 @@ function mapOrderRows(rows: any[], testMap: Map<string, Test>): Order[] {
     return {
       id:               r.orderId,
       patient_id:       r.patientId,
-      assigned_to:      null,
-      doctor_id:        null,
+      assigned_to:      r.assignedTo ?? null,
+      doctor_id:        r.referredByDoctorId ?? null,
       status:           r.status,
       items,
       subtotal,

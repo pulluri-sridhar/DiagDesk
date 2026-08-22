@@ -104,16 +104,37 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public PageResponse<OrderResponse> search(String patientId, String status, String branchId,
                                               Instant dateFrom, Instant dateTo, String priority,
-                                              int page, int size) {
+                                              String assignedTo, int page, int size) {
         String tenantId = requireTenant();
 
         Page<Order> result = orderRepository.search(tenantId, patientId, branchId,
-                status, PageRequest.of(page, size));
+                status, assignedTo, PageRequest.of(page, size));
 
         return PageResponse.<OrderResponse>builder()
                 .data(result.getContent().stream().map(this::toResponse).toList())
                 .page(page).size(size).total(result.getTotalElements())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateStatus(String orderId, UpdateOrderStatusRequest req) {
+        Order order = findOrder(orderId);
+        OrderStatus newStatus;
+        try {
+            newStatus = OrderStatus.valueOf(req.getStatus());
+        } catch (IllegalArgumentException e) {
+            throw new DiagDeskException(ErrorCode.INVALID_STATE_TRANSITION,
+                    "Unknown status: " + req.getStatus());
+        }
+        stateMachine.validateTransition(order.getStatus(), newStatus);
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+
+        log.info("Order status updated orderId={} status={}", orderId, newStatus);
+        auditPublisher.publish("order", orderId, "order.status_updated",
+                Map.of("status", newStatus.name()));
+        return toResponse(order);
     }
 
     @Override
@@ -220,6 +241,7 @@ public class OrderServiceImpl implements OrderService {
                 .orderId(o.getOrderId()).orderNumber(o.getOrderNumber())
                 .patientId(o.getPatientId()).branchId(o.getBranchId())
                 .b2bPartnerId(o.getB2bPartnerId()).referredByDoctorId(o.getReferredByDoctorId())
+                .assignedTo(o.getAssignedTo())
                 .priority(o.getPriority().name()).status(o.getStatus().name())
                 .collectionType(o.getCollectionType().name())
                 .clinicalNotes(o.getClinicalNotes()).invoiceId(o.getInvoiceId())

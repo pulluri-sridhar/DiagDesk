@@ -67,6 +67,9 @@ public class Order extends BaseEntity {
     @Column(name = "estimated_tat")
     private Instant estimatedTat;
 
+    @Column(name = "assigned_to", length = 36)
+    private String assignedTo;
+
     @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
 

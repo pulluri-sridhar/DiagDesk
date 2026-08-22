@@ -12,7 +12,8 @@ public interface OrderService {
     OrderResponse getById(String orderId);
     PageResponse<OrderResponse> search(String patientId, String status, String branchId,
                                        Instant dateFrom, Instant dateTo, String priority,
-                                       int page, int size);
+                                       String assignedTo, int page, int size);
+    OrderResponse updateStatus(String orderId, UpdateOrderStatusRequest request);
     OrderResponse cancel(String orderId, CancelOrderRequest request);
     List<String> addTests(String orderId, AddTestsRequest request);
     List<TatBreachResponse> getTatBreaches(String branchId, String departmentId);
