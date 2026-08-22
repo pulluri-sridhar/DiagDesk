@@ -11,6 +11,7 @@ import (
 	"github.com/diagdesk/sync-engine/internal/database"
 	"github.com/diagdesk/sync-engine/internal/model"
 	"github.com/diagdesk/sync-engine/internal/poller"
+	"github.com/diagdesk/sync-engine/internal/syncer"
 )
 
 func main() {
@@ -44,6 +45,12 @@ func main() {
 	p := poller.New(pool, cfg.PollEvery, changes)
 	p.Start(ctx)
 
+	// Create the syncer.
+	// We pass p.MarkSynced as a function value — the syncer calls it after a
+	// successful push to stamp synced_at on each row.
+	// Passing the function (not the whole poller) keeps syncer independent of poller.
+	syn := syncer.New(cfg.CloudURL, cfg.BranchID, p.MarkSynced)
+
 	// Wait for OS signal to shut down.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -58,8 +65,11 @@ func main() {
 			return
 
 		case batch := <-changes:
-			// Next step: we'll build the syncer that pushes this batch to the cloud.
-			log.Printf("main: received batch of %d change(s) — syncer not built yet", len(batch))
+			// Push to cloud. If this fails after retries, we log and continue —
+			// the rows stay unsynced and the poller will re-send them next tick.
+			if err := syn.Push(ctx, batch); err != nil {
+				log.Printf("main: sync error (will retry next poll): %v", err)
+			}
 		}
 	}
 }
