@@ -15,10 +15,14 @@ import (
 // Syncer pushes change batches from the local edge node to the cloud over HTTP.
 // It retries failed pushes with exponential backoff before giving up.
 type Syncer struct {
-	cloudURL   string
-	branchID   string
-	client     *http.Client
-	markSynced func(ctx context.Context, ids []int64) error
+	cloudURL       string
+	branchID       string
+	client         *http.Client
+	markSynced     func(ctx context.Context, ids []int64) error
+	// InitialBackoff is how long to wait before the first retry.
+	// It doubles on each subsequent attempt (exponential backoff).
+	// Exported so tests can set it to 0 to avoid slow sleeps.
+	InitialBackoff time.Duration
 }
 
 // New creates a Syncer.
@@ -33,8 +37,9 @@ func New(cloudURL, branchID string, markSynced func(ctx context.Context, ids []i
 		branchID: branchID,
 		// http.Client with a timeout — ALWAYS set a timeout on HTTP clients.
 		// Without one, a slow cloud server stalls this goroutine forever.
-		client:     &http.Client{Timeout: 30 * time.Second},
-		markSynced: markSynced,
+		client:         &http.Client{Timeout: 30 * time.Second},
+		markSynced:     markSynced,
+		InitialBackoff: 2 * time.Second,
 	}
 }
 
@@ -65,7 +70,7 @@ func (s *Syncer) Push(ctx context.Context, changes []model.ChangeLog) error {
 	//   Doubling the wait each time gives the server space to recover.
 	//   3 attempts → 2s + 4s = 6s total wait before giving up.
 	const maxAttempts = 3
-	backoff := 2 * time.Second
+	backoff := s.InitialBackoff
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		err = s.post(ctx, body)
