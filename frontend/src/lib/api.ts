@@ -149,19 +149,34 @@ export async function fetchOrdersByPhlebotomist(userId: string): Promise<Order[]
 export async function fetchOrderStats(): Promise<{
   total: number; today: number; revenue: number; pending: number;
 }> {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const PENDING_STATUSES = ['registered', 'sample_collected', 'processing', 'pending', 'collected'];
+
+  // Try order-service first
+  try {
+    const orders = await fetchOrdersHttp();
+    if (orders.length > 0) {
+      return {
+        total:   orders.length,
+        today:   orders.filter(o => o.ordered_at?.startsWith(todayStr)).length,
+        revenue: orders.reduce((s, o) => s + (o.subtotal ?? 0), 0),
+        pending: orders.filter(o => PENDING_STATUSES.includes(o.status)).length,
+      };
+    }
+  } catch { /* fall through */ }
+
+  // Supabase fallback
   const { data, error } = await supabase
     .from('orders')
     .select('id, status, total, ordered_at')
     .eq('tenant_id', TENANT_ID);
-
   if (error) throw error;
   const rows = data ?? [];
-  const todayStr = new Date().toISOString().slice(0, 10);
   return {
     total:   rows.length,
     today:   rows.filter(r => r.ordered_at?.startsWith(todayStr)).length,
     revenue: rows.reduce((s, r) => s + (r.total ?? 0), 0),
-    pending: rows.filter(r => ['registered', 'sample_collected', 'processing'].includes(r.status)).length,
+    pending: rows.filter(r => PENDING_STATUSES.includes(r.status)).length,
   };
 }
 
@@ -205,45 +220,15 @@ export async function fetchPatients(): Promise<Patient[]> {
 }
 
 async function fetchPatientOrdersHttp(patientId: string): Promise<Order[]> {
-  const res = await fetch(`/v1/orders?patient_id=${encodeURIComponent(patientId)}&size=100`, {
-    headers: { 'X-Tenant-Id': TENANT_ID },
-  });
+  const [res, testMap] = await Promise.all([
+    fetch(`/v1/orders?patient_id=${encodeURIComponent(patientId)}&size=100`, {
+      headers: { 'X-Tenant-Id': TENANT_ID },
+    }),
+    getTestCatalog(),
+  ]);
   if (!res.ok) return [];
   const body = await res.json();
-  const rows: any[] = body.data ?? [];
-  const testMap = new Map(LOCAL_TESTS.map(t => [t.id, t]));
-  return rows.map(r => {
-    const items = (r.items ?? []).map((i: any) => {
-      const test = testMap.get(i.testId);
-      return {
-        test_id:    i.testId,
-        test_name:  test?.name ?? i.testId,
-        department: test?.department ?? '—',
-        price:      test?.price ?? 0,
-        status:     i.status,
-        result:     null,
-      };
-    });
-    const subtotal = items.reduce((s: number, t: any) => s + t.price, 0);
-    return {
-      id:               r.orderId,
-      patient_id:       r.patientId,
-      assigned_to:      null,
-      doctor_id:        null,
-      status:           r.status,
-      items,
-      subtotal,
-      discount:         0,
-      total:            subtotal,
-      payment_mode:     null,
-      payment_status:   'pending',
-      notes:            r.clinicalNotes ?? null,
-      ordered_at:       r.createdAt,
-      patient_name:     null,
-      doctor_name:      r.referredByDoctorId ?? null,
-      phlebotomist_name: null,
-    } as Order;
-  });
+  return mapOrderRows(body.data ?? [], testMap);
 }
 
 export async function fetchPatientOrders(patientId: string): Promise<Order[]> {
@@ -428,6 +413,26 @@ export async function saveOrderBarcode(orderId: string, barcode: string): Promis
     .eq('id', orderId)
     .eq('tenant_id', TENANT_ID);
   if (error) console.warn('saveOrderBarcode skipped (column may not exist):', error.message);
+}
+
+// ── Test catalog cache ────────────────────────────────────────────────────────
+// Fetched once per page-load from catalog-service; keyed by testId.
+// Falls back to LOCAL_TESTS when catalog-service is unreachable.
+let _catalogPromise: Promise<Map<string, Test>> | null = null;
+function getTestCatalog(): Promise<Map<string, Test>> {
+  if (!_catalogPromise) {
+    _catalogPromise = fetch('/v1/tests?size=200', { headers: { 'X-Tenant-Id': TENANT_ID } })
+      .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then(body => new Map(
+        (body.data ?? []).map((t: any) => [t.testId, {
+          id: t.testId, code: t.code, name: t.name,
+          department: t.department ?? '', price: Number(t.price ?? 0),
+          tat_hours: t.tatHours ?? 0, active: true,
+        } as Test])
+      ))
+      .catch(() => new Map(LOCAL_TESTS.map(t => [t.id, t])));
+  }
+  return _catalogPromise;
 }
 
 // Fallback when catalog-service is unreachable.
@@ -818,20 +823,15 @@ export async function placeOrder(data: {
   };
 }
 
-export async function fetchOrdersHttp(): Promise<Order[]> {
-  const res = await fetch('/v1/orders?page=0&size=100');
-  if (!res.ok) return [];
-  const data = await res.json();
-  const rows: any[] = data.data ?? [];
-  const testMap = new Map(LOCAL_TESTS.map(t => [t.id, t]));
+function mapOrderRows(rows: any[], testMap: Map<string, Test>): Order[] {
   return rows.map(r => {
     const items = (r.items ?? []).map((i: any) => {
       const test = testMap.get(i.testId);
       return {
         test_id:    i.testId,
-        test_name:  test?.name  ?? i.testId,
+        test_name:  test?.name       ?? i.testId,
         department: test?.department ?? '—',
-        price:      test?.price ?? 0,
+        price:      test?.price      ?? 0,
         status:     i.status,
         result:     null,
       };
@@ -859,6 +859,16 @@ export async function fetchOrdersHttp(): Promise<Order[]> {
       phlebotomist_name: null,
     } as Order;
   });
+}
+
+export async function fetchOrdersHttp(): Promise<Order[]> {
+  const [res, testMap] = await Promise.all([
+    fetch('/v1/orders?page=0&size=100', { headers: { 'X-Tenant-Id': TENANT_ID } }),
+    getTestCatalog(),
+  ]);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return mapOrderRows(data.data ?? [], testMap);
 }
 
 export async function fetchPatientByIdHttp(patientId: string): Promise<Patient | null> {

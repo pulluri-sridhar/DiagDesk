@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchOrderStats, fetchOrders, saveOrderBarcode, type Order } from '../lib/api';
 import { barcodeValue } from '../lib/barcode';
-import { supabase } from '../lib/supabase';
 import Sidebar from '../components/Sidebar';
 import BarcodeLabelModal from '../components/BarcodeLabelModal';
 
@@ -24,9 +23,9 @@ export default function AdminDashboard() {
       .catch(console.error)
       .finally(() => setLoading(false));
 
-    // Real Supabase connectivity ping
-    supabase.from('tenants').select('id').limit(1)
-      .then(({ error }) => setDbStatus(error ? 'offline' : 'online'))
+    // Health-check order-service (replaces Supabase ping)
+    fetch('/v1/orders?page=0&size=1', { headers: { 'X-Tenant-Id': '00000000-0000-0000-0000-000000000001' } })
+      .then(r => setDbStatus(r.ok ? 'online' : 'offline'))
       .catch(() => setDbStatus('offline'));
   }, []);
 
