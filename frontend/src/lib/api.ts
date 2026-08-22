@@ -357,16 +357,49 @@ export async function saveOrderBarcode(orderId: string, barcode: string): Promis
   if (error) console.warn('saveOrderBarcode skipped (column may not exist):', error.message);
 }
 
-export async function fetchTests(): Promise<Test[]> {
-  const { data, error } = await supabase
-    .from('tests')
-    .select('id, code, name, department, price, tat_hours, active')
-    .eq('tenant_id', TENANT_ID)
-    .eq('active', true)
-    .order('name');
+// Local dev seed — replaced by catalog-service when that service is built.
+const LOCAL_TESTS: Test[] = [
+  { id: 'CBC-001',  code: 'CBC',    name: 'Complete Blood Count (CBC)',         department: 'Hematology',     price: 250,  tat_hours: 4,  active: true },
+  { id: 'ESR-001',  code: 'ESR',    name: 'ESR (Erythrocyte Sedimentation Rate)', department: 'Hematology',   price: 80,   tat_hours: 2,  active: true },
+  { id: 'LFT-001',  code: 'LFT',    name: 'Liver Function Tests (LFT)',         department: 'Biochemistry',   price: 350,  tat_hours: 12, active: true },
+  { id: 'KFT-001',  code: 'KFT',    name: 'Kidney Function Tests (KFT)',        department: 'Biochemistry',   price: 300,  tat_hours: 8,  active: true },
+  { id: 'FBS-001',  code: 'FBS',    name: 'Blood Glucose — Fasting',            department: 'Biochemistry',   price: 80,   tat_hours: 2,  active: true },
+  { id: 'HBA-001',  code: 'HBA1C',  name: 'HbA1c (Glycated Haemoglobin)',       department: 'Biochemistry',   price: 350,  tat_hours: 8,  active: true },
+  { id: 'LIP-001',  code: 'LIPID',  name: 'Lipid Profile',                      department: 'Biochemistry',   price: 300,  tat_hours: 12, active: true },
+  { id: 'ELC-001',  code: 'ELEC',   name: 'Serum Electrolytes (Na, K, Cl)',     department: 'Biochemistry',   price: 200,  tat_hours: 6,  active: true },
+  { id: 'CRP-001',  code: 'CRP',    name: 'CRP (C-Reactive Protein)',           department: 'Biochemistry',   price: 300,  tat_hours: 6,  active: true },
+  { id: 'VIT-D01',  code: 'VITD',   name: 'Vitamin D (25-OH)',                  department: 'Endocrinology',  price: 800,  tat_hours: 24, active: true },
+  { id: 'B12-001',  code: 'B12',    name: 'Vitamin B12',                        department: 'Biochemistry',   price: 600,  tat_hours: 24, active: true },
+  { id: 'TSH-001',  code: 'TSH',    name: 'Thyroid Panel (TSH, T3, T4)',        department: 'Endocrinology',  price: 450,  tat_hours: 24, active: true },
+  { id: 'COA-001',  code: 'COAG',   name: 'Coagulation Profile (PT/INR, APTT)', department: 'Coagulation',   price: 500,  tat_hours: 6,  active: true },
+  { id: 'DDM-001',  code: 'DDIMER', name: 'D-Dimer',                            department: 'Coagulation',    price: 700,  tat_hours: 4,  active: true },
+  { id: 'BCU-001',  code: 'BCUL',   name: 'Blood Culture',                      department: 'Microbiology',   price: 800,  tat_hours: 48, active: true },
+  { id: 'WID-001',  code: 'WIDAL',  name: 'Widal Test',                         department: 'Microbiology',   price: 150,  tat_hours: 4,  active: true },
+  { id: 'DEN-001',  code: 'DENGUE', name: 'Dengue NS1 Antigen',                 department: 'Immunology',     price: 600,  tat_hours: 6,  active: true },
+  { id: 'MAL-001',  code: 'MAL',    name: 'Malaria Antigen Test',               department: 'Immunology',     price: 300,  tat_hours: 2,  active: true },
+  { id: 'HBS-001',  code: 'HBSAG',  name: 'HBsAg (Hepatitis B Surface Antigen)', department: 'Immunology',   price: 200,  tat_hours: 4,  active: true },
+  { id: 'HIV-001',  code: 'HIV',    name: 'HIV 1 & 2 Antibody',                 department: 'Immunology',     price: 400,  tat_hours: 4,  active: true },
+  { id: 'TRP-001',  code: 'TROP',   name: 'Troponin I (Cardiac)',               department: 'Biochemistry',   price: 800,  tat_hours: 2,  active: true },
+  { id: 'PSA-001',  code: 'PSA',    name: 'PSA (Prostate Specific Antigen)',     department: 'Immunology',     price: 600,  tat_hours: 24, active: true },
+  { id: 'IRN-001',  code: 'IRON',   name: 'Iron Studies (Serum Iron, TIBC, Ferritin)', department: 'Biochemistry', price: 400, tat_hours: 8, active: true },
+  { id: 'PCT-001',  code: 'PCT',    name: 'Procalcitonin (PCT)',                 department: 'Biochemistry',   price: 1200, tat_hours: 8,  active: true },
+  { id: 'URN-001',  code: 'URINE',  name: 'Urine Routine & Microscopy',         department: 'Biochemistry',   price: 100,  tat_hours: 4,  active: true },
+];
 
-  if (error) throw error;
-  return data ?? [];
+export async function fetchTests(): Promise<Test[]> {
+  try {
+    const { data, error } = await supabase
+      .from('tests')
+      .select('id, code, name, department, price, tat_hours, active')
+      .eq('tenant_id', TENANT_ID)
+      .eq('active', true)
+      .order('name');
+    if (error) throw error;
+    if (data && data.length > 0) return data;
+  } catch {
+    // Supabase unreachable — fall through to local seed
+  }
+  return LOCAL_TESTS;
 }
 
 // ── Doctors ───────────────────────────────────────────────────────────────────
@@ -575,6 +608,181 @@ export async function uploadSignedReportHtml(reportId: string, htmlContent: stri
   // Persist pdf_url on the report record
   await supabase.from('reports').update({ pdf_url: data.publicUrl }).eq('id', reportId);
   return data.publicUrl;
+}
+
+// ── Java service calls (via Vite proxy → patient-service:8081, order-service:8083) ──
+
+const DEFAULT_BRANCH_ID = '00000000-0000-0000-0000-000000000001';
+
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length === 11 && digits.startsWith('0')) return `+91${digits.slice(1)}`;
+  if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+  return raw.trim();
+}
+
+export interface RegisterPatientInput {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;  // YYYY-MM-DD
+  gender: string;       // "male" | "female" | "other"
+  phone: string;
+  email?: string | null;
+  address?: string | null;
+}
+
+export async function registerPatient(input: RegisterPatientInput): Promise<Patient> {
+  const body: Record<string, unknown> = {
+    firstName:   input.firstName,
+    lastName:    input.lastName || '.',
+    dateOfBirth: input.dateOfBirth,
+    gender:      input.gender,
+    phone:       normalizePhone(input.phone),
+  };
+  if (input.email?.trim())   body.email = input.email.trim();
+  if (input.address?.trim()) body.address = { line1: input.address.trim() };
+
+  const res = await fetch('/v1/patients', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const details = err.error?.details?.map((d: any) => `${d.field}: ${d.message}`).join('; ');
+    throw new Error(details ?? err.error?.message ?? err.message ?? `Patient registration failed (HTTP ${res.status})`);
+  }
+  const data = await res.json();
+  return {
+    id:         data.patientId,
+    mpi_no:     data.uhid,
+    name:       [input.firstName, input.lastName].filter(Boolean).join(' '),
+    age:        null,
+    sex:        null,
+    phone:      input.phone,
+    email:      input.email ?? null,
+    address:    input.address ?? null,
+    created_at: data.createdAt ?? new Date().toISOString(),
+  };
+}
+
+export async function searchPatientsHttp(query: string): Promise<Patient[]> {
+  if (!query.trim()) return [];
+  const res = await fetch(`/v1/patients?q=${encodeURIComponent(query)}&size=10`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  const rows: any[] = data.data ?? [];
+  return rows.map(r => ({
+    id:         r.patientId,
+    mpi_no:     r.uhid,
+    name:       r.name,
+    age:        r.dob ? Math.floor((Date.now() - new Date(r.dob).getTime()) / (365.25 * 24 * 3600 * 1000)) : null,
+    sex:        null,
+    phone:      r.phone ?? null,
+    email:      null,
+    address:    null,
+    created_at: '',
+  }));
+}
+
+export interface PlaceOrderResult {
+  id: string;
+  orderNumber: string;
+  accessionNumber: string;
+}
+
+export async function placeOrder(data: {
+  patientId: string;
+  tests: { testId: string }[];
+  collectionType: string;
+  clinicalNotes?: string | null;
+}): Promise<PlaceOrderResult> {
+  const res = await fetch('/v1/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
+    body: JSON.stringify({
+      patientId:      data.patientId,
+      branchId:       DEFAULT_BRANCH_ID,
+      tests:          data.tests,
+      collectionType: data.collectionType,
+      clinicalNotes:  data.clinicalNotes ?? null,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message ?? err.error ?? `Order creation failed (HTTP ${res.status})`);
+  }
+  const resp = await res.json();
+  return {
+    id:              resp.orderId,
+    orderNumber:     resp.orderNumber,
+    accessionNumber: resp.accessionNumbers?.[0] ?? '',
+  };
+}
+
+export async function fetchOrdersHttp(): Promise<Order[]> {
+  const res = await fetch('/v1/orders?page=0&size=100');
+  if (!res.ok) return [];
+  const data = await res.json();
+  const rows: any[] = data.data ?? [];
+  const testMap = new Map(LOCAL_TESTS.map(t => [t.id, t]));
+  return rows.map(r => {
+    const items = (r.items ?? []).map((i: any) => {
+      const test = testMap.get(i.testId);
+      return {
+        test_id:    i.testId,
+        test_name:  test?.name  ?? i.testId,
+        department: test?.department ?? '—',
+        price:      test?.price ?? 0,
+        status:     i.status,
+        result:     null,
+      };
+    });
+    const subtotal = items.reduce((s: number, t: any) => s + t.price, 0);
+    return {
+      id:               r.orderId,
+      patient_id:       r.patientId,
+      assigned_to:      null,
+      doctor_id:        null,
+      status:           r.status,
+      items,
+      subtotal,
+      discount:         0,
+      total:            subtotal,
+      payment_mode:     null,
+      payment_status:   'pending',
+      notes:            r.clinicalNotes ?? null,
+      ordered_at:       r.createdAt,
+      patient_name:     null,
+      patient_phone:    null,
+      patient_age:      null,
+      patient_sex:      null,
+      doctor_name:      null,
+      phlebotomist_name: null,
+    } as Order;
+  });
+}
+
+export async function fetchPatientByIdHttp(patientId: string): Promise<Patient | null> {
+  const res = await fetch(`/v1/patients/${patientId}`);
+  if (!res.ok) return null;
+  const r = await res.json();
+  const name = [r.firstName, r.lastName].filter((s: string) => s && s !== '.').join(' ');
+  const age  = r.dateOfBirth
+    ? Math.floor((Date.now() - new Date(r.dateOfBirth).getTime()) / (365.25 * 24 * 3600 * 1000))
+    : null;
+  return {
+    id:         r.patientId,
+    mpi_no:     r.uhid,
+    name,
+    age,
+    sex:        r.gender === 'male' ? 'M' : r.gender === 'female' ? 'F' : 'Other',
+    phone:      r.phone ?? null,
+    email:      r.email ?? null,
+    address:    r.address?.line1 ?? null,
+    created_at: r.createdAt ?? '',
+  };
 }
 
 export async function rejectReport(id: string, reason: string): Promise<Report> {

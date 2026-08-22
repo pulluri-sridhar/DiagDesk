@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchOrders, fetchPatients, type Order, type Patient } from '../lib/api';
+import { fetchOrders, fetchPatients, fetchOrdersHttp, fetchPatientByIdHttp, type Order, type Patient } from '../lib/api';
 import { accessionNumber } from '../lib/barcode';
 import { useAuth } from '../lib/auth';
 import Sidebar from '../components/Sidebar';
@@ -142,10 +142,27 @@ export default function InvoiceManager() {
   const [selected, setSelected] = useState<Order | null>(null);
 
   useEffect(() => {
-    Promise.all([fetchOrders(), fetchPatients()])
-      .then(([o, p]) => { setOrders(o); setPatients(p); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    async function load() {
+      try {
+        const [o, p] = await Promise.all([fetchOrders(), fetchPatients()]);
+        if (o.length > 0 || p.length > 0) { setOrders(o); setPatients(p); return; }
+        throw new Error('empty');
+      } catch {
+        // Supabase unreachable or empty — fall back to Java services
+        try {
+          const orders = await fetchOrdersHttp();
+          setOrders(orders);
+          const uniqueIds = [...new Set(orders.map(o => o.patient_id))];
+          const fetched = await Promise.all(uniqueIds.map(id => fetchPatientByIdHttp(id)));
+          setPatients(fetched.filter(Boolean) as Patient[]);
+        } catch (e) {
+          console.error('Could not load orders:', e);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
   const patientMap = useMemo(() => new Map(patients.map(p => [p.id, p])), [patients]);

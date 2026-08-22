@@ -106,10 +106,9 @@ public class OrderServiceImpl implements OrderService {
                                               Instant dateFrom, Instant dateTo, String priority,
                                               int page, int size) {
         String tenantId = requireTenant();
-        OrderStatus statusEnum = status != null ? OrderStatus.valueOf(status) : null;
 
         Page<Order> result = orderRepository.search(tenantId, patientId, branchId,
-                statusEnum, priority, dateFrom, dateTo, PageRequest.of(page, size));
+                status, PageRequest.of(page, size));
 
         return PageResponse.<OrderResponse>builder()
                 .data(result.getContent().stream().map(this::toResponse).toList())

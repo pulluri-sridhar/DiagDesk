@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  searchPatients, createPatient, createOrder, fetchTests, fetchDoctors, saveOrderBarcode,
-  type Patient, type Test, type NewOrder, type Doctor,
+  searchPatientsHttp, registerPatient, placeOrder, fetchTests, fetchDoctors,
+  type Patient, type Test, type Doctor,
 } from '../lib/api';
-import { barcodeValue, accessionNumber } from '../lib/barcode';
+import { accessionNumber } from '../lib/barcode';
 import { useAuth } from '../lib/auth';
 import Sidebar from '../components/Sidebar';
 
@@ -239,6 +239,15 @@ const DEPT_COLOR: Record<string, string> = {
 };
 function deptColor(dept: string) { return DEPT_COLOR[dept] ?? '#9CA3AF'; }
 
+function toApiGender(sex: string): 'male' | 'female' | 'other' {
+  return sex === 'M' ? 'male' : sex === 'F' ? 'female' : 'other';
+}
+
+function computeDob(dob: string, age: string): string {
+  if (dob) return dob;
+  return `${new Date().getFullYear() - parseInt(age, 10)}-01-01`;
+}
+
 // ── Step indicator ────────────────────────────────────────────────────────────
 function StepBar({ step }: { step: number }) {
   const steps = ['Patient Details', 'Tests', 'Payment'];
@@ -331,7 +340,7 @@ export default function PatientRegistration() {
     searchRef.current = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await searchPatients(searchQ);
+        const res = await searchPatientsHttp(searchQ);
         setSearchResults(res);
         setShowDropdown(true);
       } catch { setSearchResults([]); }
@@ -403,6 +412,15 @@ export default function PatientRegistration() {
     if (registeringNew) {
       if (!pFirst.trim()) return 'First name is required.';
       if (!pPhone.trim()) return 'Phone number is required.';
+      const digits = pPhone.replace(/\D/g, '');
+      const norm = digits.length === 10 ? `+91${digits}`
+                 : digits.length === 11 && digits.startsWith('0') ? `+91${digits.slice(1)}`
+                 : digits.length === 12 && digits.startsWith('91') ? `+${digits}`
+                 : pPhone;
+      if (!/^\+91[6-9][0-9]{9}$/.test(norm))
+        return 'Phone must be a 10-digit Indian mobile number starting with 6–9 (e.g. 9876543210).';
+      if (!pSex) return 'Gender is required.';
+      if (!pDob && !pAge.trim()) return 'Date of birth or age is required.';
     }
     return null;
   }
@@ -434,38 +452,31 @@ export default function PatientRegistration() {
     try {
       let patient = selectedPatient;
       if (registeringNew) {
-        patient = await createPatient({
-          name:    pName.trim(),
-          age:     pAge ? parseInt(pAge) : null,
-          sex:     pSex || null,
-          phone:   pPhone.trim() || null,
-          email:   pEmail.trim() || null,
-          address: pAddr.trim() || null,
-          mpi_no:  generateMpi(),
+        patient = await registerPatient({
+          firstName:   pFirst.trim(),
+          lastName:    pLast.trim(),
+          dateOfBirth: computeDob(pDob, pAge),
+          gender:      toApiGender(pSex),
+          phone:       pPhone.trim(),
+          email:       pEmail.trim() || null,
+          address:     pAddr.trim() || null,
         });
       }
-      const items = cart.map(t => ({
-        test_id: t.id, test_name: t.name, department: t.department,
-        price: t.price, status: 'ordered', result: null,
-      }));
-      const orderData: NewOrder = {
-        patient_id:      patient!.id,
-        items:           items as any,
-        subtotal, discount: discountAmt, total,
-        payment_mode:    payMode,
-        payment_status:  payStatus,
-        notes:           [orderNotes, pRef ? `Ref: ${pRef}` : ''].filter(Boolean).join(' | ') || null,
-        collection_type: tab,
-        ...(tab === 'home_collection' ? {
-          collection_address: collAddr,
-          collection_date:    collDate,
-          collection_slot:    collSlot,
-        } : {}),
-      };
-      const order = await createOrder(orderData);
-      await saveOrderBarcode(order.id, barcodeValue(order.id));
+      const placed = await placeOrder({
+        patientId:     patient!.id,
+        tests:         cart.map(t => ({ testId: t.id })),
+        collectionType: tab,
+        clinicalNotes: [orderNotes, pRef ? `Ref: ${pRef}` : ''].filter(Boolean).join(' | ') || null,
+      });
       const invNo = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
-      setSuccess({ orderId: order.id, invoiceNo: invNo, accNum: accessionNumber(order.id), patientName: patient!.name, total, collectionType: tab });
+      setSuccess({
+        orderId:        placed.id,
+        invoiceNo:      invNo,
+        accNum:         placed.accessionNumber || accessionNumber(placed.id),
+        patientName:    patient!.name,
+        total,
+        collectionType: tab,
+      });
     } catch (e: any) {
       setError(e?.message ?? 'Registration failed. Please try again.');
     } finally {

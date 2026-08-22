@@ -1,14 +1,13 @@
 package com.diagdesk.order.repository;
 
 import com.diagdesk.order.entity.Order;
-import com.diagdesk.order.entity.Order.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
+import java.time.Instant; // still used by findTatBreaches
 import java.util.List;
 import java.util.Optional;
 
@@ -16,25 +15,22 @@ public interface OrderRepository extends JpaRepository<Order, String> {
 
     Optional<Order> findByOrderNumber(String orderNumber);
 
+    // status is a plain String to avoid Hibernate 6 null-enum type inference.
+    // dateFrom/dateTo removed: PostgreSQL can't determine the type of null Instant params
+    // in `? IS NULL` expressions — filter by date in the service layer when needed.
     @Query("""
             SELECT o FROM Order o
             WHERE o.tenantId = :tenantId
               AND (:patientId IS NULL OR o.patientId = :patientId)
               AND (:branchId  IS NULL OR o.branchId  = :branchId)
-              AND (:status    IS NULL OR o.status    = :status)
-              AND (:priority  IS NULL OR CAST(o.priority AS string) = :priority)
-              AND (:dateFrom  IS NULL OR o.createdAt >= :dateFrom)
-              AND (:dateTo    IS NULL OR o.createdAt <= :dateTo)
+              AND (:status    IS NULL OR CAST(o.status AS string) = :status)
             ORDER BY o.createdAt DESC
             """)
     Page<Order> search(
             @Param("tenantId")  String tenantId,
             @Param("patientId") String patientId,
             @Param("branchId")  String branchId,
-            @Param("status")    OrderStatus status,
-            @Param("priority")  String priority,
-            @Param("dateFrom")  Instant dateFrom,
-            @Param("dateTo")    Instant dateTo,
+            @Param("status")    String status,
             Pageable pageable);
 
     /** Orders whose TAT has been breached and are not yet complete. */
