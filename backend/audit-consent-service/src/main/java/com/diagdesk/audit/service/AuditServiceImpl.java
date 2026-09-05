@@ -3,7 +3,9 @@ package com.diagdesk.audit.service;
 import com.diagdesk.audit.dto.response.AuditEventResponse;
 import com.diagdesk.audit.entity.AuditEvent;
 import com.diagdesk.audit.repository.AuditEventRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -47,7 +49,7 @@ public class AuditServiceImpl implements AuditService {
     public AuditEventResponse getById(String eventId) {
         return auditEventRepository.findById(eventId)
                 .map(this::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("Audit event not found: " + eventId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Audit event not found: " + eventId));
     }
 
     @Override

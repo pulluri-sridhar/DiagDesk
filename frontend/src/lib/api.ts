@@ -1,4 +1,7 @@
 import { supabase, TENANT_ID } from './supabase';
+import { enqueueMutation, OfflineError } from './offlineQueue';
+
+export { OfflineError } from './offlineQueue';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -784,28 +787,56 @@ export async function registerPatient(input: RegisterPatientInput): Promise<Pati
   if (input.email?.trim())   body.email = input.email.trim();
   if (input.address?.trim()) body.address = { line1: input.address.trim() };
 
-  const res = await fetch('/v1/patients', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const details = err.error?.details?.map((d: any) => `${d.field}: ${d.message}`).join('; ');
-    throw new Error(details ?? err.error?.message ?? err.message ?? `Patient registration failed (HTTP ${res.status})`);
+  const idempotencyKey = crypto.randomUUID();
+  const label = `Register patient: ${input.firstName} ${input.lastName}`.trim();
+
+  // Queue immediately when the browser reports no network.
+  if (!navigator.onLine) {
+    await enqueueMutation({
+      url: '/v1/patients',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(body),
+      label,
+    });
+    throw new OfflineError(label);
   }
-  const data = await res.json();
-  return {
-    id:         data.patientId,
-    mpi_no:     data.uhid,
-    name:       [input.firstName, input.lastName].filter(Boolean).join(' '),
-    age:        null,
-    sex:        null,
-    phone:      input.phone,
-    email:      input.email ?? null,
-    address:    input.address ?? null,
-    created_at: data.createdAt ?? new Date().toISOString(),
-  };
+
+  try {
+    const res = await fetch('/v1/patients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const details = err.error?.details?.map((d: any) => `${d.field}: ${d.message}`).join('; ');
+      throw new Error(details ?? err.error?.message ?? err.message ?? `Patient registration failed (HTTP ${res.status})`);
+    }
+    const data = await res.json();
+    return {
+      id:         data.patientId,
+      mpi_no:     data.uhid,
+      name:       [input.firstName, input.lastName].filter(Boolean).join(' '),
+      age:        null,
+      sex:        null,
+      phone:      input.phone,
+      email:      input.email ?? null,
+      address:    input.address ?? null,
+      created_at: data.createdAt ?? new Date().toISOString(),
+    };
+  } catch (e) {
+    if (e instanceof OfflineError || (e as Error).name === 'OfflineError') throw e;
+    // Network failure even though navigator.onLine was true (intermittent).
+    await enqueueMutation({
+      url: '/v1/patients',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(body),
+      label,
+    });
+    throw new OfflineError(label);
+  }
 }
 
 export async function searchPatientsHttp(query: string): Promise<Patient[]> {
@@ -839,27 +870,55 @@ export async function placeOrder(data: {
   collectionType: string;
   clinicalNotes?: string | null;
 }): Promise<PlaceOrderResult> {
-  const res = await fetch('/v1/orders', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
-    body: JSON.stringify({
-      patientId:      data.patientId,
-      branchId:       DEFAULT_BRANCH_ID,
-      tests:          data.tests,
-      collectionType: data.collectionType,
-      clinicalNotes:  data.clinicalNotes ?? null,
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message ?? err.error ?? `Order creation failed (HTTP ${res.status})`);
-  }
-  const resp = await res.json();
-  return {
-    id:              resp.orderId,
-    orderNumber:     resp.orderNumber,
-    accessionNumber: resp.accessionNumbers?.[0] ?? '',
+  const idempotencyKey = crypto.randomUUID();
+  const orderPayload = {
+    patientId:      data.patientId,
+    branchId:       DEFAULT_BRANCH_ID,
+    tests:          data.tests,
+    collectionType: data.collectionType,
+    clinicalNotes:  data.clinicalNotes ?? null,
   };
+  const testCount = data.tests.length;
+  const label = `Place order: ${testCount} test${testCount !== 1 ? 's' : ''} for patient ${data.patientId.slice(0, 8)}`;
+
+  if (!navigator.onLine) {
+    await enqueueMutation({
+      url: '/v1/orders',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(orderPayload),
+      label,
+    });
+    throw new OfflineError(label);
+  }
+
+  try {
+    const res = await fetch('/v1/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(orderPayload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message ?? err.error ?? `Order creation failed (HTTP ${res.status})`);
+    }
+    const resp = await res.json();
+    return {
+      id:              resp.orderId,
+      orderNumber:     resp.orderNumber,
+      accessionNumber: resp.accessionNumbers?.[0] ?? '',
+    };
+  } catch (e) {
+    if (e instanceof OfflineError || (e as Error).name === 'OfflineError') throw e;
+    await enqueueMutation({
+      url: '/v1/orders',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(orderPayload),
+      label,
+    });
+    throw new OfflineError(label);
+  }
 }
 
 function mapOrderRows(rows: any[], testMap: Map<string, Test>): Order[] {
@@ -942,4 +1001,233 @@ export async function rejectReport(id: string, reason: string): Promise<Report> 
     .single();
   if (error) throw error;
   return data;
+}
+
+// ── Reporting-service HTTP calls (/v1/reports → reporting-service:8086) ────────
+
+export async function generateReport(orderId: string): Promise<Report | null> {
+  try {
+    const res = await fetch('/v1/reports/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': TENANT_ID },
+      body: JSON.stringify({ orderId }),
+    });
+    if (!res.ok) return null;
+    const r = await res.json();
+    return { id: r.reportId, order_id: r.orderId, patient_id: r.patientId,
+             status: r.status, pdf_url: r.pdfUrl ?? null,
+             content: r.content ?? {}, version: r.version ?? 1,
+             created_at: r.createdAt ?? '' };
+  } catch {
+    return null;
+  }
+}
+
+export async function signoffReport(
+  reportId: string,
+  pathologistName: string,
+  notes: string,
+): Promise<Report | null> {
+  try {
+    const res = await fetch(`/v1/reports/${encodeURIComponent(reportId)}/signoff`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': TENANT_ID },
+      body: JSON.stringify({ pathologistName, notes }),
+    });
+    if (!res.ok) return null;
+    const r = await res.json();
+    return { id: r.reportId, order_id: r.orderId, patient_id: r.patientId,
+             status: r.status, pdf_url: r.pdfUrl ?? null,
+             content: r.content ?? {}, version: r.version ?? 1,
+             created_at: r.createdAt ?? '' };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchReportsByPatient(patientId: string): Promise<Report[]> {
+  try {
+    const res = await fetch(
+      `/v1/reports?patient_id=${encodeURIComponent(patientId)}`,
+      { headers: { 'X-Tenant-Id': TENANT_ID } },
+    );
+    if (res.ok) {
+      const body = await res.json();
+      const rows: any[] = body.data ?? [];
+      if (rows.length > 0)
+        return rows.map(r => ({
+          id: r.reportId, order_id: r.orderId, patient_id: r.patientId,
+          status: r.status, pdf_url: r.pdfUrl ?? null,
+          content: r.content ?? {}, version: r.version ?? 1,
+          created_at: r.createdAt ?? '',
+        }));
+    }
+  } catch { /* fall through */ }
+  // Supabase fallback
+  const { data, error } = await supabase
+    .from('reports')
+    .select('id, order_id, patient_id, status, pdf_url, content, version, created_at')
+    .eq('tenant_id', TENANT_ID)
+    .eq('patient_id', patientId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+// ── MIS Analytics API (/v1/analytics → mis-analytics-service:8087) ───────────
+
+export type AnalyticsPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year';
+
+function analyticsHeaders() {
+  return { 'X-Tenant-Id': TENANT_ID };
+}
+
+async function analyticsGet(path: string, period?: AnalyticsPeriod): Promise<any> {
+  const url = period ? `/v1/analytics${path}?period=${period}` : `/v1/analytics${path}`;
+  const res = await fetch(url, { headers: analyticsHeaders() });
+  if (!res.ok) throw new Error(`analytics ${path} failed (${res.status})`);
+  return res.json();
+}
+
+export async function fetchAnalyticsSummary(period?: AnalyticsPeriod) {
+  return analyticsGet('/summary', period);
+}
+
+export async function fetchAnalyticsRevenue(period?: AnalyticsPeriod) {
+  return analyticsGet('/revenue', period);
+}
+
+export async function fetchAnalyticsTat(period?: AnalyticsPeriod) {
+  return analyticsGet('/tat', period);
+}
+
+export async function fetchAnalyticsSamples(period?: AnalyticsPeriod) {
+  return analyticsGet('/samples', period);
+}
+
+export async function fetchAnalyticsReferrals(period?: AnalyticsPeriod) {
+  return analyticsGet('/referrals', period);
+}
+
+export async function fetchAnalyticsOperations(period?: AnalyticsPeriod) {
+  return analyticsGet('/operations', period);
+}
+
+export async function fetchAnalyticsFinance(period?: AnalyticsPeriod) {
+  return analyticsGet('/finance', period);
+}
+
+export async function fetchAnalyticsAlerts() {
+  return analyticsGet('/alerts');
+}
+
+export async function acknowledgeAnalyticsAlert(alertId: string) {
+  const res = await fetch(`/v1/analytics/alerts/${encodeURIComponent(alertId)}/acknowledge`, {
+    method: 'POST',
+    headers: analyticsHeaders(),
+  });
+  if (!res.ok) throw new Error(`acknowledge alert failed (${res.status})`);
+  return res.json();
+}
+
+// ── B2B Billing API (/v1/b2b → b2b-billing-service:8090) ─────────────────────
+
+function b2bHeaders() {
+  return { 'Content-Type': 'application/json', 'X-Tenant-Id': TENANT_ID };
+}
+
+export interface B2BPartner {
+  partnerId: string;
+  name: string;
+  type: string;
+  accountNumber: string;
+  creditLimit: number;
+  creditUtilized: number;
+  creditAvailable: number;
+  city?: string;
+  state?: string;
+}
+
+export interface B2BInvoice {
+  invoiceId: string;
+  partnerId: string;
+  invoiceNumber: string;
+  totalAmount: number;
+  amountPaid: number;
+  amountOutstanding: number;
+  status: string;
+  dueDate: string;
+}
+
+export async function fetchB2BPartners(query?: string): Promise<B2BPartner[]> {
+  const url = query
+    ? `/v1/b2b/partners?q=${encodeURIComponent(query)}`
+    : '/v1/b2b/partners';
+  const res = await fetch(url, { headers: { 'X-Tenant-Id': TENANT_ID } });
+  if (!res.ok) throw new Error(`fetchB2BPartners failed (${res.status})`);
+  const body = await res.json();
+  return body.data ?? body;
+}
+
+export async function fetchB2BInvoices(partnerId?: string, status?: string): Promise<B2BInvoice[]> {
+  const params = new URLSearchParams();
+  if (partnerId) params.set('partner_id', partnerId);
+  if (status) params.set('status', status);
+  const res = await fetch(`/v1/b2b/invoices?${params.toString()}`, {
+    headers: { 'X-Tenant-Id': TENANT_ID },
+  });
+  if (!res.ok) throw new Error(`fetchB2BInvoices failed (${res.status})`);
+  const body = await res.json();
+  return body.data ?? body;
+}
+
+export async function fetchB2BAgingReport(): Promise<any> {
+  const res = await fetch('/v1/b2b/receivables/aging', { headers: { 'X-Tenant-Id': TENANT_ID } });
+  if (!res.ok) throw new Error(`fetchB2BAgingReport failed (${res.status})`);
+  return res.json();
+}
+
+export async function fetchB2BAccountStatement(
+  partnerId: string,
+  from?: string,
+  to?: string,
+): Promise<any> {
+  const params = new URLSearchParams();
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  const res = await fetch(
+    `/v1/b2b/receivables/${encodeURIComponent(partnerId)}/statement?${params.toString()}`,
+    { headers: { 'X-Tenant-Id': TENANT_ID } },
+  );
+  if (!res.ok) throw new Error(`fetchB2BAccountStatement failed (${res.status})`);
+  return res.json();
+}
+
+export async function logB2BFollowUp(req: {
+  partnerId: string;
+  invoiceId?: string;
+  actionType: string;
+  notes?: string;
+  nextFollowUpDate?: string;
+}): Promise<any> {
+  const res = await fetch('/v1/b2b/receivables/follow-ups', {
+    method: 'POST',
+    headers: b2bHeaders(),
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) throw new Error(`logB2BFollowUp failed (${res.status})`);
+  return res.json();
+}
+
+export async function recordB2BPayment(
+  invoiceId: string,
+  req: { amount: number; paymentDate: string; paymentMode: string; referenceNumber?: string; notes?: string },
+): Promise<B2BInvoice> {
+  const res = await fetch(`/v1/b2b/invoices/${encodeURIComponent(invoiceId)}/payment`, {
+    method: 'POST',
+    headers: b2bHeaders(),
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) throw new Error(`recordB2BPayment failed (${res.status})`);
+  return res.json();
 }

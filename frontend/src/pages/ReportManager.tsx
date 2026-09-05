@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   fetchOrders, fetchAllReports, fetchPatients, createReportDraft,
-  updateReportContent, uploadSignedReportHtml,
+  updateReportContent, generateReport, uploadSignedReportHtml,
   type Order, type Report, type Patient,
 } from '../lib/api';
 import {
@@ -567,6 +567,8 @@ export default function ReportManager() {
     setCreateError(null);
     try {
       const draft = await createReportDraft(order.id, order.patient_id, { results: {} });
+      // Notify reporting-service concurrently (best-effort — may fail if order unknown there)
+      generateReport(order.id).catch(() => {});
       await reload();
       const p = patientMap.get(order.patient_id);
       setSelected({ report: draft, order, patient: p });

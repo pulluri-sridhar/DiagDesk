@@ -7,7 +7,7 @@ spring:
     name: audit-consent-service
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:audit_db}?currentSchema=audit
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:audit_db}?currentSchema=audit&prepareThreshold=0
     username: ${DB_USER:diagdesk}
     password: ${DB_PASSWORD:diagdesk}
     hikari:

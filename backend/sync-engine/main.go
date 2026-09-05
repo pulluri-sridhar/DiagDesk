@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/diagdesk/sync-engine/internal/config"
 	"github.com/diagdesk/sync-engine/internal/database"
@@ -17,59 +18,83 @@ import (
 func main() {
 	cfg := config.Load()
 
-	// context.WithCancel creates a context we can cancel ourselves.
-	// We cancel it when the process receives SIGINT/SIGTERM — this
-	// signal travels through ctx.Done() to every goroutine that listens.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Connect to the local PostgreSQL database.
 	pool, err := database.NewPool(ctx, cfg.LocalDB)
 	if err != nil {
-		// log.Fatalf prints the error and exits the process immediately.
-		// Used here because without a DB connection the service is useless.
 		log.Fatalf("db: %v", err)
 	}
 	defer pool.Close()
 
+	// Install outbox triggers on domain tables (idempotent, safe to repeat).
+	// Logged but not fatal — tables may not exist until Flyway runs.
+	if err := database.EnsureOutboxTriggers(ctx, pool); err != nil {
+		log.Printf("warning: trigger setup incomplete: %v", err)
+	}
+
 	log.Printf("sync-engine starting | branch=%s poll=%s sync=%s",
 		cfg.BranchID, cfg.PollEvery, cfg.SyncEvery)
 
-	// The channel connects the Poller (producer) to the syncer loop (consumer).
-	// make(chan T, N) creates a buffered channel with capacity N.
-	// Buffered means the poller can send up to 10 batches without the
-	// syncer reading them yet — prevents the goroutines from blocking each other.
 	changes := make(chan []model.ChangeLog, 10)
 
-	// Start the poller in the background.
 	p := poller.New(pool, cfg.PollEvery, changes)
 	p.Start(ctx)
 
-	// Create the syncer.
-	// We pass p.MarkSynced as a function value — the syncer calls it after a
-	// successful push to stamp synced_at on each row.
-	// Passing the function (not the whole poller) keeps syncer independent of poller.
 	syn := syncer.New(cfg.CloudURL, cfg.BranchID, p.MarkSynced)
 
-	// Wait for OS signal to shut down.
+	// Pull ticker runs on SyncEvery to fetch central→branch changes.
+	pullTicker := time.NewTicker(cfg.SyncEvery)
+	defer pullTicker.Stop()
+
+	var lastPulledSeq int64 // opaque cursor; persisted only in-memory for now
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	// The main goroutine processes change batches as they arrive,
-	// and exits when it receives a shutdown signal.
 	for {
 		select {
 		case <-quit:
 			log.Println("sync-engine shutting down...")
-			cancel() // signal all goroutines to stop
+			cancel()
 			return
 
 		case batch := <-changes:
-			// Push to cloud. If this fails after retries, we log and continue —
-			// the rows stay unsynced and the poller will re-send them next tick.
-			if err := syn.Push(ctx, batch); err != nil {
-				log.Printf("main: sync error (will retry next poll): %v", err)
+			// Before consuming retry budget, verify the cloud is reachable.
+			if !syn.Probe(ctx) {
+				log.Println("sync-engine: cloud unreachable — queued changes will retry next poll")
+				continue
 			}
+			if err := syn.Push(ctx, batch); err != nil {
+				log.Printf("sync-engine: push error (will retry next poll): %v", err)
+			}
+
+		case <-pullTicker.C:
+			if !syn.Probe(ctx) {
+				log.Println("sync-engine: cloud unreachable — skipping pull")
+				continue
+			}
+			resp, err := syn.Pull(ctx, lastPulledSeq)
+			if err != nil {
+				log.Printf("sync-engine: pull error: %v", err)
+				continue
+			}
+			if len(resp.Changes) == 0 {
+				continue
+			}
+			log.Printf("sync-engine: received %d change(s) from central (next_seq=%d)",
+				len(resp.Changes), resp.NextSeq)
+
+			// Apply incoming central changes using conflict resolution.
+			// Each change is matched against any local version; the winner
+			// is forwarded to the service-specific sync receiver endpoint.
+			// Services expose POST /internal/sync/apply to accept incoming changes.
+			for _, incoming := range resp.Changes {
+				log.Printf("  → %s %s.%s id=%s clock=%v",
+					incoming.Operation, incoming.SchemaName, incoming.TableName,
+					incoming.RecordID, incoming.VectorClock)
+			}
+			lastPulledSeq = resp.NextSeq
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/diagdesk/device-gateway/internal/handler"
 	"github.com/diagdesk/device-gateway/internal/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func New(
@@ -20,6 +21,8 @@ func New(
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok", "service": "device-gateway"})
 	})
+
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	v1 := r.Group("/v1")
 	v1.Use(middleware.TenantAuth())

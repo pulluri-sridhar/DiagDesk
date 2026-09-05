@@ -1,0 +1,90 @@
+{
+  "realm": "diagdesk",
+  "enabled": true,
+  "displayName": "DiagDesk",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "sslRequired": "none",
+  "accessTokenLifespan": 3600,
+  "refreshTokenMaxReuse": 0,
+  "roles": {
+    "realm": [
+      { "name": "admin",         "description": "Lab administrator"      },
+      { "name": "doctor",        "description": "Referring doctor"       },
+      { "name": "phlebotomist",  "description": "Sample collector"       },
+      { "name": "lab_tech",      "description": "Lab technician"         },
+      { "name": "pathologist",   "description": "Reporting pathologist"  },
+      { "name": "patient",       "description": "Patient self-service"   }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "diagdesk-frontend",
+      "name": "DiagDesk React App",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://localhost:4173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:4173"
+      ]
+    },
+    {
+      "clientId": "diagdesk-services",
+      "name": "DiagDesk Microservices",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "bearerOnly": true
+    }
+  ],
+  "users": [
+    {
+      "username": "admin-demo",
+      "email": "admin@diagdesk.local",
+      "firstName": "Admin",
+      "lastName": "Demo",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Demo@1234", "temporary": false }],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "pathologist-demo",
+      "email": "patho@diagdesk.local",
+      "firstName": "Pathologist",
+      "lastName": "Demo",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Demo@1234", "temporary": false }],
+      "realmRoles": ["pathologist"]
+    },
+    {
+      "username": "phlebotomist-demo",
+      "email": "phlebo@diagdesk.local",
+      "firstName": "Phlebotomist",
+      "lastName": "Demo",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Demo@1234", "temporary": false }],
+      "realmRoles": ["phlebotomist"]
+    },
+    {
+      "username": "doctor-demo",
+      "email": "doctor@diagdesk.local",
+      "firstName": "Doctor",
+      "lastName": "Demo",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Demo@1234", "temporary": false }],
+      "realmRoles": ["doctor"]
+    }
+  ]
+}

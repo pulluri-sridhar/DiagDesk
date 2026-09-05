@@ -7,7 +7,7 @@ spring:
     name: reporting-service
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:reporting_db}?currentSchema=reporting
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:reporting_db}?currentSchema=reporting&prepareThreshold=0
     username: ${DB_USER:diagdesk}
     password: ${DB_PASSWORD:diagdesk}
     hikari:
@@ -53,6 +53,18 @@ spring:
 diagdesk:
   result-service:
     url: ${RESULT_SERVICE_URL:http://localhost:8085}
+  patient-service:
+    url: ${PATIENT_SERVICE_URL:http://localhost:8081}
+  catalog-service:
+    url: ${CATALOG_SERVICE_URL:http://localhost:8082}
+  supabase:
+    url: ${SUPABASE_URL:}
+    service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+    bucket: ${SUPABASE_BUCKET:lab-reports}
+  lab:
+    name: ${LAB_NAME:DiagDesk Diagnostics}
+    address: ${LAB_ADDRESS:}
+    phone: ${LAB_PHONE:}
 
 management:
   endpoints:

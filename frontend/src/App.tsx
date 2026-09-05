@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth, ROLE_HOME } from './lib/auth';
 import ProtectedRoute       from './components/ProtectedRoute';
+import OfflineIndicator     from './components/OfflineIndicator';
 import Login                from './pages/Login';
 import AdminDashboard       from './pages/AdminDashboard';
 import InventoryManager     from './pages/InventoryManager';
@@ -34,6 +35,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        {/* Offline banner — visible on all pages when network is unavailable */}
+        <OfflineIndicator />
         <Routes>
           <Route path="/login" element={<LoginRoute />} />
           <Route path="/"      element={<RootRoute />} />

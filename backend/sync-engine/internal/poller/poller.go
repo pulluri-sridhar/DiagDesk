@@ -68,17 +68,12 @@ func (p *Poller) Start(ctx context.Context) {
 	}()
 }
 
-// fetchPending reads unsynced rows from the local sync_outbox table.
+// fetchPending reads unsynced rows from the local sync.outbox table.
 // It returns at most 100 rows per call to keep batches manageable.
-//
-// Slice lesson:
-//   []model.ChangeLog is a slice — Go's dynamic array.
-//   Unlike Java's ArrayList, slices are built into the language.
-//   `rows.Scan(...)` fills a struct from each database row.
 func (p *Poller) fetchPending(ctx context.Context) ([]model.ChangeLog, error) {
 	rows, err := p.db.Query(ctx, `
-		SELECT id, table_name, record_id, operation, payload, created_at
-		FROM sync_outbox
+		SELECT id, schema_name, table_name, record_id, operation, payload, vector_clock, created_at
+		FROM sync.outbox
 		WHERE synced_at IS NULL
 		ORDER BY id
 		LIMIT 100
@@ -86,39 +81,39 @@ func (p *Poller) fetchPending(ctx context.Context) ([]model.ChangeLog, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close() // always close rows to release the connection back to the pool
+	defer rows.Close()
 
-	// make([]model.ChangeLog, 0, 100) creates an empty slice
-	// with initial capacity 100 — avoids repeated memory allocations in the loop.
 	changes := make([]model.ChangeLog, 0, 100)
 
-	for rows.Next() { // rows.Next() advances to the next row, returns false when done
+	for rows.Next() {
 		var c model.ChangeLog
+		// vector_clock is stored as JSONB; pgx decodes it into map[string]int64.
+		var vc map[string]int64
 		err := rows.Scan(
-			&c.ID,        // & means "address of" — pgx writes into the variable
+			&c.ID,
+			&c.SchemaName,
 			&c.TableName,
 			&c.RecordID,
 			&c.Operation,
 			&c.Payload,
+			&vc,
 			&c.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
-		changes = append(changes, c) // append adds to the slice (like Java's .add())
+		c.VectorClock = model.VectorClock(vc)
+		changes = append(changes, c)
 	}
 
-	return changes, rows.Err() // rows.Err() catches any error that happened during iteration
+	return changes, rows.Err()
 }
 
-// MarkSynced marks rows as done after a successful push to the cloud.
-// Called by the syncer after it confirms the cloud accepted the batch.
+// MarkSynced stamps synced_at on each row after a successful push.
+// Called by the syncer after the cloud confirms receipt of the batch.
 func (p *Poller) MarkSynced(ctx context.Context, ids []int64) error {
-	// pgx accepts slices directly for ANY($1) — no manual IN clause needed.
 	_, err := p.db.Exec(ctx, `
-		UPDATE sync_outbox
-		SET synced_at = now()
-		WHERE id = ANY($1)
+		UPDATE sync.outbox SET synced_at = now() WHERE id = ANY($1)
 	`, ids)
 	return err
 }

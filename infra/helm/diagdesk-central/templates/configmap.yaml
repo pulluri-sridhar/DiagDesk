@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diagdesk-central-spring-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk-central.labels" . | nindent 4 }}
+data:
+  # Mounted at /etc/diagdesk/config/ in every pod via SPRING_CONFIG_ADDITIONAL_LOCATION.
+  # Activated when SPRING_PROFILES_ACTIVE=cloud.
+  #
+  # DB connection (host/port/name/user/password) is provided via env vars so that
+  # each service retains its own schema via ?currentSchema=<schema> from its
+  # application.yml. prepareThreshold=0 is baked into each service JDBC URL so
+  # prepared statements don't break PgBouncer transaction mode.
+  application-cloud.yml: |
+    spring:
+      datasource:
+        hikari:
+          # Transaction-mode pooler: keep pool small — PgBouncer is the real pool.
+          minimum-idle: 2
+          maximum-pool-size: 5
+          connection-timeout: 20000
+          validation-timeout: 5000
+
+      {{- if .Values.commonEnv.KAFKA_BOOTSTRAP }}
+      kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP}
+        properties:
+          # SASL/SSL for managed Kafka (Confluent Cloud / Upstash / Aiven).
+          security.protocol: SASL_SSL
+          sasl.mechanism: ${KAFKA_SASL_MECHANISM:PLAIN}
+          # Username and password come from the SealedSecret.
+          sasl.jaas.config: >-
+            org.apache.kafka.common.security.plain.PlainLoginModule required
+            username="${KAFKA_SASL_USERNAME}"
+            password="${KAFKA_SASL_PASSWORD}";
+          ssl.endpoint.identification.algorithm: https
+        producer:
+          retries: 10
+          properties:
+            delivery.timeout.ms: 120000
+            max.block.ms: 10000
+            reconnect.backoff.ms: 1000
+            reconnect.backoff.max.ms: 10000
+        consumer:
+          properties:
+            session.timeout.ms: 30000
+            heartbeat.interval.ms: 10000
+            reconnect.backoff.ms: 1000
+            reconnect.backoff.max.ms: 10000
+        listener:
+          missing-topics-fatal: false
+      {{- end }}

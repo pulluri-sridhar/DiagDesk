@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/diagdesk/sync-engine/internal/model"
+	"github.com/diagdesk/sync-engine/internal/conflict"
 )
 
 // Syncer pushes change batches from the local edge node to the cloud over HTTP.
@@ -40,6 +41,79 @@ func New(cloudURL, branchID string, markSynced func(ctx context.Context, ids []i
 		client:         &http.Client{Timeout: 30 * time.Second},
 		markSynced:     markSynced,
 		InitialBackoff: 2 * time.Second,
+	}
+}
+
+// Probe checks whether the cloud sync endpoint is reachable.
+// Returns false if the network is down, DNS fails, or the server is slow (5 s).
+// Use this before push/pull to avoid burning retry budget against a known-offline cloud.
+func (s *Syncer) Probe(ctx context.Context) bool {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.cloudURL+"/sync/health", nil)
+	if err != nil {
+		return false
+	}
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return resp.StatusCode >= 200 && resp.StatusCode < 300
+}
+
+// Pull fetches changes made at central since sinceSeq.
+// Returns a PullResponse with an opaque NextSeq cursor — pass it as sinceSeq next time.
+// Returns an empty PullResponse (not an error) when there are no new changes.
+func (s *Syncer) Pull(ctx context.Context, sinceSeq int64) (*model.PullResponse, error) {
+	url := fmt.Sprintf("%s/sync/changes?branch_id=%s&since_seq=%d",
+		s.cloudURL, s.branchID, sinceSeq)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build pull request: %w", err)
+	}
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("pull http get: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("central returned HTTP %d for pull", resp.StatusCode)
+	}
+
+	var result model.PullResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("decode pull response: %w", err)
+	}
+	return &result, nil
+}
+
+// ResolveConflict inspects the vector clocks on local and incoming and returns
+// the winner according to the table's conflict strategy.
+// Exported so tests can exercise conflict decisions without a running server.
+func ResolveConflict(local, incoming model.ChangeLog) model.ChangeLog {
+	localClock := local.VectorClock
+	incomingClock := incoming.VectorClock
+
+	switch {
+	case localClock.Dominates(incomingClock):
+		// Local is strictly newer — keep local.
+		return local
+	case incomingClock.Dominates(localClock):
+		// Incoming is strictly newer — accept incoming.
+		return incoming
+	default:
+		// True concurrent conflict — delegate to table strategy.
+		if conflict.Resolve(local, incoming) {
+			winner := incoming
+			winner.VectorClock = localClock.Merge(incomingClock)
+			return winner
+		}
+		winner := local
+		winner.VectorClock = localClock.Merge(incomingClock)
+		return winner
 	}
 }
 

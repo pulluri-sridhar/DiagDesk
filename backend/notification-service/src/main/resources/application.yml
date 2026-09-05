@@ -7,7 +7,7 @@ spring:
     name: notification-service
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:notification_db}?currentSchema=notifications
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:notification_db}?currentSchema=notifications&prepareThreshold=0
     username: ${DB_USER:diagdesk}
     password: ${DB_PASSWORD:diagdesk}
     hikari:
@@ -49,6 +49,19 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       acks: all
       retries: 5
+
+diagdesk:
+  patient-service:
+    url: ${PATIENT_SERVICE_URL:http://localhost:8081}
+  # Service-to-service JWT issued by Keycloak for background tasks (e.g. Kafka consumers).
+  # Generate via: Keycloak → notification-service client → Service accounts → Get token.
+  internal:
+    service-token: ${INTERNAL_SERVICE_TOKEN:}
+  msg91:
+    auth-key: ${MSG91_AUTH_KEY:}
+    sender-id: ${MSG91_SENDER_ID:DIAGDK}
+    # WhatsApp Business number registered with MSG91 (e.g. 917000000001)
+    integrated-number: ${MSG91_INTEGRATED_NUMBER:}
 
 management:
   endpoints:

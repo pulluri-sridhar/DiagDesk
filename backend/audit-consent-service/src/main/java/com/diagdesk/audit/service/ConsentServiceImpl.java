@@ -5,7 +5,9 @@ import com.diagdesk.audit.dto.request.RevokeConsentRequest;
 import com.diagdesk.audit.dto.response.ConsentResponse;
 import com.diagdesk.audit.entity.Consent;
 import com.diagdesk.audit.repository.ConsentRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,7 @@ public class ConsentServiceImpl implements ConsentService {
     @Transactional
     public ConsentResponse create(CreateConsentRequest req) {
         Consent c = new Consent();
-        c.setConsentId(UUIDv7.generate());
+        c.setConsentId(UUIDv7.generateAsString());
         c.setTenantId(TenantContext.getTenantId());
         c.setPatientId(req.getPatientId());
         c.setConsentType(Consent.ConsentType.valueOf(req.getConsentType().toUpperCase()));
@@ -48,7 +50,7 @@ public class ConsentServiceImpl implements ConsentService {
     public ConsentResponse getById(String consentId) {
         return consentRepository.findById(consentId)
                 .map(this::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("Consent not found: " + consentId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.CONSENT_NOT_FOUND, "Consent not found: " + consentId));
     }
 
     @Override
@@ -62,7 +64,7 @@ public class ConsentServiceImpl implements ConsentService {
     @Transactional
     public ConsentResponse revoke(String consentId, RevokeConsentRequest req) {
         Consent c = consentRepository.findById(consentId)
-                .orElseThrow(() -> new IllegalArgumentException("Consent not found: " + consentId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.CONSENT_NOT_FOUND, "Consent not found: " + consentId));
         c.setStatus(Consent.ConsentStatus.REVOKED);
         c.setRevokedAt(OffsetDateTime.now());
         c.setRevokedBy(req.getRevokedBy());

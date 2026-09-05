@@ -48,10 +48,19 @@ public class LocalDevTenantFilter extends OncePerRequestFilter {
             MDC.put("tenantId", tenantId);
             MDC.put("userId", userId);
 
-            // Grant all authorities so @PreAuthorize checks pass in local dev
+            // Grant all domain authorities so every @PreAuthorize check passes in local dev
             var auth = new UsernamePasswordAuthenticationToken(
                 userId, null,
-                List.of(new SimpleGrantedAuthority("SUPER_ADMIN"))
+                List.of(
+                    new SimpleGrantedAuthority("SUPER_ADMIN"),
+                    new SimpleGrantedAuthority("report.signoff"),
+                    new SimpleGrantedAuthority("report.deliver"),
+                    new SimpleGrantedAuthority("report.print"),
+                    new SimpleGrantedAuthority("finance.reports.master"),
+                    new SimpleGrantedAuthority("finance.reports.money_collections"),
+                    new SimpleGrantedAuthority("finance.reports.referral_activity"),
+                    new SimpleGrantedAuthority("ROLE_SYSTEM")
+                )
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
 

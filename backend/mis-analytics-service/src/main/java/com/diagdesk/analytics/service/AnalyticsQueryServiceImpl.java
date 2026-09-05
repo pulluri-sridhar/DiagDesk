@@ -6,7 +6,9 @@ import com.diagdesk.analytics.entity.DigestSubscription;
 import com.diagdesk.analytics.repository.AlertRecordRepository;
 import com.diagdesk.analytics.repository.DailyMetricRepository;
 import com.diagdesk.analytics.repository.DigestSubscriptionRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -266,7 +268,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     public Map<String, Object> acknowledgeAlert(String alertId) {
         String tenantId = TenantContext.getTenantId();
         AlertRecord alert = alertRecordRepository.findById(alertId)
-                .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Alert not found: " + alertId));
         alert.setAcknowledged(true);
         alert.setAcknowledgedAt(OffsetDateTime.now());
         alertRecordRepository.save(alert);
@@ -278,7 +280,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     public String createDigest(Map<String, Object> req) {
         String tenantId = TenantContext.getTenantId();
         DigestSubscription sub = new DigestSubscription();
-        sub.setSubscriptionId(UUIDv7.generate());
+        sub.setSubscriptionId(UUIDv7.generateAsString());
         sub.setTenantId(tenantId);
         sub.setUserId((String) req.get("user_id"));
         sub.setFrequency((String) req.getOrDefault("frequency", "daily"));

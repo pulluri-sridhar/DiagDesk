@@ -1,0 +1,100 @@
+{{- $isDeviceGateway := list "device-gateway" -}}
+{{- range $name, $svc := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    {{- include "diagdesk.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  replicas: {{ $svc.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        {{- include "diagdesk.labels" $ | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ $svc.port | quote }}
+        prometheus.io/path: {{ if eq $name "device-gateway" }}"/metrics"{{ else }}"/actuator/prometheus"{{ end }}
+    spec:
+      {{- with $.Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: {{ $name }}
+          image: "{{ $.Values.image.registry }}/{{ $name }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $svc.port }}
+              protocol: TCP
+          env:
+            {{- if ne $name "device-gateway" }}
+            {{- range $k, $v := $.Values.commonEnv }}
+            {{- if $v }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            {{- end }}
+            {{- include "diagdesk.dbSecretEnv" $ | nindent 12 }}
+            {{- end }}
+            {{- with $svc.env }}
+            {{- range $k, $v := . }}
+            {{- if $v }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- if $.Values.sealedSecrets.enabled }}
+          envFrom:
+            - secretRef:
+                name: diagdesk-app-secrets
+                optional: false
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ $svc.healthPath | default "/actuator/health" }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ if eq $name "device-gateway" }}15{{ else }}60{{ end }}
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: {{ $svc.healthPath | default "/actuator/health" }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ if eq $name "device-gateway" }}10{{ else }}30{{ end }}
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            {{- toYaml ($svc.resources | default $.Values.defaultResources) | nindent 12 }}
+          {{- if ne $name "device-gateway" }}
+          volumeMounts:
+            - name: spring-config
+              mountPath: /etc/diagdesk/config
+              readOnly: true
+            - name: keycloak-pub
+              mountPath: /etc/keycloak
+              readOnly: true
+          {{- end }}
+      {{- if ne $name "device-gateway" }}
+      volumes:
+        - name: spring-config
+          configMap:
+            name: diagdesk-spring-config
+        - name: keycloak-pub
+          configMap:
+            name: diagdesk-keycloak-pub
+      {{- end }}
+{{- end }}

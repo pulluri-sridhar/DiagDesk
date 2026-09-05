@@ -15,7 +15,11 @@ public interface B2BInvoiceRepository extends JpaRepository<B2BInvoice, String> 
 
     List<B2BInvoice> findByTenantIdAndStatus(String tenantId, B2BInvoice.InvoiceStatus status);
 
+    List<B2BInvoice> findByTenantIdAndStatusIn(String tenantId, List<B2BInvoice.InvoiceStatus> statuses);
+
     List<B2BInvoice> findByPartnerIdAndStatusIn(String partnerId, List<B2BInvoice.InvoiceStatus> statuses);
+
+    List<B2BInvoice> findByPartnerIdOrderByDueDateAsc(String partnerId);
 
     long countByTenantIdAndStatus(String tenantId, B2BInvoice.InvoiceStatus status);
 }

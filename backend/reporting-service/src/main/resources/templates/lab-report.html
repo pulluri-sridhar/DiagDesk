@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Laboratory Report</title>
+<style type="text/css">
+@page {
+    size: A4 portrait;
+    margin: 15mm 20mm 20mm 20mm;
+    @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-size: 7pt;
+        color: #888888;
+    }
+}
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9pt;
+    color: #333333;
+    margin: 0;
+    padding: 0;
+}
+.header-table { width: 100%; border-collapse: collapse; }
+.header-cell-left { vertical-align: top; }
+.header-cell-right { text-align: right; vertical-align: top; font-size: 7.5pt; color: #555555; }
+.lab-name { font-size: 14pt; font-weight: bold; color: #1a5276; }
+.lab-info { font-size: 7.5pt; color: #666666; margin-top: 2px; }
+.header-divider {
+    border-bottom: 2px solid #1a5276;
+    margin-bottom: 8px;
+    margin-top: 6px;
+}
+.section-title {
+    background-color: #1a5276;
+    color: #ffffff;
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 3px 6px;
+    margin-top: 8px;
+}
+.patient-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.patient-table td { padding: 3px 6px; font-size: 8.5pt; border: 1px solid #e0e0e0; }
+.label { color: #555555; font-weight: bold; background-color: #f5f5f5; width: 110px; }
+.results-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.results-table th {
+    background-color: #1a5276;
+    color: #ffffff;
+    padding: 4px 6px;
+    text-align: left;
+    font-size: 8.5pt;
+    border: 1px solid #0d3a5e;
+}
+.results-table td { padding: 3px 6px; border: 1px solid #dddddd; font-size: 8.5pt; }
+.results-table tr.alt td { background-color: #f9f9f9; }
+.flag-normal { color: #27ae60; }
+.flag-high   { color: #e74c3c; font-weight: bold; }
+.flag-low    { color: #2980b9; font-weight: bold; }
+.flag-crit   { color: #e74c3c; font-weight: bold; text-decoration: underline; }
+.notes-box {
+    border: 1px solid #cccccc;
+    border-left: 3px solid #1a5276;
+    padding: 5px 8px;
+    font-size: 8pt;
+    margin-bottom: 8px;
+    background-color: #fafafa;
+}
+.notes-label { font-weight: bold; color: #1a5276; margin-bottom: 2px; }
+.signoff-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 1px solid #cccccc;
+    margin-top: 14px;
+}
+.signoff-table td { padding-top: 8px; vertical-align: top; }
+.signoff-label { font-size: 7.5pt; color: #888888; }
+.signoff-name  { font-size: 9pt; font-weight: bold; margin-top: 2px; }
+.disclaimer    { text-align: right; vertical-align: bottom; font-size: 7pt; color: #aaaaaa; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<table class="header-table">
+<tr>
+  <td class="header-cell-left">
+    <div class="lab-name"    th:text="${report.labName}">DiagDesk Diagnostics</div>
+    <div class="lab-info"    th:text="${report.labAddress}">123 Main Street, City, State</div>
+    <div class="lab-info"    th:text="${'Tel: ' + report.labPhone}">Tel: +91 9999999999</div>
+  </td>
+  <td class="header-cell-right">
+    <div><strong>LABORATORY REPORT</strong></div>
+    <div th:text="${'Report ID: ' + report.reportId}">Report ID: -</div>
+    <div th:text="${'Date: ' + report.reportedAt}">Date: -</div>
+  </td>
+</tr>
+</table>
+<div class="header-divider">&#160;</div>
+
+<!-- Patient Information -->
+<div class="section-title">PATIENT INFORMATION</div>
+<table class="patient-table">
+<tr>
+  <td class="label">Patient Name</td>
+  <td th:text="${report.patientName}">-</td>
+  <td class="label">UHID</td>
+  <td th:text="${report.uhid}">-</td>
+</tr>
+<tr>
+  <td class="label">Age / Sex</td>
+  <td th:text="${report.age + ' / ' + report.gender}">- / -</td>
+  <td class="label">Phone</td>
+  <td th:text="${report.phone}">-</td>
+</tr>
+<tr>
+  <td class="label">Order ID</td>
+  <td th:text="${report.orderId}">-</td>
+  <td class="label">Reported On</td>
+  <td th:text="${report.reportedAt}">-</td>
+</tr>
+</table>
+
+<!-- Test Results -->
+<div class="section-title">TEST RESULTS</div>
+<table class="results-table">
+<thead>
+<tr>
+  <th style="width:35%;">Test</th>
+  <th style="width:18%;">Result</th>
+  <th style="width:12%;">Unit</th>
+  <th style="width:25%;">Reference Range</th>
+  <th style="width:10%;">Flag</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r,i : ${report.results}" th:class="${i.odd ? 'alt' : ''}">
+  <td th:text="${r.testName}">Test</td>
+  <td style="font-weight:bold;" th:text="${r.value}">-</td>
+  <td th:text="${r.unit}">-</td>
+  <td th:text="${r.referenceRange}">-</td>
+  <td>
+    <span th:class="${r.critical ? 'flag-crit' : (r.high ? 'flag-high' : (r.low ? 'flag-low' : 'flag-normal'))}"
+          th:text="${r.critical ? 'CRITICAL' : (r.high ? 'HIGH' : (r.low ? 'LOW' : 'Normal'))}">-</span>
+  </td>
+</tr>
+</tbody>
+</table>
+
+<!-- Clinical Notes (conditional) -->
+<div th:if="${report.clinicalNotes != null and not #strings.isEmpty(report.clinicalNotes)}">
+  <div class="notes-box">
+    <div class="notes-label">Clinical Notes</div>
+    <div th:text="${report.clinicalNotes}">-</div>
+  </div>
+</div>
+
+<!-- Interpretation (conditional) -->
+<div th:if="${report.interpretation != null and not #strings.isEmpty(report.interpretation)}">
+  <div class="notes-box">
+    <div class="notes-label">Interpretation / Remarks</div>
+    <div th:text="${report.interpretation}">-</div>
+  </div>
+</div>
+
+<!-- Signoff -->
+<table class="signoff-table">
+<tr>
+  <td>
+    <div class="signoff-label">Verified and electronically signed by:</div>
+    <div class="signoff-name"  th:text="${report.signedBy}">Dr. Pathologist</div>
+    <div class="signoff-label" th:text="${'Signed: ' + report.reportedAt}">Signed: -</div>
+  </td>
+  <td class="disclaimer">
+    <div>DiagDesk Diagnostics &#8212; Electronically Verified</div>
+    <div>Valid without physical signature. For clinical use only.</div>
+  </td>
+</tr>
+</table>
+
+</body>
+</html>

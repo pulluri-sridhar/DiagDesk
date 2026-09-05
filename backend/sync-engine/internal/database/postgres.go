@@ -8,6 +8,40 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// domainTables lists the schema.table pairs that should write to sync.outbox.
+// Flyway creates these tables after service startup, so we attach triggers
+// at sync-engine boot rather than in the PostgreSQL initdb script.
+var domainTables = []struct{ schema, table string }{
+	{"patient", "patients"},
+	{"orders", "orders"},
+	{"orders", "order_items"},
+	{"results", "results"},
+	{"reporting", "reports"},
+}
+
+// EnsureOutboxTriggers creates (or replaces) the sync triggers on each domain
+// table. Safe to call multiple times — CREATE OR REPLACE is idempotent.
+//
+// Must be called AFTER Flyway has run the service migrations so the domain
+// tables exist. If a table does not exist yet the error is logged and skipped;
+// the trigger will be installed on the next boot once Flyway has run.
+func EnsureOutboxTriggers(ctx context.Context, pool *pgxpool.Pool) error {
+	for _, t := range domainTables {
+		triggerName := "sync_" + t.table
+		_, err := pool.Exec(ctx, fmt.Sprintf(`
+			CREATE OR REPLACE TRIGGER %s
+				AFTER INSERT OR UPDATE OR DELETE ON %s.%s
+				FOR EACH ROW EXECUTE FUNCTION sync.record_change()`,
+			triggerName, t.schema, t.table))
+		if err != nil {
+			// Table may not exist yet — log and continue rather than aborting.
+			fmt.Printf("database: skipping trigger %s on %s.%s: %v\n",
+				triggerName, t.schema, t.table, err)
+		}
+	}
+	return nil
+}
+
 // NewPool creates a connection pool to the local PostgreSQL database.
 //
 // Go error handling lesson:

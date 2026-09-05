@@ -6,7 +6,9 @@ import com.diagdesk.b2b.entity.B2BInvoice;
 import com.diagdesk.b2b.entity.B2BPartner;
 import com.diagdesk.b2b.repository.B2BInvoiceRepository;
 import com.diagdesk.b2b.repository.B2BPartnerRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,7 +33,7 @@ public class B2BPartnerServiceImpl implements B2BPartnerService {
     public PartnerResponse createPartner(CreatePartnerRequest req) {
         String tenantId = TenantContext.getTenantId();
         B2BPartner p = new B2BPartner();
-        p.setPartnerId(UUIDv7.generate());
+        p.setPartnerId(UUIDv7.generateAsString());
         p.setTenantId(tenantId);
         applyRequest(p, req);
         long count = partnerRepository.countByTenantId(tenantId);
@@ -44,7 +46,7 @@ public class B2BPartnerServiceImpl implements B2BPartnerService {
     public PartnerResponse getPartner(String partnerId) {
         String tenantId = TenantContext.getTenantId();
         B2BPartner p = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found: " + partnerId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Partner not found: " + partnerId));
         BigDecimal utilized = invoiceRepository
                 .findByPartnerIdAndStatusIn(partnerId,
                         List.of(B2BInvoice.InvoiceStatus.SENT, B2BInvoice.InvoiceStatus.PARTIALLY_PAID,
@@ -69,7 +71,7 @@ public class B2BPartnerServiceImpl implements B2BPartnerService {
     @Transactional
     public PartnerResponse updatePartner(String partnerId, CreatePartnerRequest req) {
         B2BPartner p = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found: " + partnerId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Partner not found: " + partnerId));
         applyRequest(p, req);
         return toResponse(partnerRepository.save(p), BigDecimal.ZERO);
     }
@@ -78,7 +80,7 @@ public class B2BPartnerServiceImpl implements B2BPartnerService {
     @Transactional
     public void deletePartner(String partnerId) {
         B2BPartner p = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found: " + partnerId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Partner not found: " + partnerId));
         partnerRepository.delete(p);
     }
 

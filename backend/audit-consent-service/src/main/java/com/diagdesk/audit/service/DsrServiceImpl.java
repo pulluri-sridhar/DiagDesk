@@ -4,7 +4,9 @@ import com.diagdesk.audit.dto.request.CreateDsrRequest;
 import com.diagdesk.audit.dto.response.DsrResponse;
 import com.diagdesk.audit.entity.DataSubjectRequest;
 import com.diagdesk.audit.repository.DataSubjectRequestRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +27,7 @@ public class DsrServiceImpl implements DsrService {
     @Transactional
     public DsrResponse create(CreateDsrRequest req) {
         DataSubjectRequest dsr = new DataSubjectRequest();
-        dsr.setDsrId(UUIDv7.generate());
+        dsr.setDsrId(UUIDv7.generateAsString());
         dsr.setTenantId(TenantContext.getTenantId());
         dsr.setPatientId(req.getPatientId());
         dsr.setRequestType(DataSubjectRequest.RequestType.valueOf(req.getRequestType().toUpperCase()));
@@ -41,7 +43,7 @@ public class DsrServiceImpl implements DsrService {
     public DsrResponse getById(String dsrId) {
         return dsrRepository.findById(dsrId)
                 .map(this::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("DSR not found: " + dsrId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "DSR not found: " + dsrId));
     }
 
     @Override

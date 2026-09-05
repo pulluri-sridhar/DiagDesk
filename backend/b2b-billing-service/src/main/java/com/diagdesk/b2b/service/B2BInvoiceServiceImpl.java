@@ -7,7 +7,9 @@ import com.diagdesk.b2b.entity.B2BPayment;
 import com.diagdesk.b2b.kafka.B2BEventProducer;
 import com.diagdesk.b2b.repository.B2BInvoiceRepository;
 import com.diagdesk.b2b.repository.B2BPaymentRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -49,14 +51,14 @@ public class B2BInvoiceServiceImpl implements B2BInvoiceService {
     public InvoiceResponse getInvoice(String invoiceId) {
         return invoiceRepository.findById(invoiceId)
                 .map(this::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("Invoice not found: " + invoiceId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Invoice not found: " + invoiceId));
     }
 
     @Override
     @Transactional
     public InvoiceResponse sendInvoice(String invoiceId, List<String> channels) {
         B2BInvoice inv = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new IllegalArgumentException("Invoice not found: " + invoiceId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Invoice not found: " + invoiceId));
         inv.setStatus(B2BInvoice.InvoiceStatus.SENT);
         inv.setSentAt(OffsetDateTime.now());
         invoiceRepository.save(inv);
@@ -68,10 +70,10 @@ public class B2BInvoiceServiceImpl implements B2BInvoiceService {
     @Transactional
     public InvoiceResponse recordPayment(String invoiceId, RecordPaymentRequest req) {
         B2BInvoice inv = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new IllegalArgumentException("Invoice not found: " + invoiceId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Invoice not found: " + invoiceId));
 
         B2BPayment payment = new B2BPayment();
-        payment.setPaymentId(UUIDv7.generate());
+        payment.setPaymentId(UUIDv7.generateAsString());
         payment.setInvoiceId(invoiceId);
         payment.setTenantId(inv.getTenantId());
         payment.setAmount(req.getAmount());

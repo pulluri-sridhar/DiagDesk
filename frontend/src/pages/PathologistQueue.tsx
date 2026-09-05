@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   fetchOrders, fetchAllReports, fetchPatients,
-  signReport, rejectReport, uploadSignedReportHtml,
+  signReport, signoffReport, rejectReport, uploadSignedReportHtml,
   type Order, type Report, type Patient,
 } from '../lib/api';
 import { findTemplate, renderReportHTML } from '../lib/reportTemplates';
@@ -315,6 +315,8 @@ export default function PathologistQueue() {
 
   async function handleSign(sig: string, name: string, notes: string) {
     if (!selected) return;
+    // Notify reporting-service (best-effort — may 404 if report only in Supabase)
+    signoffReport(selected.report.id, name, notes).catch(() => {});
     await signReport(selected.report.id, sig, name, notes);
     await load();
     // Auto-advance to next in queue

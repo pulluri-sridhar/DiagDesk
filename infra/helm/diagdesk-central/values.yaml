@@ -1,0 +1,105 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DiagDesk Central — Cloud-only services (analytics, audit, B2B billing)
+#
+# These services run in the central cloud environment and connect to:
+#   • Supabase PostgreSQL (via transaction-mode connection pooler)
+#   • Managed Kafka (Confluent Cloud / Upstash / Aiven)
+#   • Central Keycloak (live JWK endpoint — no static key needed)
+#
+# Override per-environment via: helm install -f values-production.yaml
+# Sensitive values (DB password, Kafka SASL key) → seal with seal-secrets.sh
+# ─────────────────────────────────────────────────────────────────────────────
+
+namespace: diagdesk-central
+
+# ── Image settings ─────────────────────────────────────────────────────────
+image:
+  registry: ghcr.io/soumyachandran448/diagdesk
+  tag: dev
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# ── Shared environment (injected into every service container) ─────────────
+# DB_HOST / DB_PORT / DB_NAME point to Supabase's PgBouncer transaction-mode
+# pooler. Each service's application.yml appends its own schema via
+# `?currentSchema=<schema>` — no override needed here.
+commonEnv:
+  SPRING_PROFILES_ACTIVE: "cloud"
+  SPRING_CONFIG_ADDITIONAL_LOCATION: "file:/etc/diagdesk/config/"
+
+  # Supabase connection pooler (transaction mode, port 6543)
+  # Host example: aws-0-ap-south-1.pooler.supabase.com
+  DB_HOST: ""
+  DB_PORT: "6543"
+  DB_NAME: "postgres"     # Supabase default database name
+  # DB_USER and DB_PASSWORD come from the SealedSecret (diagdesk-central-secrets)
+
+  # Managed Kafka — Confluent / Upstash / Aiven
+  # Leave blank to skip Kafka consumers (services still start; audit ingestion disabled)
+  KAFKA_BOOTSTRAP: ""
+
+  # Kafka SASL/SSL (required if KAFKA_BOOTSTRAP is set and broker uses auth)
+  # KAFKA_SASL_USERNAME and KAFKA_SASL_PASSWORD come from the SealedSecret
+  KAFKA_SASL_MECHANISM: "PLAIN"   # PLAIN (Confluent/Upstash) | SCRAM-SHA-256 (Aiven)
+
+  # Central Keycloak — live JWK endpoint (cloud has internet access)
+  KEYCLOAK_ISSUER_URI: ""         # e.g. https://auth.diagdesk.in/realms/diagdesk
+  KEYCLOAK_JWK_URI: ""            # e.g. https://auth.diagdesk.in/realms/diagdesk/protocol/openid-connect/certs
+
+  # Observability
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""   # e.g. http://otel-collector:4318/v1/traces
+  DEPLOY_ENV: "cloud"
+
+# ── Per-service configuration ──────────────────────────────────────────────
+services:
+  mis-analytics-service:
+    port: 8087
+    replicas: 1
+
+  audit-consent-service:
+    port: 8089
+    replicas: 1
+
+  b2b-billing-service:
+    port: 8090
+    replicas: 1
+
+# ── Default resource requests/limits ──────────────────────────────────────
+defaultResources:
+  requests:
+    cpu: 200m
+    memory: 384Mi
+  limits:
+    cpu: "1"
+    memory: 768Mi
+
+# ── Ingress (Traefik) ──────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: traefik
+  host: api.diagdesk.in      # override to your cloud domain
+  tls:
+    enabled: true
+    # letsencrypt-prod requires: public DNS pointing to the node + port 80 open
+    issuer: letsencrypt-prod
+    email: ""                 # REQUIRED for letsencrypt-prod / letsencrypt-staging
+    secretName: diagdesk-central-tls-cert
+
+# ── Sealed Secrets ────────────────────────────────────────────────────────
+# When enabled, a SealedSecret named "diagdesk-central-secrets" is deployed.
+# Run infra/helm/seal-central-secrets.sh to generate encrypted values for
+# your cluster, then supply them via values-production.yaml.
+sealedSecrets:
+  enabled: false
+  dbUser: ""                  # Supabase DB user  e.g. postgres.projectref
+  dbPassword: ""              # Supabase DB password (sealed)
+  kafkaSaslUsername: ""       # Kafka SASL username (sealed)
+  kafkaSaslPassword: ""       # Kafka SASL password / API secret (sealed)
+  keycloakAdminPassword: ""   # Keycloak admin password (sealed, optional)
+
+# ── HPA ──────────────────────────────────────────────────────────────────
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70

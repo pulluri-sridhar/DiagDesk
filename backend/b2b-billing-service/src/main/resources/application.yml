@@ -7,7 +7,7 @@ spring:
     name: b2b-billing-service
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:b2b_db}?currentSchema=b2b
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:b2b_db}?currentSchema=b2b&prepareThreshold=0
     username: ${DB_USER:diagdesk}
     password: ${DB_PASSWORD:diagdesk}
     hikari:

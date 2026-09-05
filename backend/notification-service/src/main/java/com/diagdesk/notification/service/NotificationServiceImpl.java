@@ -1,11 +1,14 @@
 package com.diagdesk.notification.service;
 
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import com.diagdesk.notification.dto.request.SendNotificationRequest;
 import com.diagdesk.notification.dto.response.DeliveryStatsResponse;
 import com.diagdesk.notification.dto.response.NotificationResponse;
 import com.diagdesk.notification.entity.Notification;
+import com.diagdesk.notification.gateway.GatewayDispatcher;
 import com.diagdesk.notification.kafka.NotificationEventProducer;
 import com.diagdesk.notification.repository.NotificationRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,13 +30,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationEventProducer eventProducer;
+    private final GatewayDispatcher gatewayDispatcher;
     private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
     public NotificationResponse send(SendNotificationRequest req) {
         Notification n = new Notification();
-        n.setNotificationId(UUIDv7.generate());
+        n.setNotificationId(UUIDv7.generateAsString());
         n.setTenantId(TenantContext.getTenantId());
         n.setRecipientType(req.getRecipientType());
         n.setRecipientId(req.getRecipientId());
@@ -51,7 +55,11 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.save(n);
         eventProducer.publish(n, req.getVariables());
-        log.info("Notification queued: {}", n.getNotificationId());
+        log.info("Notification queued notificationId={}", n.getNotificationId());
+
+        // Dispatch to MSG91 — failure is non-blocking (status updated to FAILED in DB)
+        gatewayDispatcher.dispatch(n);
+
         return toResponse(n);
     }
 
@@ -60,7 +68,8 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationResponse getById(String notificationId) {
         return notificationRepository.findById(notificationId)
                 .map(this::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Notification not found: " + notificationId));
     }
 
     @Override
@@ -77,12 +86,14 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public NotificationResponse retry(String notificationId) {
         Notification n = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Notification not found: " + notificationId));
         n.setStatus(Notification.NotificationStatus.QUEUED);
         n.setRetryCount(n.getRetryCount() + 1);
         n.setFailureReason(null);
         notificationRepository.save(n);
         eventProducer.publish(n, null);
+        gatewayDispatcher.dispatch(n);
         return toResponse(n);
     }
 
@@ -91,15 +102,15 @@ public class NotificationServiceImpl implements NotificationService {
     public DeliveryStatsResponse deliveryStats(String channel, String period) {
         Notification.Channel ch = Notification.Channel.valueOf(channel.toUpperCase());
         OffsetDateTime from = OffsetDateTime.now().minusDays(30);
-        OffsetDateTime to = OffsetDateTime.now();
+        OffsetDateTime to   = OffsetDateTime.now();
 
-        long sent = notificationRepository.countByChannelAndStatusAndQueuedAtBetween(
+        long sent      = notificationRepository.countByChannelAndStatusAndQueuedAtBetween(
                 ch, Notification.NotificationStatus.SENT, from, to);
         long delivered = notificationRepository.countByChannelAndStatusAndQueuedAtBetween(
                 ch, Notification.NotificationStatus.DELIVERED, from, to);
-        long failed = notificationRepository.countByChannelAndStatusAndQueuedAtBetween(
+        long failed    = notificationRepository.countByChannelAndStatusAndQueuedAtBetween(
                 ch, Notification.NotificationStatus.FAILED, from, to);
-        long pending = notificationRepository.countByChannelAndStatusAndQueuedAtBetween(
+        long pending   = notificationRepository.countByChannelAndStatusAndQueuedAtBetween(
                 ch, Notification.NotificationStatus.QUEUED, from, to);
 
         DeliveryStatsResponse resp = new DeliveryStatsResponse();

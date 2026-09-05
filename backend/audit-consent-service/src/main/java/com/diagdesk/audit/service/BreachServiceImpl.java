@@ -5,7 +5,9 @@ import com.diagdesk.audit.dto.request.UpdateBreachRequest;
 import com.diagdesk.audit.dto.response.BreachResponse;
 import com.diagdesk.audit.entity.BreachNotification;
 import com.diagdesk.audit.repository.BreachNotificationRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,7 @@ public class BreachServiceImpl implements BreachService {
     @Transactional
     public BreachResponse create(CreateBreachRequest req) {
         BreachNotification b = new BreachNotification();
-        b.setBreachId(UUIDv7.generate());
+        b.setBreachId(UUIDv7.generateAsString());
         b.setTenantId(TenantContext.getTenantId());
         b.setTitle(req.getTitle());
         b.setDescription(req.getDescription());
@@ -45,14 +47,14 @@ public class BreachServiceImpl implements BreachService {
     public BreachResponse getById(String breachId) {
         return breachRepository.findById(breachId)
                 .map(this::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("Breach not found: " + breachId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Breach not found: " + breachId));
     }
 
     @Override
     @Transactional
     public BreachResponse update(String breachId, UpdateBreachRequest req) {
         BreachNotification b = breachRepository.findById(breachId)
-                .orElseThrow(() -> new IllegalArgumentException("Breach not found: " + breachId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Breach not found: " + breachId));
         if (req.getNotifiedAuthoritiesAt() != null) b.setNotifiedAuthoritiesAt(req.getNotifiedAuthoritiesAt());
         if (req.getResolutionNotes() != null) b.setResolutionNotes(req.getResolutionNotes());
         if (req.getStatus() != null) b.setStatus(req.getStatus());

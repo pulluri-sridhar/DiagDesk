@@ -1,6 +1,6 @@
 package com.diagdesk.b2b.config;
 
-import com.diagdesk.common.filter.TenantFilter;
+import com.diagdesk.common.security.TenantFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;

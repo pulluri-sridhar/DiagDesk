@@ -1,6 +1,8 @@
 package com.diagdesk.notification.service;
 
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.exception.DiagDeskException;
+import com.diagdesk.common.exception.ErrorCode;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.util.UUIDv7;
 import com.diagdesk.notification.dto.request.CreateTemplateRequest;
 import com.diagdesk.notification.entity.NotificationTemplate;
@@ -21,7 +23,7 @@ public class NotificationTemplateServiceImpl implements NotificationTemplateServ
     @Transactional
     public NotificationTemplate create(CreateTemplateRequest req) {
         NotificationTemplate t = new NotificationTemplate();
-        t.setTemplateId(UUIDv7.generate());
+        t.setTemplateId(UUIDv7.generateAsString());
         t.setTenantId(TenantContext.getTenantId());
         t.setName(req.getName());
         t.setChannel(NotificationTemplate.Channel.valueOf(req.getChannel().toUpperCase()));
@@ -37,7 +39,7 @@ public class NotificationTemplateServiceImpl implements NotificationTemplateServ
     @Transactional(readOnly = true)
     public NotificationTemplate getById(String templateId) {
         return templateRepository.findById(templateId)
-                .orElseThrow(() -> new IllegalArgumentException("Template not found: " + templateId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Template not found: " + templateId));
     }
 
     @Override

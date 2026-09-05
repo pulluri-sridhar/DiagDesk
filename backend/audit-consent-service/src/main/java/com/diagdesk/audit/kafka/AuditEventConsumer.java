@@ -38,7 +38,7 @@ public class AuditEventConsumer {
         String chainHash = sha256(prevChainHash + payloadHash);
 
         AuditEvent auditEvent = new AuditEvent();
-        auditEvent.setEventId(UUIDv7.generate());
+        auditEvent.setEventId(UUIDv7.generateAsString());
         auditEvent.setTenantId(tenantId);
         auditEvent.setEntityType((String) event.get("entity_type"));
         auditEvent.setEntityId((String) event.get("entity_id"));

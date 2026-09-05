@@ -1,10 +1,11 @@
 # DiagDesk local development infrastructure
-# Starts: PostgreSQL 16 (all 5 schemas), Redis 7, Kafka 3 (KRaft — no ZooKeeper)
+# Starts: PostgreSQL 16 (all 10 schemas), Redis 7, Kafka 3 (KRaft — no ZooKeeper), Keycloak 24
 # Usage: docker compose --env-file .env up -d
 # Host ports:
-#   Postgres → localhost:5432
-#   Redis    → localhost:6379
-#   Kafka    → localhost:29092  (use this in Spring Boot application-local.yml)
+#   Postgres  → localhost:5432
+#   Redis     → localhost:6379
+#   Kafka     → localhost:29092  (use this in Spring Boot application-local.yml)
+#   Keycloak  → localhost:8080   (admin: admin/admin — import realm from ./keycloak/realm-diagdesk.json)
 
 services:
 
@@ -84,7 +85,104 @@ services:
       start_period: 30s
 
 
+  # ── Keycloak (OIDC identity provider — required for !local Spring profiles) ────
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: diagdesk-keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN:          admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - ./keycloak/realm-diagdesk.json:/opt/keycloak/data/import/realm-diagdesk.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/realms/diagdesk || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+
+  # ── Jaeger (distributed tracing — OTLP + UI) ─────────────────────────────────
+  # Services send OTLP traces to localhost:4318 (HTTP) or localhost:4317 (gRPC).
+  # UI: http://localhost:16686
+  jaeger:
+    image: jaegertracing/all-in-one:1.58
+    container_name: diagdesk-jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"    # Jaeger UI
+      - "${JAEGER_OTLP_GRPC:-4317}:4317"   # OTLP gRPC receiver
+      - "${JAEGER_OTLP_HTTP:-4318}:4318"   # OTLP HTTP receiver (default for Spring services)
+      - "14269:14269"                        # Admin/metrics (scraped by Prometheus)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:14269/health | grep -q '\"status\":\"Server available\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Prometheus (metrics collection) ──────────────────────────────────────────
+  # UI: http://localhost:9090
+  # Services are scraped via host.docker.internal (Mac/Docker Desktop).
+  # On Linux replace host.docker.internal with 172.17.0.1 in prometheus/prometheus.yml.
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: diagdesk-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy | grep -q 'Prometheus Server is Healthy'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - jaeger
+
+  # ── Grafana (dashboards) ──────────────────────────────────────────────────────
+  # UI: http://localhost:3000  (admin / admin — change on first login)
+  grafana:
+    image: grafana/grafana-oss:10.4.2
+    container_name: diagdesk-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_FEATURE_TOGGLES_ENABLE: "traceqlEditor"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health | grep -q 'ok'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - prometheus
+      - jaeger
+
+
 volumes:
   postgres_data:
   redis_data:
   kafka_data:
+  prometheus_data:
+  grafana_data:

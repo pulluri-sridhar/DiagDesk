@@ -85,7 +85,7 @@ public class AnalyticsEventConsumer {
                               String dimKey, String dimValue, long increment) {
         LocalDate today = LocalDate.now();
         DailyMetric metric = new DailyMetric();
-        metric.setMetricId(UUIDv7.generate());
+        metric.setMetricId(UUIDv7.generateAsString());
         metric.setTenantId(tenantId != null ? tenantId : "unknown");
         metric.setBranchId(branchId);
         metric.setMetricDate(today);
@@ -100,7 +100,7 @@ public class AnalyticsEventConsumer {
     private void upsertNumeric(String tenantId, String branchId, String metricType,
                                 String dimKey, String dimValue, BigDecimal value) {
         DailyMetric metric = new DailyMetric();
-        metric.setMetricId(UUIDv7.generate());
+        metric.setMetricId(UUIDv7.generateAsString());
         metric.setTenantId(tenantId != null ? tenantId : "unknown");
         metric.setBranchId(branchId);
         metric.setMetricDate(LocalDate.now());

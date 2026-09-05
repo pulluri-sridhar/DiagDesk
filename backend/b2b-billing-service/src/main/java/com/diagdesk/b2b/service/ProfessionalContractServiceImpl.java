@@ -3,7 +3,7 @@ package com.diagdesk.b2b.service;
 import com.diagdesk.b2b.dto.request.CreateProfessionalContractRequest;
 import com.diagdesk.b2b.entity.ProfessionalServiceContract;
 import com.diagdesk.b2b.repository.ProfessionalServiceContractRepository;
-import com.diagdesk.common.context.TenantContext;
+import com.diagdesk.common.security.TenantContext;
 import com.diagdesk.common.exception.DiagDeskException;
 import com.diagdesk.common.exception.ErrorCode;
 import com.diagdesk.common.util.UUIDv7;
@@ -28,7 +28,7 @@ public class ProfessionalContractServiceImpl implements ProfessionalContractServ
         }
 
         ProfessionalServiceContract c = new ProfessionalServiceContract();
-        c.setContractId(UUIDv7.generate());
+        c.setContractId(UUIDv7.generateAsString());
         c.setTenantId(TenantContext.getTenantId());
         c.setProfessionalId(req.getProfessionalId());
         c.setProfessionalName(req.getProfessionalName());
@@ -46,7 +46,7 @@ public class ProfessionalContractServiceImpl implements ProfessionalContractServ
     @Transactional(readOnly = true)
     public ProfessionalServiceContract getById(String contractId) {
         return contractRepository.findById(contractId)
-                .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
+                .orElseThrow(() -> new DiagDeskException(ErrorCode.RESOURCE_NOT_FOUND, "Contract not found: " + contractId));
     }
 
     @Override
