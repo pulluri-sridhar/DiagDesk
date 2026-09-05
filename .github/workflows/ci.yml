@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Backend (Java / Maven) ────────────────────────────────────────────────────
+  backend:
+    name: Backend — Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Build and test all modules
+        working-directory: backend
+        run: mvn verify -B -T 1C
+        # -T 1C = one thread per CPU core; Testcontainers needs Docker (available on ubuntu-latest)
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: backend/**/target/surefire-reports/
+          retention-days: 7
+
+  # ── Device Gateway (Go) ───────────────────────────────────────────────────────
+  device-gateway:
+    name: Device Gateway — Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/device-gateway/go.mod
+          cache: true
+          cache-dependency-path: backend/device-gateway/go.sum
+
+      - name: Build
+        working-directory: backend/device-gateway
+        run: go build ./...
+
+      - name: Test
+        working-directory: backend/device-gateway
+        run: go test ./... -race -timeout 60s
+
+  # ── Frontend (Node / Vite) ────────────────────────────────────────────────────
+  frontend:
+    name: Frontend — Build & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 3
+
+  # ── E2E Integration Tests ─────────────────────────────────────────────────────
+  # Exercises the complete patient → order → result → report flow across 5 services.
+  # Runs after backend unit/integration tests pass (needs: backend).
+  # Services start as JARs (no Docker image build) against a Testcontainers-style
+  # infra-only compose stack (postgres, redis, kafka).
+  e2e:
+    name: E2E — Patient→Order→Result→Report flow
+    runs-on: ubuntu-latest
+    needs: [backend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Build service JARs (skip tests — already tested in backend job)
+        working-directory: backend
+        run: mvn package -DskipTests -B -q -T 1C
+
+      - name: Start E2E infrastructure (Postgres, Redis, Kafka)
+        run: |
+          docker compose -f infra/docker-compose.e2e.yml up -d
+          echo "Waiting for Postgres..."
+          timeout 60 bash -c 'until docker compose -f infra/docker-compose.e2e.yml exec -T postgres pg_isready -U diagdesk -d diagdesk; do sleep 2; done'
+          echo "Waiting for Kafka..."
+          timeout 90 bash -c 'until docker compose -f infra/docker-compose.e2e.yml exec -T kafka kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null; do sleep 3; done'
+
+      - name: Start services and run E2E tests
+        run: bash e2e/run-e2e.sh
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: |
+          for svc in patient-service catalog-service order-service result-service reporting-service; do
+            echo "=== ${svc} logs ===" && tail -50 /tmp/diagdesk-${svc}.log 2>/dev/null || true
+          done
+
+      - name: Tear down infrastructure
+        if: always()
+        run: docker compose -f infra/docker-compose.e2e.yml down -v

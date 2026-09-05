@@ -1,0 +1,129 @@
+{{- if .Values.ingress.enabled }}
+# ── HTTPS Ingress (or HTTP-only when TLS is disabled) ─────────────────────────
+# Traefik routes external traffic to branch services.
+# Add to /etc/hosts on each branch workstation:
+#   <k3s-node-ip>  {{ .Values.ingress.host }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: diagdesk-branch-ingress
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.ingress.tls.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.tls.issuer | quote }}
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    {{- else }}
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          # ── Patient registration & lookup ─────────────────────────────────
+          - path: /v1/patients
+            pathType: Prefix
+            backend:
+              service:
+                name: patient-service
+                port: { number: 8081 }
+
+          # ── Test catalog ──────────────────────────────────────────────────
+          - path: /v1/tests
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port: { number: 8082 }
+
+          - path: /v1/panels
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port: { number: 8082 }
+
+          # ── Orders & samples ──────────────────────────────────────────────
+          - path: /v1/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port: { number: 8083 }
+
+          # ── Device gateway (analyzer connections) ─────────────────────────
+          - path: /v1/device-connections
+            pathType: Prefix
+            backend:
+              service:
+                name: device-gateway
+                port: { number: 8084 }
+
+          - path: /v1/worklist-download
+            pathType: Prefix
+            backend:
+              service:
+                name: device-gateway
+                port: { number: 8084 }
+
+          # ── Results ───────────────────────────────────────────────────────
+          - path: /v1/results
+            pathType: Prefix
+            backend:
+              service:
+                name: result-service
+                port: { number: 8085 }
+
+          # ── Reports ───────────────────────────────────────────────────────
+          - path: /v1/reports
+            pathType: Prefix
+            backend:
+              service:
+                name: reporting-service
+                port: { number: 8086 }
+
+          # ── Notifications ─────────────────────────────────────────────────
+          - path: /v1/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port: { number: 8088 }
+---
+{{- if .Values.ingress.tls.enabled }}
+# ── HTTP → HTTPS redirect ingress ────────────────────────────────────────────
+# Catches plain HTTP and redirects to HTTPS via the redirect-https Middleware.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: diagdesk-branch-ingress-http-redirect
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: "{{ .Values.namespace }}-redirect-https@kubernetescrd"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: patient-service
+                port: { number: 8081 }
+{{- end }}
+{{- end }}

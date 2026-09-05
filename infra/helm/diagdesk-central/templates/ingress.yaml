@@ -1,0 +1,113 @@
+{{- if .Values.ingress.enabled }}
+# Main ingress — routes by path prefix to each cloud service.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: diagdesk-central
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk-central.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.ingress.tls.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.tls.issuer | quote }}
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    {{- else }}
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /v1/analytics
+            pathType: Prefix
+            backend:
+              service:
+                name: mis-analytics-service
+                port:
+                  number: 8087
+          - path: /v1/audit
+            pathType: Prefix
+            backend:
+              service:
+                name: audit-consent-service
+                port:
+                  number: 8089
+          - path: /v1/consent
+            pathType: Prefix
+            backend:
+              service:
+                name: audit-consent-service
+                port:
+                  number: 8089
+          - path: /v1/dsr
+            pathType: Prefix
+            backend:
+              service:
+                name: audit-consent-service
+                port:
+                  number: 8089
+          - path: /v1/breach
+            pathType: Prefix
+            backend:
+              service:
+                name: audit-consent-service
+                port:
+                  number: 8089
+          - path: /v1/b2b
+            pathType: Prefix
+            backend:
+              service:
+                name: b2b-billing-service
+                port:
+                  number: 8090
+          - path: /v1/partners
+            pathType: Prefix
+            backend:
+              service:
+                name: b2b-billing-service
+                port:
+                  number: 8090
+          - path: /v1/contracts
+            pathType: Prefix
+            backend:
+              service:
+                name: b2b-billing-service
+                port:
+                  number: 8090
+{{- if .Values.ingress.tls.enabled }}
+---
+# HTTP→HTTPS redirect ingress.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: diagdesk-central-http-redirect
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk-central.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Values.namespace }}-redirect-https@kubernetescrd
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mis-analytics-service
+                port:
+                  number: 8087
+{{- end }}
+{{- end }}

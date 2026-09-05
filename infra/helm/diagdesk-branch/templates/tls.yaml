@@ -1,0 +1,70 @@
+{{- if .Values.ingress.tls.enabled }}
+# ── HTTP → HTTPS redirect middleware ─────────────────────────────────────────
+# Applied to the HTTP entrypoint ingress so all traffic is forced to HTTPS.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+# ── Self-signed ClusterIssuer ─────────────────────────────────────────────────
+# Works offline with no external dependencies.
+# Used when ingress.tls.issuer = "selfsigned".
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+{{- if eq .Values.ingress.tls.issuer "letsencrypt-prod" }}
+---
+# ── Let's Encrypt production ClusterIssuer ────────────────────────────────────
+# Requires: valid public DNS name + port 80 reachable from internet.
+# Not suitable for diagdesk.local or IP-only deployments.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: {{ required "ingress.tls.email is required for letsencrypt-prod" .Values.ingress.tls.email | quote }}
+    privateKeySecretRef:
+      name: letsencrypt-prod-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: traefik
+{{- end }}
+{{- if eq .Values.ingress.tls.issuer "letsencrypt-staging" }}
+---
+# ── Let's Encrypt staging ClusterIssuer ──────────────────────────────────────
+# Same as prod but issues untrusted certs — use to validate config before going live.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: {{ required "ingress.tls.email is required for letsencrypt-staging" .Values.ingress.tls.email | quote }}
+    privateKeySecretRef:
+      name: letsencrypt-staging-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: traefik
+{{- end }}
+{{- end }}

@@ -1,0 +1,52 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Branch-specific overrides — apply on top of values.yaml
+# Usage:
+#   helm upgrade --install diagdesk-branch ./diagdesk-branch \
+#     -f values.yaml -f values-branch.yaml \
+#     --set image.tag=<sha> \
+#     --set postgresql.auth.password=<secret>
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Lower resource footprint for branch hardware (typically 4–8 vCPU, 8–16 GB RAM)
+defaultResources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+# Patient and order services handle the most concurrent users at a branch
+services:
+  patient-service:
+    resources:
+      requests: { cpu: 100m, memory: 192Mi }
+      limits:   { cpu: 500m, memory: 384Mi }
+
+  order-service:
+    resources:
+      requests: { cpu: 100m, memory: 192Mi }
+      limits:   { cpu: 500m, memory: 384Mi }
+
+  result-service:
+    resources:
+      requests: { cpu: 100m, memory: 192Mi }
+      limits:   { cpu: 500m, memory: 384Mi }
+
+# HPA enabled on branches with sufficient hardware
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 75
+
+# Smaller storage for branch
+postgresql:
+  primary:
+    persistence:
+      size: 10Gi
+
+kafka:
+  controller:
+    persistence:
+      size: 4Gi

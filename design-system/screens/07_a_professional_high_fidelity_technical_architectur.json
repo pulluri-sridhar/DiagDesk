@@ -1,0 +1,9 @@
+{
+  "id": "3bb0ba30272545ca896a929b2758b9ea",
+  "name": "projects/1915395050065221471/screens/3bb0ba30272545ca896a929b2758b9ea",
+  "title": "A professional, high-fidelity technical architecture diagram for 'DiagDesk'. \n\nThe diagram should include the following components:\n1. Client Layer: Web Browser (React.js), Mobile App.\n2. API Gateway: Handling authentication, rate limiting, and request routing.\n3. Service Layer: \n   - Diagnostic Eng",
+  "width": "1376",
+  "height": "768",
+  "screenshotUrl": "https://lh3.googleusercontent.com/aida/AP1WRLtj7KDc-SN5zwddQkHJabo6pw8qITxLwBMk5LuQ5JEaZU-vAgTKvOdx3qWOh_c2HGlmrcnTBi0PzsvBl_9uubpDbSkmse14XJZ97d0Gh_BzW14d82avSfpD6MkFWrKt5Yvqj9jfer5yH9f04fkXVyXB6zLZtSIv1JctNJBMhP8E7FoCjlo7FL26EF6AYzfOx9NcRTzPzw-8ydcLXIO2cuqBiAE8xx4kXzLdhyvuPqLcdRvnLES5OcveGA",
+  "htmlCode": {}
+}
