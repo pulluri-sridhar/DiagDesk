@@ -1,7 +1,7 @@
 # Render Blueprint — DiagDesk backend (3 core services)
-# Deploy: https://dashboard.render.com/blueprints → New Blueprint → connect this repo
+# Import at: https://dashboard.render.com/blueprints → New Blueprint
 #
-# Before deploying, set these env vars manually in each service's dashboard:
+# Set these env vars in each service's Render dashboard after import:
 #   SPRING_DATASOURCE_URL      → jdbc:postgresql://<neon-host>/neondb?currentSchema=<schema>&sslmode=require
 #   SPRING_DATASOURCE_USERNAME → <neon-user>
 #   SPRING_DATASOURCE_PASSWORD → <neon-password>
@@ -11,14 +11,12 @@
 
 services:
 
-  # ── patient-service ───────────────────────────────────────────────────────────
   - name: diagdesk-patient
     type: web
-    runtime: docker
-    dockerfilePath: backend/Dockerfile
+    env: docker
+    dockerfilePath: backend/Dockerfile.patient
     dockerContext: backend
-    buildArgs:
-      MODULE: patient-service
+    healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
@@ -36,16 +34,13 @@ services:
         sync: false
       - key: SPRING_DATA_REDIS_PASSWORD
         sync: false
-    healthCheckPath: /actuator/health
 
-  # ── catalog-service ───────────────────────────────────────────────────────────
   - name: diagdesk-catalog
     type: web
-    runtime: docker
-    dockerfilePath: backend/Dockerfile
+    env: docker
+    dockerfilePath: backend/Dockerfile.catalog
     dockerContext: backend
-    buildArgs:
-      MODULE: catalog-service
+    healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
@@ -63,16 +58,13 @@ services:
         sync: false
       - key: SPRING_DATA_REDIS_PASSWORD
         sync: false
-    healthCheckPath: /actuator/health
 
-  # ── order-service ─────────────────────────────────────────────────────────────
   - name: diagdesk-order
     type: web
-    runtime: docker
-    dockerfilePath: backend/Dockerfile
+    env: docker
+    dockerfilePath: backend/Dockerfile.order
     dockerContext: backend
-    buildArgs:
-      MODULE: order-service
+    healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
@@ -90,4 +82,3 @@ services:
         sync: false
       - key: SPRING_DATA_REDIS_PASSWORD
         sync: false
-    healthCheckPath: /actuator/health
