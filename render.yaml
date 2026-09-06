@@ -1,0 +1,93 @@
+# Render Blueprint — DiagDesk backend (3 core services)
+# Deploy: https://dashboard.render.com/blueprints → New Blueprint → connect this repo
+#
+# Before deploying, set these env vars manually in each service's dashboard:
+#   SPRING_DATASOURCE_URL      → jdbc:postgresql://<neon-host>/neondb?currentSchema=<schema>&sslmode=require
+#   SPRING_DATASOURCE_USERNAME → <neon-user>
+#   SPRING_DATASOURCE_PASSWORD → <neon-password>
+#   SPRING_DATA_REDIS_HOST     → <upstash-redis-host>
+#   SPRING_DATA_REDIS_PORT     → <upstash-redis-port>
+#   SPRING_DATA_REDIS_PASSWORD → <upstash-redis-password>
+
+services:
+
+  # ── patient-service (port 8081) ───────────────────────────────────────────────
+  - name: diagdesk-patient
+    type: web
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    buildArgs:
+      MODULE: patient-service
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: SPRING_DATA_REDIS_PASSWORD
+        sync: false
+    healthCheckPath: /actuator/health
+
+  # ── catalog-service (port 8082) ───────────────────────────────────────────────
+  - name: diagdesk-catalog
+    type: web
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    buildArgs:
+      MODULE: catalog-service
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: SPRING_DATA_REDIS_PASSWORD
+        sync: false
+    healthCheckPath: /actuator/health
+
+  # ── order-service (port 8083) ─────────────────────────────────────────────────
+  - name: diagdesk-order
+    type: web
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    buildArgs:
+      MODULE: order-service
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: SPRING_DATA_REDIS_PASSWORD
+        sync: false
+    healthCheckPath: /actuator/health
