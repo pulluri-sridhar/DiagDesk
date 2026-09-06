@@ -286,7 +286,21 @@ export async function fetchPatientOrders(patientId: string): Promise<Order[]> {
     .order('ordered_at', { ascending: false });
 
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map(row => ({
+    id:             row.id,
+    patient_id:     patientId,
+    assigned_to:    null,
+    doctor_id:      null,
+    status:         row.status,
+    items:          (row.items ?? []) as OrderItem[],
+    subtotal:       row.total ?? 0,
+    discount:       0,
+    total:          row.total ?? 0,
+    payment_mode:   null,
+    payment_status: row.payment_status ?? 'pending',
+    notes:          null,
+    ordered_at:     row.ordered_at,
+  }));
 }
 
 export interface NewInventoryItem {
@@ -465,16 +479,16 @@ function getTestCatalog(): Promise<Map<string, Test>> {
   if (!_catalogPromise) {
     _catalogPromise = fetch('/v1/tests?size=200', { headers: { 'X-Tenant-Id': TENANT_ID } })
       .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then(body => new Map(
+      .then((body): Map<string, Test> => new Map(
         (body.data ?? []).map((t: any) => [t.testId, {
           id: t.testId, code: t.code, name: t.name,
           department: t.department ?? '', price: Number(t.price ?? 0),
           tat_hours: t.tatHours ?? 0, active: true,
         } as Test])
       ))
-      .catch(() => new Map(LOCAL_TESTS.map(t => [t.id, t])));
+      .catch((): Map<string, Test> => new Map(LOCAL_TESTS.map(t => [t.id, t])));
   }
-  return _catalogPromise;
+  return _catalogPromise!;
 }
 
 // Fallback when catalog-service is unreachable.
@@ -949,12 +963,12 @@ function mapOrderRows(rows: any[], testMap: Map<string, Test>): Order[] {
       payment_status:   'pending',
       notes:            r.clinicalNotes ?? null,
       ordered_at:       r.createdAt,
-      patient_name:     null,
-      patient_phone:    null,
-      patient_age:      null,
-      patient_sex:      null,
-      doctor_name:      null,
-      phlebotomist_name: null,
+      patient_name:     undefined,
+      patient_phone:    undefined,
+      patient_age:      undefined,
+      patient_sex:      undefined,
+      doctor_name:      undefined,
+      phlebotomist_name: undefined,
     } as Order;
   });
 }

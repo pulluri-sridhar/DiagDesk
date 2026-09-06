@@ -20,8 +20,10 @@ export interface QueuedMutation {
 
 // Custom error so callers can distinguish "queued offline" from real failures.
 export class OfflineError extends Error {
-  constructor(public label: string) {
+  label: string;
+  constructor(label: string) {
     super(`Saved offline — will sync when connected: ${label}`);
+    this.label = label;
     this.name = 'OfflineError';
   }
 }

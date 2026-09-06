@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   fetchOrders, fetchAllReports, fetchPatients,
-  signReport, signoffReport, rejectReport, uploadSignedReportHtml,
+  signReport, signoffReport, rejectReport,
   type Order, type Report, type Patient,
 } from '../lib/api';
 import { findTemplate, renderReportHTML } from '../lib/reportTemplates';
@@ -9,7 +9,6 @@ import { useAuth } from '../lib/auth';
 import Sidebar from '../components/Sidebar';
 
 const PURPLE   = '#7C3AED';
-const TEAL     = '#17A077';
 const LAB_INFO = {
   name:    'DiagDesk Diagnostics',
   address: '12, Health Hub, Koramangala 6th Block, Bangalore — 560095',
@@ -263,8 +262,6 @@ function ReviewPanel({
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function PathologistQueue() {
-  const { user } = useAuth();
-
   const [orders,   setOrders]   = useState<Order[]>([]);
   const [reports,  setReports]  = useState<Report[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);

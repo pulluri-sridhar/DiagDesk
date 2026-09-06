@@ -22,7 +22,6 @@ const PAYMENT_MODES: { value: string; label: string }[] = [
 ];
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
-function generateMpi() { return 'MPI-' + Date.now().toString().slice(-6); }
 
 // ── Doctor Search (Google-style) ──────────────────────────────────────────────
 

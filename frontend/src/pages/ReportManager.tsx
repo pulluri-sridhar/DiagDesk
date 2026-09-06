@@ -46,7 +46,7 @@ function statusChip(status: string) {
 // ── Result Entry Form ─────────────────────────────────────────────────────────
 
 function ResultEntryForm({
-  order, patient, template, existingResults, onSave,
+  order: _order, patient, template, existingResults, onSave,
 }: {
   order: Order; patient: Patient | undefined; template: ReportTemplate;
   existingResults: Record<string, string>; onSave: (results: Record<string, string>, submit: boolean) => Promise<void>;
@@ -311,7 +311,7 @@ function SignedReportActions({ report, order, patient }: { report: Report; order
       <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2">
         <span className="material-symbols-outlined text-base">verified_user</span>
         <span className="text-sm font-bold">Report signed by {(content.pathologistName as string) ?? 'Pathologist'}</span>
-        {content.signedAt && <span className="text-xs text-green-600 ml-auto">{new Date(content.signedAt as string).toLocaleString('en-IN')}</span>}
+        {!!content.signedAt && <span className="text-xs text-green-600 ml-auto">{new Date(content.signedAt as string).toLocaleString('en-IN')}</span>}
       </div>
       <div className="grid grid-cols-2 gap-2">
         <button onClick={openReport} className="flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-indigo-300 text-indigo-700 text-sm font-bold hover:bg-indigo-50">
