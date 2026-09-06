@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
   shutdown: graceful   # waits for in-flight requests on SIGTERM (Kubernetes rolling deploy)
   servlet:
     context-path: /
