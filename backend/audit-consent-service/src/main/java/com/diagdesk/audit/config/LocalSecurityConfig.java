@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@Profile("local")
+@Profile({"local", "render"})
 public class LocalSecurityConfig {
 
     private final LocalDevTenantFilter localDevTenantFilter;

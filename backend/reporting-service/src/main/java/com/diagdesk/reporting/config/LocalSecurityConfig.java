@@ -19,7 +19,7 @@ import java.util.Optional;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@Profile("local")
+@Profile({"local", "render"})
 public class LocalSecurityConfig {
 
     @Bean
