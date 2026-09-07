@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
-@Profile("!local")
+@Profile("!local & !render")
 public class SecurityConfig {
 
     @Bean
