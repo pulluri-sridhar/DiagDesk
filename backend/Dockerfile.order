@@ -17,8 +17,7 @@ RUN mvn dependency:go-offline -B -q
 
 FROM deps AS builder
 COPY . .
-RUN mvn -pl order-service -am clean package -DskipTests -B -q && \
-    mvn -pl order-service spring-boot:repackage -DskipTests -B -q
+RUN mvn -pl order-service -am clean package spring-boot:repackage -DskipTests -B -q
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
