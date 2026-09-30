@@ -125,7 +125,8 @@ export default function BarcodeLabelModal({ order, collectorName = 'Lab Staff', 
       const UART_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
       const UART_TX      = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-      let txChar: BluetoothRemoteGATTCharacteristic | null = null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let txChar: any = null;
       try {
         const svc = await server.getPrimaryService(UART_SERVICE);
         txChar = await svc.getCharacteristic(UART_TX);
