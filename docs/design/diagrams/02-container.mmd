@@ -1,0 +1,57 @@
+flowchart LR
+  classDef svc fill:#ffffff,stroke:#00685f,color:#0b1c30;
+  classDef plat fill:#d3efe9,stroke:#00685f,color:#0b1c30;
+  classDef data fill:#e5eeff,stroke:#4b41e1,color:#0b1c30;
+  classDef ext fill:#f1f5ff,stroke:#bcc9c6,color:#3d4947;
+  classDef edge fill:#fff3e0,stroke:#b45309,color:#0b1c30;
+
+  subgraph EDGE["Branch Edge Node (k3s)"]
+    capp["Counter PWA"]:::edge
+    edb[("Local Postgres")]:::data
+    eagent["Sync Agent (Go)"]:::edge
+    edev["Device Gateway (Go)"]:::edge
+  end
+
+  subgraph CLOUD["India Sovereign Cloud — Managed K8s"]
+    kong["API Gateway (Kong) + BFFs"]:::plat
+    subgraph CORE["Core services (MVP)"]
+      iam["Identity"]:::svc
+      ten["Tenant/Org"]:::svc
+      pat["Patient (MPI)"]:::svc
+      cat["Catalog/Rate-Card"]:::svc
+      ord["Order/Workflow"]:::svc
+      res["Result/Validation"]:::svc
+      rep["Reporting"]:::svc
+      bil["Billing"]:::svc
+    end
+    subgraph XCUT["Cross-cutting"]
+      noti["Notification"]:::svc
+      aud["Audit/Consent"]:::svc
+      sync["Sync Engine (Go)"]:::svc
+    end
+    bus{{"Kafka / Redpanda"}}:::plat
+    pg[("Managed PostgreSQL<br/>db-per-service + RLS")]:::data
+    obj[("Object storage (S3)")]:::data
+    redis[("Redis / Valkey")]:::data
+  end
+
+  analyzers[("Analyzers HL7/ASTM")]:::ext
+  abdm["ABDM / NHCX"]:::ext
+  msg["WhatsApp/SMS/Email"]:::ext
+  pay["Payments"]:::ext
+
+  capp --> edb
+  edev --> edb
+  analyzers <--> edev
+  eagent <--> sync
+  kong --> iam & ten & pat & cat & ord & res & rep & bil
+  ord --> bus
+  res --> bus
+  bil --> bus
+  bus --> rep & noti & aud & sync
+  iam & ten & pat & cat & ord & res & rep & bil --> pg
+  rep --> obj
+  kong --> redis
+  noti --> msg
+  bil --> pay
+  rep <--> abdm

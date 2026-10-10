@@ -1,0 +1,13 @@
+flowchart TB
+  classDef ok fill:#d3efe9,stroke:#00685f,color:#0b1c30;
+  classDef dec fill:#e5eeff,stroke:#4b41e1,color:#0b1c30;
+  classDef stop fill:#ffdad6,stroke:#ba1a1a,color:#0b1c30;
+  A["Order created"]:::ok --> B{"Payer type?"}:::dec
+  B -->|Walk-in / B2C| C["Patient invoice: cash/UPI/partial, GST"]:::ok
+  B -->|B2B institution| D["Apply B2B contract rate card"]:::ok
+  D --> E["Post to B2B account - the buyer pays"]:::ok
+  E --> F["Billing cycle + statement"]:::ok
+  F --> G["Receivable aged + overdue alerts"]:::ok
+  A -. referral source captured .-> H["Referral analytics: volume / revenue generated"]:::ok
+  H --> X{"Attach payout to referrer?"}:::dec
+  X -->|Blocked by guardrail| Y["DENIED - anti-kickback IMC 2002 6.4.1"]:::stop

@@ -1,0 +1,636 @@
+%% MediCircle — core ERD (~55 tables). Reconciled: integer paise, UUIDv7, RLS,
+%% transactional outbox, DPDP/ABDM/FHIR. NO commission or referral-payout tables.
+%% The only money-to-a-professional path is PROFESSIONAL_SERVICE_CONTRACTS
+%% (basis fixed or per_service) settled via SERVICE_ENGAGEMENTS.
+erDiagram
+
+  %% ---- Identity and access ----
+  USERS {
+    uuid id PK
+    text phone
+    text email
+    enum primary_role
+    enum status
+  }
+  ROLES {
+    uuid id PK
+    enum name
+  }
+  PERMISSIONS {
+    uuid id PK
+    text code
+  }
+  ROLE_PERMISSION {
+    uuid role_id FK
+    uuid permission_id FK
+  }
+  USER_PERMISSION {
+    uuid user_id FK
+    uuid permission_id FK
+    enum effect
+  }
+  USER_ROLES {
+    uuid user_id FK
+    enum role
+    uuid org_id
+  }
+  SESSIONS {
+    uuid id PK
+    uuid user_id FK
+    ts expires_at
+  }
+  KYC_DOCUMENTS {
+    uuid id PK
+    uuid owner_user_id FK
+    enum status
+  }
+  CREDENTIALS {
+    uuid id PK
+    uuid owner_user_id FK
+    text credential_type
+    enum status
+  }
+
+  %% ---- Organizations and profiles ----
+  DIAGNOSTIC_CENTERS {
+    uuid id PK
+    uuid owner_user_id FK
+    text name
+    bool nabl_accredited
+  }
+  PHARMACIES {
+    uuid id PK
+    uuid owner_user_id FK
+    text name
+  }
+  HOSPITALS {
+    uuid id PK
+    uuid owner_user_id FK
+    text name
+  }
+  BRANCHES {
+    uuid id PK
+    enum org_type
+    uuid org_id
+  }
+  ORG_STAFF {
+    uuid id PK
+    uuid user_id FK
+    uuid org_id
+  }
+  DOCTORS {
+    uuid id PK
+    uuid user_id FK
+    text registration_no
+  }
+  PATIENTS {
+    uuid id PK
+    uuid user_id FK
+    text mpi_no
+    enum gender
+  }
+  PATIENT_LINKS {
+    uuid id PK
+    uuid patient_id FK
+    uuid linked_patient_id FK
+  }
+  CARE_PROFESSIONALS {
+    uuid id PK
+    uuid user_id FK
+    enum type
+  }
+
+  %% ---- Consent and records ----
+  CONSENTS {
+    uuid id PK
+    uuid patient_id FK
+    enum scope
+    enum status
+  }
+  ABHA_LINKS {
+    uuid id PK
+    uuid patient_id FK
+    text abha_number
+  }
+  FHIR_RESOURCES {
+    uuid id PK
+    uuid patient_id FK
+    text resource_type
+    jsonb resource
+  }
+
+  %% ---- Catalog ----
+  TESTS {
+    uuid id PK
+    uuid diagnostic_center_id FK
+    text name
+    bigint price_paise
+  }
+  TEST_PARAMETERS {
+    uuid id PK
+    uuid test_id FK
+    text name
+  }
+  REFERENCE_RANGES {
+    uuid id PK
+    uuid test_id FK
+    enum sex
+  }
+  TEST_PANELS {
+    uuid id PK
+    uuid diagnostic_center_id FK
+    text name
+  }
+  HEALTH_PACKAGES {
+    uuid id PK
+    uuid diagnostic_center_id FK
+    bigint price_paise
+  }
+  RATE_CARDS {
+    uuid id PK
+    uuid diagnostic_center_id FK
+    text scheme
+  }
+  MEDICINE_COMPOSITIONS {
+    uuid id PK
+    text generic_name
+  }
+  MEDICINES {
+    uuid id PK
+    uuid composition_id FK
+    text brand_name
+    text schedule
+  }
+
+  %% ---- Orders and samples ----
+  TEST_ORDERS {
+    uuid id PK
+    uuid patient_id FK
+    uuid diagnostic_center_id FK
+    uuid doctor_id FK
+    bigint amount_paise
+  }
+  TEST_ORDER_ITEMS {
+    uuid id PK
+    uuid order_id FK
+    uuid test_id FK
+    bigint price_paise
+  }
+  SAMPLES {
+    uuid id PK
+    uuid order_id FK
+    text barcode
+  }
+  SAMPLE_EVENTS {
+    uuid id PK
+    uuid sample_id FK
+    text event
+  }
+  ACCESSIONS {
+    uuid id PK
+    uuid order_id FK
+    text accession_no
+  }
+  PATIENT_LAB_LINKS {
+    uuid id PK
+    uuid patient_id FK
+    uuid diagnostic_center_id FK
+  }
+
+  %% ---- Results and reports ----
+  RESULTS {
+    uuid id PK
+    uuid order_item_id FK
+    text source
+  }
+  RESULT_VALUES {
+    uuid id PK
+    uuid result_id FK
+    enum flag
+  }
+  VALIDATIONS {
+    uuid id PK
+    uuid result_id FK
+    text level
+  }
+  LAB_REPORTS {
+    uuid id PK
+    uuid order_id FK
+    uuid stationery_id FK
+    text state
+  }
+  REPORT_FILES {
+    uuid id PK
+    uuid report_id FK
+    uuid file_id
+  }
+  REPORT_STATIONERY {
+    uuid id PK
+    uuid diagnostic_center_id FK
+  }
+  REPORT_PRINT_LOG {
+    uuid id PK
+    uuid report_id FK
+  }
+  REPORT_HANDOVER {
+    uuid id PK
+    uuid report_id FK
+    text method
+  }
+
+  %% ---- AI ----
+  AI_ANALYSES {
+    uuid id PK
+    uuid report_id FK
+    enum status
+  }
+  AI_ANALYSIS_FINDINGS {
+    uuid id PK
+    uuid analysis_id FK
+    enum severity
+  }
+
+  %% ---- Consultations ----
+  CONSULTATIONS {
+    uuid id PK
+    uuid doctor_id FK
+    uuid patient_id FK
+  }
+  PRESCRIPTIONS {
+    uuid id PK
+    uuid consultation_id FK
+    uuid patient_id FK
+  }
+  PRESCRIPTION_ITEMS {
+    uuid id PK
+    uuid prescription_id FK
+    uuid medicine_id FK
+  }
+  VIDEO_SESSIONS {
+    uuid id PK
+    uuid consultation_id FK
+    enum status
+  }
+  RX_SIGNATURES {
+    uuid id PK
+    uuid prescription_id FK
+    bool abha_linked
+  }
+  RX_DISPENSE_REGISTRY {
+    uuid id PK
+    uuid prescription_id FK
+    text schedule_class
+  }
+
+  %% ---- Pharmacy and fulfilment ----
+  MEDICINE_ORDERS {
+    uuid id PK
+    uuid patient_id FK
+    uuid pharmacy_id FK
+    bigint grand_total_paise
+  }
+  MEDICINE_ORDER_ITEMS {
+    uuid id PK
+    uuid medicine_order_id FK
+    uuid medicine_id FK
+  }
+  DELIVERIES {
+    uuid id PK
+    uuid medicine_order_id FK
+    uuid agent_id FK
+    enum status
+  }
+  DELIVERY_AGENTS {
+    uuid id PK
+    uuid pharmacy_id FK
+  }
+
+  %% ---- Home care ----
+  HOME_CARE_SERVICES {
+    uuid id PK
+    text category
+    bigint base_price_paise
+  }
+  PROFESSIONAL_AVAILABILITY {
+    uuid id PK
+    uuid professional_id FK
+  }
+  CARE_PLANS {
+    uuid id PK
+    uuid patient_id FK
+  }
+  HOME_VISIT_BOOKINGS {
+    uuid id PK
+    uuid patient_id FK
+    uuid service_id FK
+    uuid professional_id FK
+    bigint amount_paise
+  }
+  HOME_VISITS {
+    uuid id PK
+    uuid booking_id FK
+    uuid professional_id FK
+  }
+
+  %% ---- Inventory ----
+  INVENTORY_ITEMS {
+    uuid id PK
+    enum org_type
+    enum kind
+  }
+  INVENTORY_BATCHES {
+    uuid id PK
+    uuid inventory_item_id FK
+    date expiry_date
+  }
+  TEST_KITS {
+    uuid id PK
+    uuid inventory_item_id FK
+    int tests_remaining
+  }
+  STOCK_LEDGER {
+    uuid id PK
+    uuid batch_id FK
+    int change_qty
+  }
+  VACCINES {
+    uuid id PK
+    text name
+  }
+
+  %% ---- Payments and billing ----
+  PAYMENTS {
+    uuid id PK
+    enum purpose
+    uuid ref_id
+    bigint amount_paise
+  }
+  REFUNDS {
+    uuid id PK
+    uuid payment_id FK
+    bigint amount_paise
+  }
+  PAYOUTS {
+    uuid id PK
+    text payee_type
+    bigint amount_paise
+  }
+  SETTLEMENTS {
+    uuid id PK
+    uuid payout_id FK
+    bigint net_paise
+  }
+  INVOICES {
+    uuid id PK
+    text invoice_no
+    bigint total_paise
+  }
+  INVOICE_ITEMS {
+    uuid id PK
+    uuid invoice_id FK
+    bigint line_total_paise
+  }
+  CREDIT_NOTES {
+    uuid id PK
+    uuid invoice_id FK
+    bigint amount_paise
+  }
+  SUBSCRIPTION_PLANS {
+    uuid id PK
+    bigint price_paise
+  }
+  SUBSCRIPTIONS {
+    uuid id PK
+    uuid plan_id FK
+    enum status
+  }
+  ENTITLEMENTS {
+    uuid id PK
+    uuid subscription_id FK
+    text feature_key
+  }
+
+  %% ---- Associations and contracts (compliant, no commission) ----
+  DOCTOR_LAB_ASSOCIATIONS {
+    uuid id PK
+    uuid doctor_id FK
+    uuid diagnostic_center_id FK
+    bool is_preferred
+  }
+  PROFESSIONAL_SERVICE_CONTRACTS {
+    uuid id PK
+    uuid diagnostic_center_id FK
+    enum basis
+    bigint rate_paise
+  }
+  SERVICE_ENGAGEMENTS {
+    uuid id PK
+    uuid contract_id FK
+    text service_ref
+    bigint amount_paise
+  }
+  B2B_AGREEMENTS {
+    uuid id PK
+    uuid diagnostic_center_id FK
+    bigint credit_limit_paise
+  }
+
+  %% ---- Engagement and insurance ----
+  CONTENT_ITEMS {
+    uuid id PK
+    enum type
+    enum status
+  }
+  CAMPAIGNS {
+    uuid id PK
+    uuid content_id FK
+  }
+  HEALTH_CAMPS {
+    uuid id PK
+    text title
+  }
+  INSURANCE_PROVIDERS {
+    uuid id PK
+    text name
+  }
+  INSURANCE_RECOMMENDATIONS {
+    uuid id PK
+    uuid patient_id FK
+    uuid provider_id FK
+  }
+  INSURANCE_LEADS {
+    uuid id PK
+    uuid patient_id FK
+    uuid consent_id FK
+  }
+
+  %% ---- Quality ----
+  QC_RUNS {
+    uuid id PK
+    uuid test_id FK
+  }
+  LJ_POINTS {
+    uuid id PK
+    uuid qc_run_id FK
+    numeric z_score
+  }
+  EQAS_RECORDS {
+    uuid id PK
+    uuid test_id FK
+  }
+
+  %% ---- Expenses ----
+  EXPENSE_CATEGORIES {
+    uuid id PK
+    text name
+  }
+  EXPENSES {
+    uuid id PK
+    uuid category_id FK
+    bigint amount_paise
+  }
+
+  %% ---- Platform ----
+  NOTIFICATION_TEMPLATES {
+    uuid id PK
+    text code
+  }
+  NOTIFICATIONS {
+    uuid id PK
+    uuid user_id FK
+    enum status
+  }
+  AUDIT_LOGS {
+    uuid id PK
+    text action
+    text hash
+  }
+  DISPUTES {
+    uuid id PK
+    text subject_type
+    enum status
+  }
+  OUTBOX_EVENT {
+    uuid id PK
+    text event_type
+    text status
+  }
+  IDEMPOTENCY_KEY {
+    text key PK
+    text result_ref
+  }
+
+  %% ---- Relationships ----
+  USERS ||--o{ USER_ROLES : has
+  USERS ||--o{ USER_PERMISSION : overrides
+  USERS ||--o{ SESSIONS : opens
+  USERS ||--o{ KYC_DOCUMENTS : submits
+  USERS ||--o{ CREDENTIALS : holds
+  ROLES ||--o{ ROLE_PERMISSION : grants
+  PERMISSIONS ||--o{ ROLE_PERMISSION : in
+  PERMISSIONS ||--o{ USER_PERMISSION : in
+  USERS ||--o| PATIENTS : is
+  USERS ||--o| DOCTORS : is
+  USERS ||--o| CARE_PROFESSIONALS : is
+  USERS ||--o{ ORG_STAFF : staffs
+
+  DIAGNOSTIC_CENTERS ||--o{ BRANCHES : has
+  PHARMACIES ||--o{ BRANCHES : has
+  HOSPITALS ||--o{ BRANCHES : has
+  DIAGNOSTIC_CENTERS ||--o{ ORG_STAFF : employs
+  DIAGNOSTIC_CENTERS ||--o{ TESTS : offers
+  DIAGNOSTIC_CENTERS ||--o{ HEALTH_PACKAGES : offers
+  DIAGNOSTIC_CENTERS ||--o{ RATE_CARDS : sets
+  DIAGNOSTIC_CENTERS ||--o{ PATIENT_LAB_LINKS : maps
+  DIAGNOSTIC_CENTERS ||--o{ DOCTOR_LAB_ASSOCIATIONS : links
+
+  PATIENTS ||--o{ PATIENT_LINKS : links
+  PATIENTS ||--o{ CONSENTS : grants
+  PATIENTS ||--o| ABHA_LINKS : has
+  PATIENTS ||--o{ FHIR_RESOURCES : has
+  PATIENTS ||--o{ PATIENT_LAB_LINKS : has
+  PATIENTS ||--o{ TEST_ORDERS : places
+  PATIENTS ||--o{ CONSULTATIONS : attends
+  PATIENTS ||--o{ MEDICINE_ORDERS : places
+  PATIENTS ||--o{ HOME_VISIT_BOOKINGS : books
+  PATIENTS ||--o{ CARE_PLANS : enrolls
+  PATIENTS ||--o{ INSURANCE_LEADS : generates
+
+  TESTS ||--o{ TEST_PARAMETERS : defines
+  TESTS ||--o{ REFERENCE_RANGES : has
+  TEST_PANELS ||--o{ TESTS : groups
+  HEALTH_PACKAGES ||--o{ TESTS : bundles
+  RATE_CARDS ||--o{ TESTS : prices
+  MEDICINE_COMPOSITIONS ||--o{ MEDICINES : composes
+
+  DOCTORS ||--o{ TEST_ORDERS : refers
+  TEST_ORDERS ||--o{ TEST_ORDER_ITEMS : has
+  TESTS ||--o{ TEST_ORDER_ITEMS : ordered
+  TEST_ORDERS ||--o{ SAMPLES : produces
+  SAMPLES ||--o{ SAMPLE_EVENTS : tracks
+  TEST_ORDERS ||--|| ACCESSIONS : gets
+
+  TEST_ORDER_ITEMS ||--o{ RESULTS : yields
+  RESULTS ||--o{ RESULT_VALUES : has
+  RESULTS ||--o{ VALIDATIONS : signed
+  TEST_ORDERS ||--o{ LAB_REPORTS : produces
+  REPORT_STATIONERY ||--o{ LAB_REPORTS : styles
+  LAB_REPORTS ||--o{ REPORT_FILES : renders
+  LAB_REPORTS ||--o{ REPORT_PRINT_LOG : logs
+  LAB_REPORTS ||--o{ REPORT_HANDOVER : handed
+  LAB_REPORTS ||--o{ AI_ANALYSES : analyzed
+  AI_ANALYSES ||--o{ AI_ANALYSIS_FINDINGS : finds
+
+  CONSULTATIONS ||--o{ PRESCRIPTIONS : issues
+  CONSULTATIONS ||--o| VIDEO_SESSIONS : hosts
+  PRESCRIPTIONS ||--o{ PRESCRIPTION_ITEMS : lists
+  MEDICINES ||--o{ PRESCRIPTION_ITEMS : named
+  PRESCRIPTIONS ||--o{ RX_SIGNATURES : signed
+  PRESCRIPTIONS ||--o{ RX_DISPENSE_REGISTRY : registers
+  DOCTORS ||--o{ CONSULTATIONS : conducts
+
+  PRESCRIPTIONS ||--o{ MEDICINE_ORDERS : fulfils
+  PHARMACIES ||--o{ MEDICINE_ORDERS : serves
+  MEDICINE_ORDERS ||--o{ MEDICINE_ORDER_ITEMS : has
+  MEDICINES ||--o{ MEDICINE_ORDER_ITEMS : dispensed
+  MEDICINE_ORDERS ||--o| DELIVERIES : ships
+  DELIVERY_AGENTS ||--o{ DELIVERIES : carries
+  PHARMACIES ||--o{ DELIVERY_AGENTS : employs
+
+  CARE_PROFESSIONALS ||--o{ PROFESSIONAL_AVAILABILITY : sets
+  CARE_PROFESSIONALS ||--o{ HOME_VISITS : performs
+  HOME_CARE_SERVICES ||--o{ HOME_VISIT_BOOKINGS : booked
+  CARE_PLANS ||--o{ HOME_VISIT_BOOKINGS : schedules
+  HOME_VISIT_BOOKINGS ||--|| HOME_VISITS : fulfilled
+
+  INVENTORY_ITEMS ||--o{ INVENTORY_BATCHES : stocks
+  INVENTORY_ITEMS ||--o| TEST_KITS : kits
+  INVENTORY_BATCHES ||--o{ STOCK_LEDGER : moves
+  VACCINES ||--o{ INVENTORY_ITEMS : stocked
+
+  PAYMENTS ||--o{ REFUNDS : refunds
+  PAYOUTS ||--o{ SETTLEMENTS : settles
+  INVOICES ||--o{ INVOICE_ITEMS : lists
+  INVOICES ||--o{ CREDIT_NOTES : adjusts
+  SUBSCRIPTION_PLANS ||--o{ SUBSCRIPTIONS : sold
+  SUBSCRIPTIONS ||--o{ ENTITLEMENTS : grants
+
+  DOCTORS ||--o{ DOCTOR_LAB_ASSOCIATIONS : associates
+  DIAGNOSTIC_CENTERS ||--o{ PROFESSIONAL_SERVICE_CONTRACTS : contracts
+  PROFESSIONAL_SERVICE_CONTRACTS ||--o{ SERVICE_ENGAGEMENTS : settles
+  DIAGNOSTIC_CENTERS ||--o{ B2B_AGREEMENTS : bills
+  B2B_AGREEMENTS ||--o{ TEST_ORDERS : covers
+
+  CONTENT_ITEMS ||--o{ CAMPAIGNS : drives
+  INSURANCE_PROVIDERS ||--o{ INSURANCE_RECOMMENDATIONS : recommended
+  INSURANCE_RECOMMENDATIONS ||--o{ INSURANCE_LEADS : converts
+  CONSENTS ||--o{ INSURANCE_LEADS : gates
+
+  QC_RUNS ||--o{ LJ_POINTS : plots
+  TESTS ||--o{ QC_RUNS : controls
+  TESTS ||--o{ EQAS_RECORDS : surveys
+  EXPENSE_CATEGORIES ||--o{ EXPENSES : groups
+
+  NOTIFICATION_TEMPLATES ||--o{ NOTIFICATIONS : renders
+  USERS ||--o{ NOTIFICATIONS : receives
+  USERS ||--o{ DISPUTES : raises

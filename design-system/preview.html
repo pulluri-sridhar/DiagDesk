@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>Design System — swatch & component preview</title>
+<link rel="stylesheet" href="dist/tokens.css">
+<style>
+  *{box-sizing:border-box} body{margin:0;font-family:var(--font-sans);background:#cfd8e6;padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .panel{background:hsl(var(--background));color:hsl(var(--foreground));border-radius:18px;padding:22px;border:1px solid hsl(var(--border))}
+  .lbl{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:hsl(var(--muted-foreground));margin-bottom:14px}
+  .nav{height:3.5rem;background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:12px;display:flex;align-items:center;gap:12px;padding:0 16px;margin-bottom:16px}
+  .dot{width:28px;height:28px;border-radius:8px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));display:flex;align-items:center;justify-content:center;font-weight:800}
+  .navitem{font-size:14px;color:hsl(var(--muted-foreground));padding:6px 10px;border-radius:8px}
+  .navitem.active{background:hsl(var(--accent));color:hsl(var(--primary));font-weight:700}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .btn{height:2.5rem;padding:0 16px;border-radius:var(--radius);font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center}
+  .btn.primary{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+  .btn.secondary{background:hsl(var(--secondary));color:hsl(var(--secondary-foreground))}
+  .btn.outline{background:transparent;color:hsl(var(--foreground));border-color:hsl(var(--border))}
+  .btn.ghost{background:transparent;color:hsl(var(--foreground))}
+  .btn.destructive{background:hsl(var(--destructive));color:hsl(var(--destructive-foreground))}
+  .card{background:hsl(var(--card));color:hsl(var(--card-foreground));border:1px solid hsl(var(--border));border-radius:16px;padding:18px;box-shadow:0 4px 14px rgba(11,28,48,.08)}
+  .badge{display:inline-flex;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;margin-right:6px}
+  .b-primary{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+  .b-success{background:hsl(var(--success));color:hsl(var(--success-foreground))}
+  .b-warning{background:hsl(var(--warning));color:hsl(var(--warning-foreground))}
+  .b-danger{background:hsl(var(--destructive));color:hsl(var(--destructive-foreground))}
+  .b-muted{background:hsl(var(--muted));color:hsl(var(--muted-foreground))}
+  .sw{display:flex;gap:6px;margin-top:12px}.sw i{width:34px;height:34px;border-radius:8px;display:block;border:1px solid rgba(0,0,0,.08)}
+  input.fld{height:2.5rem;width:100%;border-radius:var(--radius);border:1px solid hsl(var(--input));background:hsl(var(--background));color:hsl(var(--foreground));padding:0 12px;margin-top:12px}
+  h3{margin:.2em 0 .4em;font-size:16px}
+</style></head>
+<body>
+<div class="panel" data-brand="diagdesk"><div class="lbl">DiagDesk · Light</div><div id="p1"></div></div>
+<div class="panel dark" data-brand="diagdesk"><div class="lbl">DiagDesk · Dark</div><div id="p2"></div></div>
+<div class="panel" data-brand="medicircle"><div class="lbl">MediCircle · Light</div><div id="p3"></div></div>
+<div class="panel dark" data-brand="medicircle"><div class="lbl">MediCircle · Dark</div><div id="p4"></div></div>
+<script>
+  const tpl = `
+   <div class="nav"><span class="dot">M</span><span class="navitem active">Dashboard</span><span class="navitem">Patients</span><span class="navitem">Billing</span></div>
+   <div class="row"><button class="btn primary">Primary</button><button class="btn secondary">Secondary</button><button class="btn outline">Outline</button><button class="btn ghost">Ghost</button><button class="btn destructive">Delete</button></div>
+   <div class="card"><h3>Card title</h3><div style="font-size:13px;opacity:.8">Surface, border and text all from semantic tokens.</div>
+     <input class="fld" placeholder="Input field — focus ring uses --ring"/>
+     <div style="margin-top:12px"><span class="badge b-primary">Primary</span><span class="badge b-success">Success</span><span class="badge b-warning">Warning</span><span class="badge b-danger">Critical</span><span class="badge b-muted">Muted</span></div>
+     <div class="sw"><i style="background:hsl(var(--primary))"></i><i style="background:hsl(var(--secondary))"></i><i style="background:hsl(var(--accent))"></i><i style="background:hsl(var(--muted))"></i><i style="background:hsl(var(--border))"></i></div>
+   </div>`;
+  for (const id of ['p1','p2','p3','p4']) document.getElementById(id).innerHTML = tpl;
+</script>
+</body></html>

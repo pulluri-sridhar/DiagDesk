@@ -1,0 +1,34 @@
+{
+  "$description": "Component tokens — per-component sizing/shape. Colors come from the semantic layer (variants below name the semantic role they use). UI primitives (shadcn/ui + 21st.dev) consume these.",
+  "button": {
+    "radius": {"$value": "{radius.md}"},
+    "fontWeight": {"$value": "{font.weight.semibold}"},
+    "size": {
+      "sm": { "height": {"$value": "2rem"},   "paddingX": {"$value": "{space.3}"}, "fontSize": {"$value": "{fontSize.sm}"} },
+      "md": { "height": {"$value": "2.5rem"}, "paddingX": {"$value": "{space.4}"}, "fontSize": {"$value": "{fontSize.sm}"} },
+      "lg": { "height": {"$value": "3rem"},   "paddingX": {"$value": "{space.6}"}, "fontSize": {"$value": "{fontSize.md}"} },
+      "icon": { "size": {"$value": "2.5rem"} }
+    },
+    "variant": {
+      "primary":     {"bg": "primary",    "fg": "primary-foreground"},
+      "secondary":   {"bg": "secondary",  "fg": "secondary-foreground"},
+      "outline":     {"bg": "transparent","fg": "foreground", "border": "border"},
+      "ghost":       {"bg": "transparent","fg": "foreground"},
+      "destructive": {"bg": "danger",     "fg": "danger-foreground"},
+      "link":        {"bg": "transparent","fg": "primary"}
+    }
+  },
+  "input": {
+    "height": {"$value": "2.5rem"}, "radius": {"$value": "{radius.md}"}, "paddingX": {"$value": "{space.3}"},
+    "border": {"role": "input"}, "focusRing": {"role": "ring"}, "bg": {"role": "background"}, "fg": {"role": "foreground"}
+  },
+  "card": { "radius": {"$value": "{radius.lg}"}, "padding": {"$value": "{space.6}"}, "shadow": {"$value": "{shadow.md}"}, "bg": {"role": "card"}, "fg": {"role": "card-foreground"}, "border": {"role": "border"} },
+  "badge": { "radius": {"$value": "{radius.full}"}, "paddingX": {"$value": "{space.2}"}, "fontSize": {"$value": "{fontSize.xs}"}, "fontWeight": {"$value": "{font.weight.semibold}"} },
+  "nav": {
+    "topbar": { "height": {"$value": "3.5rem"}, "bg": {"role": "card"}, "border": {"role": "border"} },
+    "sidebar": { "width": {"$value": "16rem"}, "widthCollapsed": {"$value": "4rem"}, "bg": {"role": "card"}, "itemRadius": {"$value": "{radius.md}"}, "itemActiveBg": {"role": "accent"}, "itemActiveFg": {"role": "primary"} },
+    "item": { "height": {"$value": "2.5rem"}, "paddingX": {"$value": "{space.3}"}, "fontSize": {"$value": "{fontSize.sm}"} }
+  },
+  "dialog": { "radius": {"$value": "{radius.lg}"}, "padding": {"$value": "{space.6}"}, "shadow": {"$value": "{shadow.xl}"}, "overlay": {"$value": "rgba(11,28,48,0.45)"} },
+  "toast": { "radius": {"$value": "{radius.md}"}, "shadow": {"$value": "{shadow.lg}"} }
+}

@@ -1,0 +1,35 @@
+# Render deployment profile — disables Keycloak; reads all connections from env vars.
+spring:
+  datasource:
+    url:      ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      minimum-idle:       2
+      maximum-pool-size:  5
+
+  data:
+    redis:
+      host:     ${SPRING_DATA_REDIS_HOST}
+      port:     ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
+      ssl:
+        enabled: true
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+
+management:
+  tracing:
+    sampling:
+      probability: 0.0
+
+logging:
+  level:
+    com.diagdesk:                  INFO
+    org.hibernate.SQL:             WARN
+    org.springframework.security:  WARN

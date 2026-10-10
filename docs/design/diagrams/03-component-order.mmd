@@ -1,0 +1,23 @@
+flowchart TB
+  classDef adapter fill:#e5eeff,stroke:#4b41e1,color:#0b1c30;
+  classDef domain fill:#d3efe9,stroke:#00685f,color:#0b1c30;
+  classDef port fill:#ffffff,stroke:#6d7a77,color:#0b1c30;
+  subgraph ORD["Order & Workflow Service (hexagonal)"]
+    rest["REST/gRPC controllers"]:::adapter
+    consumer["Kafka consumers"]:::adapter
+    app["Application layer<br/>(use-cases, sagas)"]:::domain
+    dom["Domain model<br/>Order · OrderItem · Sample · Accession"]:::domain
+    repo["Repository port"]:::port
+    outbox["Outbox publisher"]:::port
+    pgad["Postgres adapter (RLS)"]:::adapter
+    kad["Kafka producer adapter"]:::adapter
+  end
+  rest --> app
+  consumer --> app
+  app --> dom
+  app --> repo
+  app --> outbox
+  repo --> pgad
+  outbox --> kad
+  pgad --> pg[("orders DB")]
+  kad --> bus{{"Kafka"}}

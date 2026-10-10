@@ -1,0 +1,17 @@
+{
+  "$description": "DiagDesk brand theme — 'Clinical Clarity' (teal-led). The lab-node brand. Supplies the brand.* hues that semantic.json aliases. Activate with [data-brand=\"diagdesk\"] (the default).",
+  "brand": {
+    "$type": "color",
+    "name": { "$type": "string", "$value": "DiagDesk · Clinical Clarity" },
+    "primary":             {"$value": "#00685f"},
+    "primary-dark":        {"$value": "#1aa597"},
+    "primary-foreground":  {"$value": "#ffffff"},
+    "secondary":           {"$value": "#4b41e1"},
+    "secondary-dark":      {"$value": "#8b85ff"},
+    "secondary-foreground":{"$value": "#ffffff"},
+    "accent":              {"$value": "#d3efe9"},
+    "accent-dark":         {"$value": "#14302c"},
+    "accent-foreground":   {"$value": "#00524b"},
+    "gradient":            {"$value": "linear-gradient(135deg,#00685f 0%,#4b41e1 100%)"}
+  }
+}

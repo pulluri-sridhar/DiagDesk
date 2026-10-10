@@ -1,0 +1,18 @@
+stateDiagram-v2
+  [*] --> Ordered
+  Ordered --> Collected: phlebotomy / walk-in
+  Collected --> Received: at processing hub (barcode scan)
+  Received --> InProcess: on analyzer / bench
+  InProcess --> ResultEntered: HL7 / manual
+  ResultEntered --> Validated: tech + pathologist sign-off
+  Validated --> Reported: PDF signed + delivered
+  Reported --> [*]
+  Collected --> Rejected: reason code (hemolysis, label, volume)
+  Received --> Rejected
+  InProcess --> Rejected
+  Rejected --> Recollect: re-collection task
+  Recollect --> Collected
+  note right of InProcess
+    TAT clock runs from Ordered;
+    breach alerts surface on MIS
+  end note

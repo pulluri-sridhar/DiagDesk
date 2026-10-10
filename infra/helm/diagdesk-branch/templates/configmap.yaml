@@ -1,0 +1,134 @@
+# Postgres init SQL configmap — used by bitnami/postgresql initdb.scriptsConfigMap
+# Runs once on first cluster boot to create all schemas.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diagdesk-postgres-init
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+data:
+  01_schemas.sql: |
+    -- Branch schemas (7 services deployed locally)
+    CREATE SCHEMA IF NOT EXISTS patient;
+    CREATE SCHEMA IF NOT EXISTS catalog;
+    CREATE SCHEMA IF NOT EXISTS orders;
+    CREATE SCHEMA IF NOT EXISTS results;
+    CREATE SCHEMA IF NOT EXISTS devices;
+    CREATE SCHEMA IF NOT EXISTS reporting;
+    CREATE SCHEMA IF NOT EXISTS notifications;
+
+    -- Grant to app user
+    DO $$
+    DECLARE
+      s TEXT;
+    BEGIN
+      FOREACH s IN ARRAY ARRAY['patient','catalog','orders','results','devices','reporting','notifications']
+      LOOP
+        EXECUTE format('GRANT ALL PRIVILEGES ON SCHEMA %I TO diagdesk', s);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL ON TABLES TO diagdesk', s);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL ON SEQUENCES TO diagdesk', s);
+      END LOOP;
+    END $$;
+
+  02_sync_outbox.sql: |
+    -- Offline-first sync outbox.
+    -- Rows are inserted here by triggers after each domain table change.
+    -- The sync-engine drains this table and pushes to central.
+    CREATE SCHEMA IF NOT EXISTS sync;
+    GRANT ALL PRIVILEGES ON SCHEMA sync TO diagdesk;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA sync GRANT ALL ON TABLES TO diagdesk;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA sync GRANT ALL ON SEQUENCES TO diagdesk;
+
+    CREATE TABLE IF NOT EXISTS sync.outbox (
+        id           BIGSERIAL    PRIMARY KEY,
+        schema_name  TEXT         NOT NULL,
+        table_name   TEXT         NOT NULL,
+        record_id    TEXT         NOT NULL,
+        operation    TEXT         NOT NULL CHECK (operation IN ('INSERT','UPDATE','DELETE')),
+        payload      JSONB        NOT NULL DEFAULT '{}',
+        vector_clock JSONB        NOT NULL DEFAULT '{}',
+        created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+        synced_at    TIMESTAMPTZ
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_outbox_unsynced
+        ON sync.outbox (id) WHERE synced_at IS NULL;
+
+    -- Generic trigger function — reused by all domain tables.
+    -- Trigger attachments are created by the sync-engine at startup (post-Flyway).
+    CREATE OR REPLACE FUNCTION sync.record_change()
+    RETURNS TRIGGER LANGUAGE plpgsql AS $$
+    BEGIN
+        INSERT INTO sync.outbox (schema_name, table_name, record_id, operation, payload)
+        VALUES (
+            TG_TABLE_SCHEMA,
+            TG_TABLE_NAME,
+            CASE WHEN TG_OP = 'DELETE' THEN OLD.id::TEXT ELSE NEW.id::TEXT END,
+            TG_OP,
+            CASE WHEN TG_OP = 'DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END
+        );
+        RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+    END;
+    $$;
+---
+# Spring application-branch.yml — mounted into every Java pod.
+# Activates when SPRING_PROFILES_ACTIVE=branch.
+# Configures JWT validation using the Keycloak RSA public key (offline capable).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diagdesk-spring-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+data:
+  application-branch.yml: |
+    spring:
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              # Validate JWTs using Keycloak's RSA public key directly.
+              # No network call to Keycloak needed — works offline indefinitely.
+              # Rotate this key only when Keycloak rotates its signing key (rare).
+              public-key-location: "file:/etc/keycloak/keycloak.pub"
+      kafka:
+        # ── Kafka resilience for branch (power cuts, pod restarts) ──────────
+        # After a power cut, k3s restarts all pods. Kafka (single-node KRaft)
+        # needs ~30 s to replay its WAL and elect itself leader. During that
+        # window, service producers must NOT crash — they should keep retrying.
+        producer:
+          retries: 20
+          properties:
+            retry.backoff.ms: 2000
+            # 5-minute delivery timeout: producer keeps retrying while Kafka is restarting.
+            delivery.timeout.ms: 300000
+            # Don't block app startup waiting for Kafka metadata — fail fast on individual sends.
+            max.block.ms: 10000
+            reconnect.backoff.ms: 500
+            reconnect.backoff.max.ms: 30000
+        consumer:
+          properties:
+            # Longer session timeout so consumers are not expelled from groups
+            # during the ~30 s Kafka restart window after a power cut.
+            session.timeout.ms: 60000
+            heartbeat.interval.ms: 20000
+            reconnect.backoff.ms: 500
+            reconnect.backoff.max.ms: 30000
+        listener:
+          # Don't abort startup if a topic doesn't exist yet (Kafka still initialising).
+          missing-topics-fatal: false
+---
+# Keycloak RSA public key — used for offline JWT validation on branch.
+# Obtain from: Keycloak Admin → Realm Settings → Keys → RS256 → Public key.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diagdesk-keycloak-pub
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "diagdesk.labels" . | nindent 4 }}
+data:
+  keycloak.pub: |
+    {{ .Values.keycloakPublicKey | nindent 4 }}

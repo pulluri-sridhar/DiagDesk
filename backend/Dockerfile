@@ -1,0 +1,46 @@
+# ── Stage 1: Dependency cache ─────────────────────────────────────────────────
+# Copy all pom.xml files before source so this layer is cached until poms change
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS deps
+WORKDIR /workspace
+
+COPY pom.xml .
+COPY common-lib/pom.xml            common-lib/
+COPY patient-service/pom.xml       patient-service/
+COPY catalog-service/pom.xml       catalog-service/
+COPY order-service/pom.xml         order-service/
+COPY result-service/pom.xml        result-service/
+COPY reporting-service/pom.xml     reporting-service/
+COPY mis-analytics-service/pom.xml mis-analytics-service/
+COPY notification-service/pom.xml  notification-service/
+COPY audit-consent-service/pom.xml audit-consent-service/
+COPY b2b-billing-service/pom.xml   b2b-billing-service/
+
+RUN mvn dependency:go-offline -B -q
+
+# ── Stage 2: Build ────────────────────────────────────────────────────────────
+FROM deps AS builder
+
+COPY . .
+
+ARG MODULE
+RUN mvn -pl "${MODULE}" -am clean package -DskipTests -B -q
+
+# ── Stage 3: Runtime ──────────────────────────────────────────────────────────
+FROM eclipse-temurin:21-jre-alpine AS runtime
+WORKDIR /app
+
+ARG MODULE
+ARG PORT=8080
+
+RUN addgroup -S diagdesk && adduser -S diagdesk -G diagdesk
+
+COPY --from=builder /workspace/${MODULE}/target/*.jar app.jar
+
+EXPOSE ${PORT}
+USER diagdesk
+
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", "app.jar"]

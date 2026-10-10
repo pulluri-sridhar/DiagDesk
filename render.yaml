@@ -1,0 +1,84 @@
+# Render Blueprint — DiagDesk backend (3 core services)
+# Import at: https://dashboard.render.com/blueprints → New Blueprint
+#
+# Set these env vars in each service's Render dashboard after import:
+#   SPRING_DATASOURCE_URL      → jdbc:postgresql://<neon-host>/neondb?currentSchema=<schema>&sslmode=require
+#   SPRING_DATASOURCE_USERNAME → <neon-user>
+#   SPRING_DATASOURCE_PASSWORD → <neon-password>
+#   SPRING_DATA_REDIS_HOST     → <upstash-redis-host>
+#   SPRING_DATA_REDIS_PORT     → <upstash-redis-port>
+#   SPRING_DATA_REDIS_PASSWORD → <upstash-redis-password>
+
+services:
+
+  - name: diagdesk-patient
+    type: web
+    env: docker
+    dockerfilePath: backend/Dockerfile.patient
+    dockerContext: backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: SPRING_DATA_REDIS_PASSWORD
+        sync: false
+
+  - name: diagdesk-catalog
+    type: web
+    env: docker
+    dockerfilePath: backend/Dockerfile.catalog
+    dockerContext: backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: SPRING_DATA_REDIS_PASSWORD
+        sync: false
+
+  - name: diagdesk-order
+    type: web
+    env: docker
+    dockerfilePath: backend/Dockerfile.order
+    dockerContext: backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: SPRING_DATA_REDIS_PASSWORD
+        sync: false

@@ -17,8 +17,15 @@ regular labs," fully internet-dependent, and laden with add-on fees; the cheap l
 depth, compliance, and multi-branch capability.
 
 **DiagDesk wins the Tier 2/3 standalone-and-small-chain lab with an all-in-one, offline-resilient,
-transparently-priced, ABDM/NABL-ready portal that natively handles the doctor-referral economy** — the
-financial center of gravity of Indian diagnostics.
+transparently-priced, ABDM/NABL-ready portal** that turns the lab's institutional relationships into a
+**legal, auditable advantage** — compliant **B2B revenue management** plus **referral-source analytics and
+doctor engagement** — **not** the illegal commission/kickback tooling rivals quietly enable.
+
+> **Compliance note (binds the product):** paying referring doctors a commission/cut is **illegal** in India
+> (IMC 2002 Clause 6.4.1; reinforced by *Apex Laboratories*, SC 2022 — it binds the **lab as payer**). DiagDesk
+> therefore **does not build a referral-commission engine.** See [compliance-anti-kickback.md](compliance-anti-kickback.md).
+> The defensible India edge is **compliant B2B billing + referral analytics + doctor engagement**, where money
+> flows only to the institution that *buys* the test — never to a person for *sending* a patient.
 
 ---
 
@@ -51,9 +58,11 @@ Mapped to the **ranked incumbent complaints** found in research:
 | 4. **Stability & inconsistent support** | Reliability SLAs + India-time support as a core promise. |
 | 5. **Fragmentation** — separate path / radiology / booking tools | **One portal**: LIS + billing + patient app + (V2) RIS/PACS. |
 
-**The India-specific edge:** native **referral-doctor + B2B** handling. Note that D2C player Healthians was
-publicly criticized for *ignoring doctors* — validating a referral-doctor-centric strategy that the
-aggregators structurally neglect.
+**The India-specific edge (done compliantly):** **B2B & partner billing + referral analytics + doctor
+engagement** — institutional rate contracts, reference-lab outsourcing, referral-*source* analytics, and a
+doctor portal (reports/communications), with **no commission payouts**. Note that D2C player Healthians was
+publicly criticized for *ignoring doctors*; DiagDesk engages doctors the **legal** way (service, reports,
+relationship), which aggregators structurally neglect.
 
 ---
 
@@ -73,8 +82,10 @@ aggregators structurally neglect.
    result validation, analyzer interfacing (HL7/ASTM), configurable reports + digital signatures.
 2. **Billing & Finance:** invoicing (cash/partial/dues), discounts-with-approval, GST mixed exempt/taxable
    lines, rate-card manager, day-end cash reconciliation, financial MIS.
-3. **Referral & B2B Engine:** doctor commission tracking & statements (per-test % or flat, TDS-aware),
-   B2B credit ledger + receivables aging, per-partner rate cards, outsourcing/reference-lab workflows.
+3. **B2B & Partner Management (compliant — no commissions):** institutional rate contracts (the buyer pays),
+   B2B credit ledger + receivables aging, reference-lab outsourcing with transparent per-test pricing,
+   **referral-source analytics (no payout)**, doctor/B2B engagement portal, and a guardrail that blocks any
+   payout attached to a referral source. (See [compliance-anti-kickback.md](compliance-anti-kickback.md).)
 4. **Patient Experience:** online booking, home-collection logistics (phlebotomist assignment + routing),
    white-labeled WhatsApp/SMS/email + patient portal/app, online payments, recall/follow-up reminders.
 5. **Quality & Compliance:** NABL QC (L-J charts, Westgard, IQC/EQAS), audit trails, controlled docs,
@@ -91,7 +102,7 @@ aggregators structurally neglect.
 
 | Pain (see market-research.md) | Module that addresses it |
 |---|---|
-| Doctor commissions leak revenue; B2B 90+ day overdue receivables; per-branch rate lists manual | Referral & B2B Engine; Billing rate-card manager |
+| B2B 90+ day overdue receivables; per-branch/partner rate lists manual; doctor relationships under-served | B2B & Partner Management (institutional billing, receivables, referral analytics, doctor portal — no commissions); Billing rate-card manager |
 | ~75% of TAT & most errors are pre/post-analytical; 5.15% sample rejection; manual transcription | Lab Core (barcode tracking, analyzer interfacing, rejection tracking, TAT dashboards) |
 | Cash-heavy manual front office → revenue leakage | Billing (partial payments, dues, cash reconciliation, discount approvals) |
 | Patients expect WhatsApp reports; call-volume overload; neglected recalls; D2C squeeze | Patient Experience (multi-channel delivery, booking, home collection, reminders) |
@@ -105,6 +116,6 @@ aggregators structurally neglect.
 | Decision | Default | Alternatives |
 |---|---|---|
 | Beachhead segment | Tier 2/3 standalone & small chains | Mid chains; full Path+Radiology centers |
-| MVP wedge | Core LIS + billing + delivery | Lead with Referral/B2B; lead with Patient/D2C |
+| MVP wedge | Core LIS + billing + delivery | Lead with B2B/Partner mgmt; lead with Patient/D2C |
 | Differentiators | Offline-first + transparent pricing + ABDM/NABL | Add Unified Path+Radiology into MVP |
 | Path + Radiology timing | Pathology first; radiology in V2 | Unified from MVP |

@@ -1,0 +1,73 @@
+server:
+  port: 8087
+  shutdown: graceful
+
+spring:
+  application:
+    name: mis-analytics-service
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:analytics_db}?currentSchema=analytics&prepareThreshold=0
+    username: ${DB_USER:diagdesk}
+    password: ${DB_PASSWORD:diagdesk}
+    hikari:
+      pool-name: analytics-hikari
+      minimum-idle: 5
+      maximum-pool-size: 20
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: analytics
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: analytics
+    locations: classpath:db/migration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/diagdesk}
+          jwk-set-uri: ${KEYCLOAK_JWK_URI:http://localhost:8080/realms/diagdesk/protocol/openid-connect/certs}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: analytics-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 5
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      service: mis-analytics-service
+      env: ${DEPLOY_ENV:local}
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_RATE:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  level:
+    com.diagdesk: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId},%X{spanId}] [%X{tenantId}] %-5level %logger{40} - %msg%n"

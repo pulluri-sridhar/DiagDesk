@@ -1,0 +1,216 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DiagDesk Branch — Default Helm values
+# Override per-branch via: helm install -f values-branch.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+
+namespace: diagdesk-branch
+
+# ── Image settings ────────────────────────────────────────────────────────────
+image:
+  # CI/CD pushes to ghcr.io/{org}/diagdesk/{service}:{tag}
+  # For air-gapped deployments mirror to a local registry and override here.
+  registry: ghcr.io/soumyachandran448/diagdesk
+  tag: dev          # override to a pinned SHA for production
+  pullPolicy: IfNotPresent
+  pullSecrets: []   # add name of imagePullSecret if GHCR auth needed on k3s
+
+# ── Shared environment (injected into every Java service container) ───────────
+commonEnv:
+  # 'branch' profile activates BranchSecurityConfig (JWT + static public key).
+  # Uses X-Tenant-Id header only in LocalDevTenantFilter ('local' profile).
+  SPRING_PROFILES_ACTIVE: "branch"
+  SPRING_CONFIG_ADDITIONAL_LOCATION: "file:/etc/diagdesk/config/"
+
+  # ── Database connection ───────────────────────────────────────────────────
+  # Default: bitnami postgresql subchart (postgresql.enabled=true, below).
+  # Supabase mode: set postgresql.enabled=false and override these 3 vars:
+  #   DB_HOST: aws-0-ap-south-1.pooler.supabase.com
+  #   DB_PORT: "6543"   (transaction-mode pooler)
+  #   DB_NAME: postgres (Supabase default DB; each service appends its own ?currentSchema=)
+  # DB_USER and DB_PASSWORD must be provided via sealed secret or --set.
+  DB_HOST: diagdesk-branch-postgresql       # bitnami postgresql service name
+  DB_PORT: "5432"
+  DB_NAME: diagdesk
+
+  KAFKA_BOOTSTRAP: "diagdesk-branch-kafka:9092"
+  REDIS_ADDR: "diagdesk-branch-redis-master:6379"
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""         # set to central OTLP collector URL if available
+
+# ── Keycloak RSA public key for offline JWT validation ────────────────────────
+# Export from Keycloak Admin → Realm Settings → Keys → RS256 → Public key.
+# Paste the PEM block here (or override via --set keycloakPublicKey=...).
+# This key is used by the 'branch' Spring profile to validate JWTs without
+# contacting central Keycloak — works fully offline.
+keycloakPublicKey: |
+  -----BEGIN PUBLIC KEY-----
+  REPLACE_WITH_KEYCLOAK_RS256_PUBLIC_KEY
+  -----END PUBLIC KEY-----
+
+# ── Per-service configuration ─────────────────────────────────────────────────
+# Each key becomes a Deployment + Service.  Fields:
+#   port         — container port (also used for liveness/readiness probes)
+#   replicas     — default 1; increase for high-traffic services
+#   healthPath   — defaults to /actuator/health; device-gateway uses /health
+#   resources    — merged with defaultResources if present
+#   env          — service-specific extra env vars
+services:
+  patient-service:
+    port: 8081
+    replicas: 1
+
+  catalog-service:
+    port: 8082
+    replicas: 1
+
+  order-service:
+    port: 8083
+    replicas: 1
+
+  device-gateway:
+    port: 8084
+    replicas: 1
+    healthPath: /health
+    env:
+      # device-gateway uses its own env keys (not Spring Boot)
+      DB_HOST: diagdesk-branch-postgresql
+      DB_PORT: "5432"
+      DB_NAME: diagdesk
+      KAFKA_BROKERS: "diagdesk-branch-kafka:9092"
+      REDIS_ADDR: "diagdesk-branch-redis-master:6379"
+      ORDER_SERVICE_BASE_URL: "http://order-service:8083"
+      SERVER_PORT: "8084"
+
+  result-service:
+    port: 8085
+    replicas: 1
+    env:
+      CATALOG_SERVICE_URL: "http://catalog-service:8082"
+      ORDER_SERVICE_URL: "http://order-service:8083"
+
+  reporting-service:
+    port: 8086
+    replicas: 1
+    env:
+      PATIENT_SERVICE_URL: "http://patient-service:8081"
+      CATALOG_SERVICE_URL: "http://catalog-service:8082"
+      RESULT_SERVICE_URL: "http://result-service:8085"
+      SUPABASE_URL: ""                   # set: https://<project>.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ""      # set via sealed-secret in production
+      SUPABASE_BUCKET: "lab-reports"
+      LAB_NAME: "DiagDesk Diagnostics"
+      LAB_ADDRESS: ""                    # set per branch: e.g. "123 Main St, City"
+      LAB_PHONE: ""                      # set per branch
+
+  notification-service:
+    port: 8088
+    replicas: 1
+    env:
+      PATIENT_SERVICE_URL: "http://patient-service:8081"
+      INTERNAL_SERVICE_TOKEN: ""       # Keycloak service-account JWT for inter-service calls
+      MSG91_AUTH_KEY: ""               # MSG91 dashboard → API Keys
+      MSG91_SENDER_ID: "DIAGDK"        # 6-char DLT-registered sender ID
+      MSG91_INTEGRATED_NUMBER: ""      # WhatsApp Business number e.g. 917000000001
+
+# ── Default resource requests/limits (per container) ─────────────────────────
+defaultResources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# ── Ingress (Traefik — default k3s ingress controller) ───────────────────────
+ingress:
+  enabled: true
+  className: traefik
+  host: diagdesk.local          # add to /etc/hosts on branch devices: <k3s-node-ip> diagdesk.local
+  tls:
+    enabled: false              # set true to enable HTTPS + HTTP→HTTPS redirect
+    # issuer: selfsigned        → self-signed cert, works offline (India air-gapped branches)
+    # issuer: letsencrypt-prod  → Let's Encrypt, requires public DNS + port 80 internet access
+    # issuer: letsencrypt-staging → same as prod but untrusted cert (for config validation)
+    issuer: selfsigned
+    email: ""                   # required only for letsencrypt-prod / letsencrypt-staging
+    secretName: diagdesk-tls-cert   # Kubernetes Secret where cert-manager stores the certificate
+
+# ── Sealed Secrets ───────────────────────────────────────────────────────────
+# When enabled, a SealedSecret named "diagdesk-app-secrets" is deployed.
+# All keys in it are injected as env vars into every service container.
+# Run ./seal-secrets.sh to generate sealed values for your cluster, then
+# supply them via values-production.yaml (do NOT put real values here).
+sealedSecrets:
+  enabled: false
+  dbPassword: ""
+  supabaseServiceRoleKey: ""
+  msg91AuthKey: ""
+  internalServiceToken: ""
+  keycloakAdminPassword: ""
+
+# ── HPA ───────────────────────────────────────────────────────────────────────
+hpa:
+  enabled: false                # enable on branches with >2 CPUs
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+# ── Bitnami PostgreSQL subchart overrides ─────────────────────────────────────
+postgresql:
+  enabled: true
+  auth:
+    database: diagdesk
+    username: diagdesk
+    password: diagdesk           # override via --set or sealed-secret in production
+    postgresPassword: diagdesk
+  primary:
+    initdb:
+      scriptsConfigMap: diagdesk-postgres-init
+    persistence:
+      size: 20Gi
+    resources:
+      requests: { cpu: 200m, memory: 256Mi }
+      limits:   { cpu: "1",  memory: 1Gi }
+
+# ── Bitnami Redis subchart overrides ─────────────────────────────────────────
+redis:
+  enabled: true
+  auth:
+    enabled: false               # local branch; enable + set password for prod
+  master:
+    persistence:
+      size: 2Gi
+    resources:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits:   { cpu: 200m, memory: 256Mi }
+
+# ── Bitnami Kafka subchart overrides (KRaft — no ZooKeeper) ──────────────────
+kafka:
+  enabled: true
+  controller:
+    replicaCount: 1              # single node KRaft for branch
+    persistence:
+      size: 8Gi
+    resources:
+      requests: { cpu: 200m, memory: 512Mi }
+      limits:   { cpu: "1",  memory: 1Gi }
+  listeners:
+    client:
+      protocol: PLAINTEXT
+  provisioning:
+    enabled: true
+    topics:
+      - name: result-validated
+        partitions: 3
+        replicationFactor: 1
+      - name: report-ready
+        partitions: 3
+        replicationFactor: 1
+      - name: notification-events
+        partitions: 3
+        replicationFactor: 1
+      - name: order-events
+        partitions: 3
+        replicationFactor: 1
+      - name: audit-events
+        partitions: 3
+        replicationFactor: 1

@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  participant App as Counter App
+  participant Local as Edge Postgres
+  participant Agent as Sync Agent (Go)
+  participant Cloud as Sync Engine
+  participant PG as Cloud Postgres
+  App->>Local: Write (register / bill / result) — always local-first
+  Local-->>Agent: Change log (CDC), ULID/UUIDv7 ids
+  Note over App,Agent: Internet outage — lab keeps operating
+  Agent->>Cloud: Push changes + pull cloud deltas (when online, resumable)
+  Cloud->>Cloud: Reconcile — append-only / per-field LWW
+  Cloud->>Cloud: Money records — domain reconciliation (no blind LWW)
+  Cloud->>PG: Apply authoritative state
+  Cloud-->>Agent: Deltas + conflict resolutions + revocations
+  Agent->>Local: Apply (idempotent)
