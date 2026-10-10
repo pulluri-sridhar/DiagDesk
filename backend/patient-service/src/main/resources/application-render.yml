@@ -1,7 +1,7 @@
 # Render deployment profile — disables Keycloak; reads all connections from env vars.
 spring:
   datasource:
-    url:      ${SPRING_DATASOURCE_URL}
+    url:      "jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?currentSchema=patient&sslmode=require"
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
