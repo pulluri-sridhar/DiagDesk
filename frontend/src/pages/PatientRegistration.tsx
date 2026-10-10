@@ -418,8 +418,8 @@ export default function PatientRegistration() {
                  : pPhone;
       if (!/^\+91[6-9][0-9]{9}$/.test(norm))
         return 'Phone must be a 10-digit Indian mobile number starting with 6–9 (e.g. 9876543210).';
+      if (!pDob) return 'Date of birth is required.';
       if (!pSex) return 'Gender is required.';
-      if (!pDob && !pAge.trim()) return 'Date of birth or age is required.';
     }
     return null;
   }
@@ -696,7 +696,7 @@ export default function PatientRegistration() {
                               className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#17A077]" />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Date of Birth</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Date of Birth <span className="text-red-400">*</span></label>
                             <input
                               type="date"
                               value={pDob}
@@ -721,7 +721,7 @@ export default function PatientRegistration() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Sex</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Sex <span className="text-red-400">*</span></label>
                             <div className="flex gap-2 mt-1">
                               {['M', 'F', 'Other'].map(s => (
                                 <button key={s} onClick={() => setPSex(s)}
