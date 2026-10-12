@@ -1,22 +1,22 @@
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS deps
 WORKDIR /workspace
 
-COPY pom.xml .
-COPY common-lib/pom.xml            common-lib/
-COPY patient-service/pom.xml       patient-service/
-COPY catalog-service/pom.xml       catalog-service/
-COPY order-service/pom.xml         order-service/
-COPY result-service/pom.xml        result-service/
-COPY reporting-service/pom.xml     reporting-service/
-COPY mis-analytics-service/pom.xml mis-analytics-service/
-COPY notification-service/pom.xml  notification-service/
-COPY audit-consent-service/pom.xml audit-consent-service/
-COPY b2b-billing-service/pom.xml   b2b-billing-service/
+COPY backend/pom.xml .
+COPY backend/common-lib/pom.xml            common-lib/
+COPY backend/patient-service/pom.xml       patient-service/
+COPY backend/catalog-service/pom.xml       catalog-service/
+COPY backend/order-service/pom.xml         order-service/
+COPY backend/result-service/pom.xml        result-service/
+COPY backend/reporting-service/pom.xml     reporting-service/
+COPY backend/mis-analytics-service/pom.xml mis-analytics-service/
+COPY backend/notification-service/pom.xml  notification-service/
+COPY backend/audit-consent-service/pom.xml audit-consent-service/
+COPY backend/b2b-billing-service/pom.xml   b2b-billing-service/
 
 RUN mvn dependency:go-offline -B -q
 
 FROM deps AS builder
-COPY . .
+COPY backend/ .
 RUN mvn -N install -DskipTests -B -q && \
     mvn -pl common-lib install -DskipTests -B -q && \
     mvn -pl order-service clean package spring-boot:repackage -DskipTests -B -q
@@ -25,6 +25,6 @@ FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 RUN addgroup -S diagdesk && adduser -S diagdesk -G diagdesk
 COPY --from=builder /workspace/order-service/target/*.jar app.jar
-EXPOSE 10000
+EXPOSE 8080
 USER diagdesk
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

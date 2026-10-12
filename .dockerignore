@@ -1,0 +1,9 @@
+frontend/
+railway/
+.git/
+**/.idea/
+**/*.iml
+**/target/
+**/node_modules/
+backend/device-gateway/
+backend/sync-engine/
