@@ -1,21 +1,5 @@
-FROM maven:3.9.9-eclipse-temurin-21-alpine AS deps
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /workspace
-
-COPY backend/pom.xml .
-COPY backend/common-lib/pom.xml            common-lib/
-COPY backend/patient-service/pom.xml       patient-service/
-COPY backend/catalog-service/pom.xml       catalog-service/
-COPY backend/order-service/pom.xml         order-service/
-COPY backend/result-service/pom.xml        result-service/
-COPY backend/reporting-service/pom.xml     reporting-service/
-COPY backend/mis-analytics-service/pom.xml mis-analytics-service/
-COPY backend/notification-service/pom.xml  notification-service/
-COPY backend/audit-consent-service/pom.xml audit-consent-service/
-COPY backend/b2b-billing-service/pom.xml   b2b-billing-service/
-
-RUN mvn dependency:go-offline -B -q
-
-FROM deps AS builder
 COPY backend/ .
 RUN mvn -N install -DskipTests -B -q && \
     mvn -pl common-lib install -DskipTests -B -q && \
