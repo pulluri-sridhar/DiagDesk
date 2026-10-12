@@ -1,5 +1,8 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/v1/patients/:path*", "destination": "https://diagdesk-production.up.railway.app/v1/patients/:path*" },
+    { "source": "/v1/tests/:path*",    "destination": "https://diagdesk-production.up.railway.app/v1/tests/:path*" },
+    { "source": "/v1/orders/:path*",   "destination": "https://diagdesk-production.up.railway.app/v1/orders/:path*" },
+    { "source": "/(.*)",               "destination": "/index.html" }
   ]
 }
