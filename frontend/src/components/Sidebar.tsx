@@ -98,7 +98,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-base px-sm">
+      <nav className="flex-1 space-y-base px-sm overflow-y-auto min-h-0">
         {nav.map(({ to, icon, label }) => (
           <NavLink
             key={label}
