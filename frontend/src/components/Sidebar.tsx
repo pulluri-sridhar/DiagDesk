@@ -2,8 +2,12 @@ import { NavLink } from 'react-router-dom';
 import { useAuth, type Role } from '../lib/auth';
 
 const NAV_BY_ROLE: Record<Role, { to: string; icon: string; label: string }[]> = {
+  pharmacist: [
+    { to: '/pharmacy', icon: 'local_pharmacy', label: 'Pharmacy Hub' },
+  ],
   admin: [
     { to: '/dashboard',          icon: 'dashboard',        label: 'Dashboard'       },
+    { to: '/pharmacy',           icon: 'local_pharmacy',   label: 'Pharmacy'        },
     { to: '/registration',       icon: 'person_add',       label: 'Registration'    },
     { to: '/invoices',           icon: 'receipt_long',     label: 'Invoices'        },
     { to: '/reports',            icon: 'lab_profile',      label: 'Reports'         },
@@ -41,6 +45,7 @@ const ROLE_LABELS: Record<Role, string> = {
   patient:      'Patient',
   lab_tech:     'Lab Technician',
   pathologist:  'Pathologist',
+  pharmacist:   'Pharmacist',
 };
 
 const ROLE_COLORS: Record<Role, string> = {
@@ -50,6 +55,7 @@ const ROLE_COLORS: Record<Role, string> = {
   patient:      '#2A9174',
   lab_tech:     '#0891B2',
   pathologist:  '#7C3AED',
+  pharmacist:   '#D97706',
 };
 
 export default function Sidebar() {

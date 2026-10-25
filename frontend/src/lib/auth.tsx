@@ -5,7 +5,7 @@
  */
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-export type Role = 'admin' | 'doctor' | 'phlebotomist' | 'patient' | 'lab_tech' | 'pathologist';
+export type Role = 'admin' | 'doctor' | 'phlebotomist' | 'patient' | 'lab_tech' | 'pathologist' | 'pharmacist';
 
 export const ROLE_HOME: Record<Role, string> = {
   admin:        '/dashboard',
@@ -14,15 +14,17 @@ export const ROLE_HOME: Record<Role, string> = {
   patient:      '/patient',
   lab_tech:     '/reports',
   pathologist:  '/pathologist-review',
+  pharmacist:   '/pharmacy',
 };
 
 export const ROLE_ALLOWED: Record<Role, string[]> = {
-  admin:        ['/dashboard', '/inventory', '/analytics', '/doctor', '/phlebotomist', '/patients', '/registration', '/invoices', '/reports', '/pathologist-review'],
+  admin:        ['/dashboard', '/inventory', '/analytics', '/doctor', '/phlebotomist', '/patients', '/registration', '/invoices', '/reports', '/pathologist-review', '/pharmacy'],
   doctor:       ['/doctor'],
   phlebotomist: ['/phlebotomist'],
   patient:      ['/patient'],
   lab_tech:     ['/registration', '/invoices', '/reports'],
   pathologist:  ['/pathologist-review', '/reports'],
+  pharmacist:   ['/pharmacy'],
 };
 
 // ── Demo credential store ────────────────────────────────────────────────────
@@ -36,6 +38,7 @@ const DEMO_USERS: Record<string, { role: Role; name: string; userId: string | nu
   'meera.iyer@lumina.com':   { role: 'patient',      name: 'Meera Iyer',           userId: null },
   'lab@lumina.com':          { role: 'lab_tech',     name: 'Priya Nair (Lab Tech)',userId: '00000000-0000-0000-0000-000000000014' },
   'path@lumina.com':         { role: 'pathologist',  name: 'Dr. Suresh Mehta',     userId: '00000000-0000-0000-0000-000000000015' },
+  'pharmacy@lumina.com':     { role: 'pharmacist',   name: 'Arjun Patel (Pharmacist)', userId: '00000000-0000-0000-0000-000000000016' },
 };
 
 const SESSION_KEY = 'diagdesk_session';
