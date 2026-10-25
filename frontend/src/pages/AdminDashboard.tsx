@@ -337,15 +337,6 @@ export default function AdminDashboard() {
 </div>
 </div>
 </section>
-{/* Command Bar CLI */}
-<div className="fixed bottom-12 right-lg left-[calc(16rem+1.5rem)] glass-panel bg-white/95 border-[#17A077]/20 p-xs flex items-center gap-md shadow-2xl">
-<span className="font-label-caps text-[#17A077] text-xs ml-md select-none font-black tracking-widest">DIAGDESK&gt;</span>
-<input className="flex-1 bg-transparent border-none focus:ring-0 text-on-surface font-label-caps text-xs py-2 placeholder:text-on-surface-variant/30 font-medium" placeholder="Enter clinical protocol command (e.g. /reboot-hplc-04) or '?'..." type="text"/>
-<div className="flex gap-xs pr-sm">
-<kbd className="px-2 py-1 rounded bg-surface-container border border-outline-variant text-[9px] text-on-surface-variant font-bold font-label-caps shadow-sm">CTRL</kbd>
-<kbd className="px-2 py-1 rounded bg-surface-container border border-outline-variant text-[9px] text-on-surface-variant font-bold font-label-caps shadow-sm">ENTER</kbd>
-</div>
-</div>
 </main>
 {/* Footer Anchor */}
 <footer className="fixed bottom-0 right-0 left-64 h-8 bg-white border-t border-outline-variant flex items-center justify-between px-md w-full z-40">
