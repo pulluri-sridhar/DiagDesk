@@ -14,6 +14,7 @@ import PatientRegistration  from './pages/PatientRegistration';
 import InvoiceManager       from './pages/InvoiceManager';
 import ReportManager        from './pages/ReportManager';
 import PathologistQueue     from './pages/PathologistQueue';
+import PharmacyDashboard   from './pages/PharmacyDashboard';
 
 // Redirect authenticated users away from /login to their role home
 function LoginRoute() {
@@ -104,6 +105,12 @@ export default function App() {
           <Route path="/pathologist-review" element={
             <ProtectedRoute allow={['admin', 'pathologist']}>
               <PathologistQueue />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/pharmacy" element={
+            <ProtectedRoute allow={['pharmacist', 'admin']}>
+              <PharmacyDashboard />
             </ProtectedRoute>
           } />
 
