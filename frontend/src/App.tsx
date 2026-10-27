@@ -14,7 +14,13 @@ import PatientRegistration  from './pages/PatientRegistration';
 import InvoiceManager       from './pages/InvoiceManager';
 import ReportManager        from './pages/ReportManager';
 import PathologistQueue     from './pages/PathologistQueue';
-import PharmacyDashboard   from './pages/PharmacyDashboard';
+import PharmacyDashboard    from './pages/PharmacyDashboard';
+import OPDQueue             from './pages/hospital/OPDQueue';
+import BedBoard             from './pages/hospital/BedBoard';
+import RadiologyModule      from './pages/hospital/RadiologyModule';
+import MedicalHistory       from './pages/hospital/MedicalHistory';
+import ConsultationNotes    from './pages/hospital/ConsultationNotes';
+import { isModuleEnabled }  from './modules/hospital.config';
 
 // Redirect authenticated users away from /login to their role home
 function LoginRoute() {
@@ -113,6 +119,43 @@ export default function App() {
               <PharmacyDashboard />
             </ProtectedRoute>
           } />
+
+          {/* Hospital modules — each route only registers when the module is enabled */}
+          {isModuleEnabled('OPD_QUEUE') && (
+            <Route path="/hospital/opd" element={
+              <ProtectedRoute allow={['admin', 'doctor']}>
+                <OPDQueue />
+              </ProtectedRoute>
+            } />
+          )}
+          {isModuleEnabled('IPD_BEDS') && (
+            <Route path="/hospital/beds" element={
+              <ProtectedRoute allow={['admin', 'doctor']}>
+                <BedBoard />
+              </ProtectedRoute>
+            } />
+          )}
+          {isModuleEnabled('RADIOLOGY') && (
+            <Route path="/hospital/radiology" element={
+              <ProtectedRoute allow={['admin', 'doctor', 'pathologist']}>
+                <RadiologyModule />
+              </ProtectedRoute>
+            } />
+          )}
+          {isModuleEnabled('MEDICAL_HISTORY') && (
+            <Route path="/hospital/medical-history" element={
+              <ProtectedRoute allow={['admin', 'doctor']}>
+                <MedicalHistory />
+              </ProtectedRoute>
+            } />
+          )}
+          {isModuleEnabled('CONSULTATION_NOTES') && (
+            <Route path="/hospital/consultation-notes" element={
+              <ProtectedRoute allow={['admin', 'doctor']}>
+                <ConsultationNotes />
+              </ProtectedRoute>
+            } />
+          )}
 
           {/* Catch-all */}
           <Route path="*" element={<RootRoute />} />
