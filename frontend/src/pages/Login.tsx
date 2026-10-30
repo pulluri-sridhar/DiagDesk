@@ -2,12 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLE_HOME, type Role } from '../lib/auth';
 
-const DEMO_USERS: { role: Role; name: string; email: string; icon: string; color: string; desc: string }[] = [
+type DemoUser = { role: Role; name: string; email: string; icon: string; color: string; desc: string };
+
+const CLINICAL_USERS: DemoUser[] = [
   { role: 'admin',        name: 'Admin User',       email: 'admin@lumina.com',        icon: 'manage_accounts', color: '#17A077', desc: 'Dashboard · Inventory' },
   { role: 'doctor',       name: 'Dr. Anita Sharma', email: 'anita.sharma@lumina.com', icon: 'stethoscope',     color: '#0D9460', desc: 'Reports · Orders' },
   { role: 'phlebotomist', name: 'Ravi Kumar',       email: 'ravi.kumar@lumina.com',   icon: 'biotech',         color: '#1A7260', desc: 'Sample Collection' },
   { role: 'patient',      name: 'Meera Iyer',       email: 'meera.iyer@lumina.com',   icon: 'person',          color: '#2A9174', desc: 'My Results · Reports' },
 ];
+
+const STAFF_USERS: DemoUser[] = [
+  { role: 'lab_tech',    name: 'Priya Nair',          email: 'lab@lumina.com',      icon: 'science',         color: '#0891B2', desc: 'Registration · Reports' },
+  { role: 'pathologist', name: 'Dr. Suresh Mehta',    email: 'path@lumina.com',     icon: 'verified_user',   color: '#7C3AED', desc: 'Review Queue · Reports' },
+  { role: 'pharmacist',  name: 'Arjun Patel',         email: 'pharmacy@lumina.com', icon: 'local_pharmacy',  color: '#D97706', desc: 'Prescriptions · Delivery' },
+];
+
 const DEMO_PASSWORD = 'Demo@1234';
 
 export default function Login() {
@@ -17,6 +26,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
+  const [demoTab, setDemoTab]   = useState<'clinical' | 'staff'>('clinical');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,8 +91,23 @@ export default function Login() {
             <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
               Demo accounts — click to auto-fill
             </p>
+            {/* Tab switcher */}
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-3">
+              <button
+                onClick={() => setDemoTab('clinical')}
+                className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-colors ${demoTab === 'clinical' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Clinical
+              </button>
+              <button
+                onClick={() => setDemoTab('staff')}
+                className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-colors ${demoTab === 'staff' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Staff
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              {DEMO_USERS.map(d => (
+              {(demoTab === 'clinical' ? CLINICAL_USERS : STAFF_USERS).map(d => (
                 <button
                   key={d.email}
                   onClick={() => fillDemo(d.email)}
