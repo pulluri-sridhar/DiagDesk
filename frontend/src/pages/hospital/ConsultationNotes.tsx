@@ -113,7 +113,7 @@ function NewNoteModal({ onSave, onClose }: { onSave: (n: Omit<SOAPNote, 'id' | '
           ].map(({ key, label, placeholder }) => (
             <div key={key} className="col-span-2">
               <label className="block text-[11px] font-semibold text-gray-500 uppercase mb-1">{label}</label>
-              <textarea value={(form as Record<string, string>)[key]} onChange={e => set(key, e.target.value)}
+              <textarea value={(form as unknown as Record<string, string>)[key]} onChange={e => set(key, e.target.value)}
                 rows={3} placeholder={placeholder}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#17A077]/30 resize-none" />
             </div>
@@ -170,7 +170,7 @@ function NoteCard({ note, onFinalize, onDelete }: { note: SOAPNote; onFinalize: 
                   <span className="w-6 h-6 rounded-full bg-white border border-current flex items-center justify-center text-[11px] font-black">{letter}</span>
                   <span className="text-[12px] font-semibold text-gray-700">{label}</span>
                 </div>
-                <p className="text-[13px] text-gray-800 whitespace-pre-wrap">{(note as Record<string, string>)[key] || '—'}</p>
+                <p className="text-[13px] text-gray-800 whitespace-pre-wrap">{(note as unknown as Record<string, string>)[key] || '—'}</p>
               </div>
             ))}
           </div>
