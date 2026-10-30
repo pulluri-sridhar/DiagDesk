@@ -12,9 +12,9 @@ const CLINICAL_USERS: DemoUser[] = [
 ];
 
 const STAFF_USERS: DemoUser[] = [
-  { role: 'lab_tech',    name: 'Priya Nair',          email: 'lab@lumina.com',      icon: 'science',         color: '#0891B2', desc: 'Registration · Reports' },
-  { role: 'pathologist', name: 'Dr. Suresh Mehta',    email: 'path@lumina.com',     icon: 'verified_user',   color: '#7C3AED', desc: 'Review Queue · Reports' },
-  { role: 'pharmacist',  name: 'Arjun Patel',         email: 'pharmacy@lumina.com', icon: 'local_pharmacy',  color: '#D97706', desc: 'Prescriptions · Delivery' },
+  { role: 'lab_tech',    name: 'Lab Technician', email: 'lab@lumina.com',      icon: 'science',        color: '#0891B2', desc: 'Registration · Reports' },
+  { role: 'pathologist', name: 'Pathologist',    email: 'path@lumina.com',     icon: 'verified_user',  color: '#7C3AED', desc: 'Review Queue · Reports' },
+  { role: 'pharmacist',  name: 'Pharmacist',     email: 'pharmacy@lumina.com', icon: 'local_pharmacy', color: '#D97706', desc: 'Prescriptions · Delivery' },
 ];
 
 const DEMO_PASSWORD = 'Demo@1234';
