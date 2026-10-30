@@ -111,40 +111,42 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-base px-sm overflow-y-auto min-h-0">
-        {nav.map(({ to, icon, label }) => (
-          <NavLink
-            key={label}
-            to={to}
-            end={to === '/dashboard'}
-            className={({ isActive }) =>
-              `flex items-center gap-md px-md py-sm mx-2 rounded-lg transition-colors font-medium text-[12px] uppercase tracking-wider font-label-caps ` +
-              (isActive ? 'text-white' : 'text-on-surface-variant hover:bg-surface-container-low')
-            }
-            style={({ isActive }) => isActive ? { background: accentColor } : {}}
-          >
-            <span className="material-symbols-outlined text-lg">{icon}</span>
-            {label}
-          </NavLink>
-        ))}
+      <nav className="flex-1 px-sm overflow-y-auto min-h-0 pb-2">
+        <div className="space-y-0.5">
+          {nav.map(({ to, icon, label }) => (
+            <NavLink
+              key={label}
+              to={to}
+              end={to === '/dashboard'}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-1.5 mx-1 rounded-lg transition-colors font-medium text-[11px] uppercase tracking-wider font-label-caps ` +
+                (isActive ? 'text-white' : 'text-on-surface-variant hover:bg-surface-container-low')
+              }
+              style={({ isActive }) => isActive ? { background: accentColor } : {}}
+            >
+              <span className="material-symbols-outlined text-[16px]">{icon}</span>
+              {label}
+            </NavLink>
+          ))}
+        </div>
       </nav>
 
-      {/* Bottom actions */}
-      <div className="px-sm mt-auto space-y-xs">
-        <div className="pt-lg border-t border-outline-variant">
+      {/* Bottom actions — always visible */}
+      <div className="px-sm flex-shrink-0">
+        <div className="pt-2 border-t border-outline-variant">
           <a
-            className="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-[#17A077] transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 text-on-surface-variant hover:text-[#17A077] transition-colors cursor-pointer text-[11px] uppercase tracking-wider font-label-caps"
             href="#"
           >
-            <span className="material-symbols-outlined text-md">settings</span>
-            <span className="font-label-caps text-[11px] uppercase">Settings</span>
+            <span className="material-symbols-outlined text-[16px]">settings</span>
+            Settings
           </a>
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-md px-md py-sm text-error hover:bg-error/5 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-1.5 text-error hover:bg-error/5 rounded-lg transition-colors text-[11px] uppercase tracking-wider font-label-caps"
           >
-            <span className="material-symbols-outlined text-md">logout</span>
-            <span className="font-label-caps text-[11px] uppercase">Sign Out</span>
+            <span className="material-symbols-outlined text-[16px]">logout</span>
+            Sign Out
           </button>
         </div>
       </div>
