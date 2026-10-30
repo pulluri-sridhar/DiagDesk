@@ -338,20 +338,6 @@ export default function AdminDashboard() {
 </div>
 </section>
 </main>
-{/* Footer Anchor */}
-<footer className="fixed bottom-0 right-0 left-64 h-8 bg-white border-t border-outline-variant flex items-center justify-between px-md w-full z-40">
-<div className="flex items-center gap-lg">
-<span className="text-[#17A077] text-[10px] font-label-caps font-black tracking-wider uppercase">DiagDesk v2.4.0-stable</span>
-<div className="flex items-center gap-md text-on-surface-variant text-[9px] font-bold font-label-caps uppercase tracking-widest">
-<span className="flex items-center gap-xs"><span className="w-1.5 h-1.5 rounded-full bg-[#17A077]"></span> Branch: Central Hub</span>
-<span className="flex items-center gap-xs"><span className="w-1.5 h-1.5 rounded-full bg-[#17A077]"></span> Env: Production</span>
-</div>
-</div>
-<div className="flex items-center gap-lg text-[9px] text-on-surface-variant font-bold font-label-caps uppercase tracking-widest">
-<span className="hover:text-[#17A077] cursor-pointer transition-colors">Latency: 24ms</span>
-<span className="hover:text-[#17A077] cursor-pointer transition-colors">Uptime: 99.9%</span>
-</div>
-</footer>
 
       {/* Barcode Label Modal — walk-in patients */}
       {labelOrder && (
