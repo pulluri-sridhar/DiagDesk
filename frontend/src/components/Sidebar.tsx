@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth, type Role } from '../lib/auth';
+import { isModuleEnabled } from '../modules/hospital.config';
 
 const NAV_BY_ROLE: Record<Role, { to: string; icon: string; label: string }[]> = {
   pharmacist: [
@@ -58,10 +59,22 @@ const ROLE_COLORS: Record<Role, string> = {
   pharmacist:   '#D97706',
 };
 
+const HOSPITAL_NAV: { module: Parameters<typeof isModuleEnabled>[0]; to: string; icon: string; label: string }[] = [
+  { module: 'OPD_QUEUE',          to: '/hospital/opd',                 icon: 'queue',           label: 'OPD Queue'        },
+  { module: 'IPD_BEDS',           to: '/hospital/beds',                icon: 'bed',             label: 'IPD Beds'         },
+  { module: 'RADIOLOGY',          to: '/hospital/radiology',           icon: 'radiology',       label: 'Radiology'        },
+  { module: 'MEDICAL_HISTORY',    to: '/hospital/medical-history',     icon: 'history_edu',     label: 'Med. History'     },
+  { module: 'CONSULTATION_NOTES', to: '/hospital/consultation-notes',  icon: 'clinical_notes',  label: 'SOAP Notes'       },
+];
+
 export default function Sidebar() {
   const { user, role } = useAuth();
 
-  const nav = role ? NAV_BY_ROLE[role] : [];
+  const baseNav = role ? NAV_BY_ROLE[role] : [];
+  const hospitalNav = (role === 'admin' || role === 'doctor')
+    ? HOSPITAL_NAV.filter(h => isModuleEnabled(h.module)).map(({ to, icon, label }) => ({ to, icon, label }))
+    : [];
+  const nav = [...baseNav, ...hospitalNav];
   const displayName = user?.name ?? user?.email ?? 'User';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
   const accentColor = role ? ROLE_COLORS[role] : '#17A077';
