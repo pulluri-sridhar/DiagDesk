@@ -22,6 +22,11 @@ const DIAGDESK_ROLES: DemoUser[] = [
 
 const DEMO_PASSWORD = 'Demo@1234';
 
+const PHARMDESK_ROLES: DemoUser[] = [
+  { role: 'pharmacist', name: 'Pharmacist', email: 'pharmacy@lumina.com' },
+  { role: 'admin',      name: 'Admin',      email: 'admin@lumina.com'    },
+];
+
 const MODULE_CONFIG = {
   medidesk: {
     name: 'MediDesk',
@@ -38,6 +43,14 @@ const MODULE_CONFIG = {
     roles: DIAGDESK_ROLES,
     icon: 'biotech',
     features: ['Patient Registration & Orders', 'Sample Tracking & Results', 'Reports & Pathology', 'Inventory & Invoicing'],
+  },
+  pharmdesk: {
+    name: 'PharmDesk',
+    tagline: 'Pharmacy Management Platform',
+    color: '#7C3AED',
+    roles: PHARMDESK_ROLES,
+    icon: 'local_pharmacy',
+    features: ['Prescription Queue', 'Medicine Inventory & Alerts', 'Refill Center', 'Home Delivery Management'],
   },
 };
 

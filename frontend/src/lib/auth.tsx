@@ -44,7 +44,7 @@ const DEMO_USERS: Record<string, { role: Role; name: string; userId: string | nu
 const SESSION_KEY = 'diagdesk_session';
 
 export const MODULE_KEY = 'medicircle_module';
-export type AppModule = 'medidesk' | 'diagdesk';
+export type AppModule = 'medidesk' | 'diagdesk' | 'pharmdesk';
 
 export function getSelectedModule(): AppModule {
   return (localStorage.getItem(MODULE_KEY) as AppModule) || 'diagdesk';

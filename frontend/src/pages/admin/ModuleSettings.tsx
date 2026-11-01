@@ -72,7 +72,7 @@ export default function ModuleSettings() {
                       <span className="material-symbols-outlined text-[20px]">{mod.icon}</span>
                     </div>
                     <div>
-                      <p className="text-[14px] font-black text-gray-900">{mod.id === 'medidesk' ? 'MediDesk Module' : 'DiagDesk Module'}</p>
+                      <p className="text-[14px] font-black text-gray-900">{mod.name} Module</p>
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">{mod.id}</p>
                     </div>
                   </div>

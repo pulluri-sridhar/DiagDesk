@@ -24,6 +24,13 @@ const MODULE_ROLES: Record<AppModule, { features: string[]; roles: RoleOption[] 
       { role: 'pathologist',  name: 'Pathologist',  email: 'path@lumina.com'       },
     ],
   },
+  pharmdesk: {
+    features: ['Prescription Queue', 'Medicine Inventory & Alerts', 'Refill Center', 'Home Delivery Management'],
+    roles: [
+      { role: 'pharmacist', name: 'Pharmacist', email: 'pharmacy@lumina.com' },
+      { role: 'admin',      name: 'Admin',      email: 'admin@lumina.com'    },
+    ],
+  },
 };
 
 const DEMO_PASSWORD = 'Demo@1234';
