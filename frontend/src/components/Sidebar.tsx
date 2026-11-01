@@ -9,6 +9,7 @@ const NAV_BY_ROLE: Record<Role, { to: string; icon: string; label: string }[]> =
   admin: [
     { to: '/dashboard',          icon: 'dashboard',        label: 'Dashboard'       },
     { to: '/pharmacy',           icon: 'local_pharmacy',   label: 'Pharmacy'        },
+    { to: '/home-services',      icon: 'home_health',      label: 'Home Services'   },
     { to: '/registration',       icon: 'person_add',       label: 'Registration'    },
     { to: '/invoices',           icon: 'receipt_long',     label: 'Invoices'        },
     { to: '/reports',            icon: 'lab_profile',      label: 'Reports'         },

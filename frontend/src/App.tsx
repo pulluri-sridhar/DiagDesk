@@ -15,6 +15,7 @@ import ReportManager        from './pages/ReportManager';
 import PathologistQueue     from './pages/PathologistQueue';
 import PharmacyDashboard    from './pages/PharmacyDashboard';
 import ModuleSettings       from './pages/admin/ModuleSettings';
+import HomeServicesHub      from './pages/homeservices/HomeServicesHub';
 import MediCircle           from './pages/MediCircle';
 import OPDQueue             from './pages/hospital/OPDQueue';
 import BedBoard             from './pages/hospital/BedBoard';
@@ -124,6 +125,12 @@ export default function App() {
           <Route path="/settings/modules" element={
             <ProtectedRoute allow="admin">
               <ModuleSettings />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/home-services" element={
+            <ProtectedRoute allow={['admin', 'doctor', 'phlebotomist']}>
+              <HomeServicesHub />
             </ProtectedRoute>
           } />
 
