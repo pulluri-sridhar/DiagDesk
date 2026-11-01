@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth, ROLE_HOME } from './lib/auth';
 import ProtectedRoute       from './components/ProtectedRoute';
 import OfflineIndicator     from './components/OfflineIndicator';
-import Login                from './pages/Login';
 import AdminDashboard       from './pages/AdminDashboard';
 import InventoryManager     from './pages/InventoryManager';
 import PhlebotomistMobile   from './pages/PhlebotomistMobile';
