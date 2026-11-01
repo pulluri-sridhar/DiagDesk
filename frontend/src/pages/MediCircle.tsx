@@ -31,6 +31,14 @@ const MODULE_ROLES: Record<AppModule, { features: string[]; roles: RoleOption[] 
       { role: 'admin',      name: 'Admin',      email: 'admin@lumina.com'    },
     ],
   },
+  homedesk: {
+    features: ['Doctor & Nurse Home Visits', 'Blood Work at Home', 'Physiotherapy & Wound Care', 'Live ETA Tracking'],
+    roles: [
+      { role: 'doctor',       name: 'Doctor',       email: 'anita.sharma@lumina.com' },
+      { role: 'phlebotomist', name: 'Phlebotomist', email: 'ravi.kumar@lumina.com'   },
+      { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com'        },
+    ],
+  },
 };
 
 const DEMO_PASSWORD = 'Demo@1234';
@@ -77,13 +85,18 @@ export default function MediCircle() {
     setActiveRole(r.role); setEmail(r.email); setPassword(DEMO_PASSWORD); setError('');
   }
 
+  const MODULE_HOME: Partial<Record<AppModule, string>> = {
+    pharmdesk: '/pharmacy',
+    homedesk:  '/home-services',
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
       setSelectedModule(selectedMod);
       const role = await signIn(email, password);
-      navigate(ROLE_HOME[role], { replace: true });
+      navigate(MODULE_HOME[selectedMod] ?? ROLE_HOME[role], { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Sign-in failed.');
     } finally { setLoading(false); }

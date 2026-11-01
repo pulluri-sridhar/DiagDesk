@@ -60,8 +60,8 @@ const HOSPITAL_NAV: { module: Parameters<typeof isModuleEnabled>[0]; to: string;
   { module: 'CONSULTATION_NOTES', to: '/hospital/consultation-notes',  icon: 'clinical_notes',  label: 'SOAP Notes'       },
 ];
 
-const MODULE_LABELS = { medidesk: 'MediDesk', diagdesk: 'DiagDesk', pharmdesk: 'PharmaDesk' };
-const MODULE_COLORS = { medidesk: '#17A077', diagdesk: '#0891B2', pharmdesk: '#7C3AED' };
+const MODULE_LABELS = { medidesk: 'MediDesk', diagdesk: 'DiagDesk', pharmdesk: 'PharmaDesk', homedesk: 'Home Services' };
+const MODULE_COLORS = { medidesk: '#17A077', diagdesk: '#0891B2', pharmdesk: '#7C3AED', homedesk: '#D97706' };
 
 export default function Sidebar() {
   const { user, role } = useAuth();

@@ -52,6 +52,18 @@ const MODULE_CONFIG = {
     icon: 'local_pharmacy',
     features: ['Prescription Queue', 'Medicine Inventory & Alerts', 'Refill Center', 'Home Delivery Management'],
   },
+  homedesk: {
+    name: 'Home Services',
+    tagline: 'Healthcare Professionals at Your Home',
+    color: '#D97706',
+    roles: [
+      { role: 'doctor' as const,       name: 'Doctor',       email: 'anita.sharma@lumina.com' },
+      { role: 'phlebotomist' as const, name: 'Phlebotomist', email: 'ravi.kumar@lumina.com'   },
+      { role: 'admin' as const,        name: 'Admin',        email: 'admin@lumina.com'        },
+    ],
+    icon: 'home_health',
+    features: ['Doctor & Nurse Home Visits', 'Blood Work at Home', 'Physiotherapy & Wound Care', 'Live ETA Tracking'],
+  },
 };
 
 export default function Login() {
