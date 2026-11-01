@@ -91,6 +91,13 @@ export default function MediCircle() {
         className="relative flex-shrink-0 pt-3 pb-16 overflow-hidden"
         style={{ background: 'linear-gradient(160deg,#062E1F 0%,#0D5C3A 55%,#0A4530 100%)' }}
       >
+        {/* Background photo with dark overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&q=80)' }}
+        />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg,rgba(6,46,31,0.88) 0%,rgba(13,92,58,0.82) 55%,rgba(10,69,48,0.88) 100%)' }} />
+
         {/* Decorative glow circles */}
         <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full pointer-events-none opacity-10"
           style={{ background: 'radial-gradient(circle,#fff,transparent)' }} />
