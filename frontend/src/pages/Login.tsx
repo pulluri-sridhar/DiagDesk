@@ -2,48 +2,42 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLE_HOME, getSelectedModule, type Role } from '../lib/auth';
 
-type DemoUser = { role: Role; name: string; email: string; icon: string; color: string; desc: string };
+type DemoUser = { role: Role; name: string; email: string; };
 
-const MEDIDESK_CLINICAL: DemoUser[] = [
-  { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com',        icon: 'manage_accounts', color: '#17A077', desc: 'Dashboard · Hospital · Pharmacy' },
-  { role: 'doctor',       name: 'Doctor',        email: 'anita.sharma@lumina.com', icon: 'stethoscope',     color: '#0D9460', desc: 'OPD · SOAP Notes · Reports' },
-  { role: 'phlebotomist', name: 'Phlebotomist',  email: 'ravi.kumar@lumina.com',   icon: 'biotech',         color: '#1A7260', desc: 'Sample Collection' },
+const MEDIDESK_ROLES: DemoUser[] = [
+  { role: 'doctor',       name: 'Doctor',      email: 'anita.sharma@lumina.com' },
+  { role: 'phlebotomist', name: 'Nurse',        email: 'ravi.kumar@lumina.com'   },
+  { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com'        },
+  { role: 'lab_tech',     name: 'Lab/Path',     email: 'lab@lumina.com'          },
+  { role: 'pharmacist',   name: 'Pharmacist',   email: 'pharmacy@lumina.com'     },
 ];
-const MEDIDESK_STAFF: DemoUser[] = [
-  { role: 'lab_tech',    name: 'Lab Technician', email: 'lab@lumina.com',      icon: 'science',        color: '#0891B2', desc: 'Registration · Reports' },
-  { role: 'pathologist', name: 'Pathologist',    email: 'path@lumina.com',     icon: 'verified_user',  color: '#7C3AED', desc: 'Radiology · Review Queue' },
-  { role: 'pharmacist',  name: 'Pharmacist',     email: 'pharmacy@lumina.com', icon: 'local_pharmacy', color: '#D97706', desc: 'Prescriptions · Delivery' },
-];
-const DIAGDESK_CLINICAL: DemoUser[] = [
-  { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com',      icon: 'manage_accounts', color: '#0891B2', desc: 'Dashboard · Inventory · Analytics' },
-  { role: 'phlebotomist', name: 'Phlebotomist', email: 'ravi.kumar@lumina.com', icon: 'biotech',         color: '#0369A1', desc: 'Sample Collection' },
-  { role: 'patient',      name: 'Patient',      email: 'meera.iyer@lumina.com', icon: 'person',          color: '#0284C7', desc: 'My Results · Reports' },
-];
-const DIAGDESK_STAFF: DemoUser[] = [
-  { role: 'lab_tech',    name: 'Lab Technician', email: 'lab@lumina.com',  icon: 'science',       color: '#0369A1', desc: 'Registration · Reports' },
-  { role: 'pathologist', name: 'Pathologist',    email: 'path@lumina.com', icon: 'verified_user', color: '#1D4ED8', desc: 'Review Queue · Reports' },
+
+const DIAGDESK_ROLES: DemoUser[] = [
+  { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com'      },
+  { role: 'phlebotomist', name: 'Phlebotomist', email: 'ravi.kumar@lumina.com' },
+  { role: 'lab_tech',     name: 'Lab Tech',     email: 'lab@lumina.com'        },
+  { role: 'pathologist',  name: 'Pathologist',  email: 'path@lumina.com'       },
+  { role: 'patient',      name: 'Patient',      email: 'meera.iyer@lumina.com' },
 ];
 
 const DEMO_PASSWORD = 'Demo@1234';
 
 const MODULE_CONFIG = {
   medidesk: {
-    name: 'MediDesk', tagline: 'Hospital Management Platform',
-    color: '#17A077', dimColor: '#0D9460',
-    gradient: 'linear-gradient(145deg,#0A3D32 0%,#17A077 60%,#2ECC9A 100%)',
-    clinical: MEDIDESK_CLINICAL, staff: MEDIDESK_STAFF,
-    headline: <>Complete hospital<br />management suite.</>,
-    features: ['OPD Queue · IPD Beds', 'Pharmacy & Prescriptions', 'Radiology · SOAP Notes'],
+    name: 'MediDesk',
+    tagline: 'Clinical & In-Patient Hospital Terminal',
+    color: '#17A077',
+    roles: MEDIDESK_ROLES,
     icon: 'local_hospital',
+    features: ['OPD Queue & IPD Beds', 'Pharmacy & Prescriptions', 'Radiology & Lab', 'Medical History & SOAP Notes'],
   },
   diagdesk: {
-    name: 'DiagDesk', tagline: 'Diagnostic Lab Platform',
-    color: '#0891B2', dimColor: '#0369A1',
-    gradient: 'linear-gradient(145deg,#082F49 0%,#0891B2 60%,#22D3EE 100%)',
-    clinical: DIAGDESK_CLINICAL, staff: DIAGDESK_STAFF,
-    headline: <>Unified diagnostics<br />platform for modern labs.</>,
-    features: ['Patient Registration · Orders', 'Sample Tracking · Results', 'Reports · Inventory'],
+    name: 'DiagDesk',
+    tagline: 'Diagnostic Lab Platform Terminal',
+    color: '#0891B2',
+    roles: DIAGDESK_ROLES,
     icon: 'biotech',
+    features: ['Patient Registration & Orders', 'Sample Tracking & Results', 'Reports & Pathology', 'Inventory & Invoicing'],
   },
 };
 
@@ -53,12 +47,12 @@ export default function Login() {
   const mod        = getSelectedModule();
   const cfg        = MODULE_CONFIG[mod];
 
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [showPwd, setShowPwd]   = useState(false);
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [demoTab, setDemoTab]   = useState<'clinical' | 'staff'>('clinical');
+  const [email, setEmail]           = useState('');
+  const [password, setPassword]     = useState('');
+  const [showPwd, setShowPwd]       = useState(false);
+  const [error, setError]           = useState('');
+  const [loading, setLoading]       = useState(false);
+  const [activeRole, setActiveRole] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -71,177 +65,201 @@ export default function Login() {
     } finally { setLoading(false); }
   }
 
-  function fillDemo(demoEmail: string) {
-    setEmail(demoEmail); setPassword(DEMO_PASSWORD); setError('');
+  function selectRole(user: DemoUser) {
+    setEmail(user.email);
+    setPassword(DEMO_PASSWORD);
+    setActiveRole(user.role);
+    setError('');
   }
 
-  const demoUsers = demoTab === 'clinical' ? cfg.clinical : cfg.staff;
-
   return (
-    <div className="min-h-screen flex font-sans bg-gray-50">
+    <div
+      className="min-h-screen flex items-center justify-center font-sans relative overflow-hidden px-4 py-10"
+      style={{ background: 'linear-gradient(135deg,#0A1628 0%,#0D2137 55%,#091520 100%)' }}
+    >
+      {/* Background glow */}
+      <div
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full pointer-events-none"
+        style={{ background: `radial-gradient(ellipse,${cfg.color}15 0%,transparent 70%)` }}
+      />
 
-      {/* ── Left panel ─────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:w-[45%] flex-col relative overflow-hidden" style={{ background: cfg.gradient }}>
-        {/* Background decorations */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10" style={{ background: 'radial-gradient(circle,#fff,transparent)' }} />
-          <div className="absolute bottom-20 -left-10 w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle,#fff,transparent)' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-5" style={{ background: 'radial-gradient(circle,#fff,transparent)' }} />
+      {/* Back */}
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-[12px] text-white/30 hover:text-white/60 transition-colors group z-10"
+      >
+        <span className="material-symbols-outlined text-[15px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+        Back
+      </button>
+
+      <div className="w-full max-w-md relative z-10">
+
+        {/* Logo */}
+        <div className="text-center mb-7">
+          <div
+            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
+            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+          >
+            <span className="material-symbols-outlined text-white text-[26px]">asterisk</span>
+          </div>
+          <h1 className="text-[26px] font-black text-white tracking-tight">MediCircle</h1>
+          <p className="text-white/25 text-[9px] tracking-[0.2em] uppercase mt-1">Healthcare Platform Suite</p>
         </div>
 
-        <div className="relative z-10 flex flex-col h-full p-12">
-          {/* Top nav */}
-          <div className="flex items-center gap-2 mb-auto">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
-              <span className="material-symbols-outlined text-white text-[16px]">hub</span>
+        {/* Card */}
+        <div
+          className="rounded-3xl p-6 shadow-2xl"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}
+        >
+          {/* Status badges */}
+          <div className="flex flex-wrap items-center gap-2 mb-5">
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              style={{ background: `${cfg.color}20`, border: `1px solid ${cfg.color}40` }}
+            >
+              <span className="material-symbols-outlined text-[11px]" style={{ color: cfg.color }}>verified_user</span>
+              <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: cfg.color }}>HIPAA Compliant & Encrypted</span>
             </div>
-            <span className="text-white/60 text-[12px] font-semibold tracking-widest uppercase">MediCircle</span>
-          </div>
-
-          {/* Main content */}
-          <div className="py-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8" style={{ background: 'rgba(255,255,255,0.12)' }}>
-              <span className="material-symbols-outlined text-white text-[14px]">{cfg.icon}</span>
-              <span className="text-white/80 text-[11px] font-semibold uppercase tracking-wider">{cfg.tagline}</span>
-            </div>
-
-            <h1 className="text-[42px] font-black text-white leading-tight mb-6">
-              {cfg.headline}
-            </h1>
-
-            <div className="space-y-3">
-              {cfg.features.map((f, i) => (
-                <div key={f} className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
-                    <span className="text-white text-[11px] font-black">{i + 1}</span>
-                  </div>
-                  <span className="text-white/70 text-[13px] font-medium">{f}</span>
-                </div>
-              ))}
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <span className="text-white/30 text-[9px] font-semibold">{cfg.tagline}</span>
             </div>
           </div>
 
-          {/* Bottom */}
-          <div className="text-white/25 text-[10px] uppercase tracking-widest">
-            MediCircle · {cfg.name} · v1.0
-          </div>
-        </div>
-      </div>
-
-      {/* ── Right panel ────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 lg:px-14 py-10">
-        <div className="w-full max-w-[420px]">
-
-          {/* Back */}
-          <button onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-[12px] text-gray-400 hover:text-gray-700 mb-8 transition-colors group">
-            <span className="material-symbols-outlined text-[16px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
-            Back to MediCircle
-          </button>
-
-          {/* Heading */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: cfg.gradient }}>
-                <span className="material-symbols-outlined text-[18px]">{cfg.icon}</span>
-              </div>
-              <span className="text-[13px] font-bold" style={{ color: cfg.color }}>{cfg.name}</span>
+          {/* Module */}
+          <div
+            className="flex items-center gap-3 p-3 rounded-2xl mb-4"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cfg.color }}>
+              <span className="material-symbols-outlined text-white text-[18px]">{cfg.icon}</span>
             </div>
-            <h2 className="text-[26px] font-black text-gray-900 leading-tight">Welcome back</h2>
-            <p className="text-gray-400 text-[13px] mt-1">Sign in to your {cfg.name} workspace</p>
+            <div>
+              <p className="text-white font-bold text-[14px] leading-none">{cfg.name}</p>
+              <p className="text-white/30 text-[10px] mt-0.5">Selected module</p>
+            </div>
           </div>
 
-          {/* Demo accounts */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Quick access</p>
-              <div className="flex gap-0.5 p-0.5 rounded-lg" style={{ background: '#F1F5F9' }}>
-                {(['clinical', 'staff'] as const).map(t => (
-                  <button key={t} onClick={() => setDemoTab(t)}
-                    className={`px-3 py-1 rounded-md text-[11px] font-bold capitalize transition-all ${demoTab === t ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Feature pills */}
+          <div className="flex flex-wrap gap-1.5 mb-5">
+            {cfg.features.map(f => (
+              <span
+                key={f}
+                className="px-2 py-0.5 rounded-full text-[9px] font-semibold"
+                style={{ background: `${cfg.color}15`, color: cfg.color, border: `1px solid ${cfg.color}28` }}
+              >
+                {f}
+              </span>
+            ))}
+          </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              {demoUsers.map(d => (
-                <button key={d.email} onClick={() => fillDemo(d.email)}
-                  className="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent bg-white text-center transition-all hover:shadow-md group"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = d.color; e.currentTarget.style.background = `${d.color}08`; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'white'; }}
+          {/* Role tabs */}
+          <div className="mb-5">
+            <p className="text-white/25 text-[9px] font-bold uppercase tracking-[0.15em] mb-2">Select Staff Role</p>
+            <div className="flex flex-wrap gap-1.5">
+              {cfg.roles.map(r => (
+                <button
+                  key={r.role}
+                  onClick={() => selectRole(r)}
+                  className="px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all"
+                  style={
+                    activeRole === r.role
+                      ? { background: cfg.color, color: '#fff', boxShadow: `0 4px 12px ${cfg.color}50` }
+                      : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' }
+                  }
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm" style={{ background: d.color }}>
-                    <span className="material-symbols-outlined text-[18px]">{d.icon}</span>
-                  </div>
-                  <p className="text-[10px] font-bold text-gray-700 leading-tight">{d.name}</p>
+                  {r.name}
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-gray-300 text-center mt-2">Click a role to auto-fill credentials</p>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-[11px] text-gray-300 font-medium">or sign in manually</span>
-            <div className="flex-1 h-px bg-gray-100" />
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Email</label>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="text-white/25 text-[9px] font-bold uppercase tracking-[0.15em] block mb-1.5">
+                Healthcare ID or Staff Email
+              </label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-[18px]">mail</span>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                  placeholder="you@lumina.com"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-100 bg-white text-[13px] text-gray-900 outline-none transition-all focus:bg-white"
-                  onFocus={e => (e.target.style.borderColor = cfg.color)}
-                  onBlur={e => (e.target.style.borderColor = '#F3F4F6')}
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 text-[17px]">badge</span>
+                <input
+                  type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                  placeholder="dr.chen@medicircle.org"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-[13px] text-white placeholder:text-white/20 outline-none transition-all"
+                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', caretColor: cfg.color }}
+                  onFocus={e => { e.target.style.borderColor = cfg.color; e.target.style.background = 'rgba(255,255,255,0.09)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.06)'; }}
                 />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Password</label>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-white/25 text-[9px] font-bold uppercase tracking-[0.15em]">Access Password</label>
+                <button type="button" className="text-[10px] transition-colors" style={{ color: cfg.color }}>Forgot?</button>
+              </div>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-[18px]">lock</span>
-                <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-3 rounded-xl border-2 border-gray-100 bg-white text-[13px] text-gray-900 outline-none transition-all"
-                  onFocus={e => (e.target.style.borderColor = cfg.color)}
-                  onBlur={e => (e.target.style.borderColor = '#F3F4F6')}
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 text-[17px]">lock</span>
+                <input
+                  type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
+                  placeholder="••••••••••••"
+                  className="w-full pl-10 pr-10 py-3 rounded-xl text-[13px] text-white placeholder:text-white/20 outline-none transition-all"
+                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', caretColor: cfg.color }}
+                  onFocus={e => { e.target.style.borderColor = cfg.color; e.target.style.background = 'rgba(255,255,255,0.09)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.06)'; }}
                 />
-                <button type="button" onClick={() => setShowPwd(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors">
-                  <span className="material-symbols-outlined text-[18px]">{showPwd ? 'visibility_off' : 'visibility'}</span>
+                <button
+                  type="button" onClick={() => setShowPwd(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[17px]">{showPwd ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] text-red-600 font-medium" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
-                <span className="material-symbols-outlined text-[16px]">error</span>
+              <div
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] text-red-400 font-medium"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}
+              >
+                <span className="material-symbols-outlined text-[14px]">error</span>
                 {error}
               </div>
             )}
 
-            <button type="submit" disabled={loading}
-              className="w-full py-3.5 rounded-xl text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2"
-              style={{ background: loading ? cfg.dimColor : cfg.gradient, boxShadow: `0 8px 20px ${cfg.color}35` }}>
+            <button
+              type="submit" disabled={loading}
+              className="w-full py-3.5 rounded-xl text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-1"
+              style={{ background: cfg.color, boxShadow: `0 8px 24px ${cfg.color}45` }}
+            >
               {loading
                 ? <><span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span> Signing in…</>
-                : <><span className="material-symbols-outlined text-[16px]">login</span> Sign in to {cfg.name}</>}
+                : <>Continue to {cfg.name} <span className="material-symbols-outlined text-[16px]">arrow_forward</span></>
+              }
             </button>
           </form>
 
-          <p className="text-center text-[11px] text-gray-300 mt-6">
-            Demo password:{' '}
-            <span className="font-mono font-bold text-gray-500">{DEMO_PASSWORD}</span>
-          </p>
+          {/* Face ID */}
+          <button className="w-full mt-3 py-2 flex items-center justify-center gap-1.5 text-[11px] text-white/25 hover:text-white/45 transition-colors">
+            <span className="material-symbols-outlined text-[14px]">face_recognition</span>
+            Clinical Face ID / Smart Badge Tap
+          </button>
+        </div>
+
+        {/* Footer badges */}
+        <div className="flex items-center justify-center gap-6 mt-5">
+          {[
+            { icon: 'verified_user', label: 'HIPAA Verified' },
+            { icon: 'check_circle',  label: 'HL7/FHIR Ready' },
+            { icon: 'lock',          label: '256-bit SSL' },
+          ].map(b => (
+            <div key={b.label} className="flex items-center gap-1">
+              <span className="material-symbols-outlined text-[11px] text-white/15">{b.icon}</span>
+              <span className="text-[8px] font-bold text-white/15 uppercase tracking-widest">{b.label}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
