@@ -31,12 +31,12 @@ function RootRoute() {
   return <MediCircle />;
 }
 
-// If authenticated redirect to role home, else show Login (module already selected)
+// /login redirects to / — MediCircle now handles module selection + login combined
 function LoginRoute() {
   const { user, role, loading } = useAuth();
   if (loading) return null;
   if (user && role) return <Navigate to={ROLE_HOME[role]} replace />;
-  return <Login />;
+  return <Navigate to="/" replace />;
 }
 
 export default function App() {
