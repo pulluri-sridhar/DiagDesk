@@ -45,7 +45,7 @@ const MODULE_CONFIG = {
     features: ['Patient Registration & Orders', 'Sample Tracking & Results', 'Reports & Pathology', 'Inventory & Invoicing'],
   },
   pharmdesk: {
-    name: 'PharmDesk',
+    name: 'PharmaDesk',
     tagline: 'Pharmacy Management Platform',
     color: '#7C3AED',
     roles: PHARMDESK_ROLES,

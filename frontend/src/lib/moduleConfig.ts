@@ -12,7 +12,7 @@ const CONFIG_KEY = 'medicircle_module_config';
 export const DEFAULT_MODULE_CONFIG: AppModuleConfig[] = [
   { id: 'medidesk',  name: 'MediDesk',  tagline: 'Complete Hospital Management', color: '#17A077', icon: 'local_hospital',  enabled: true },
   { id: 'diagdesk',  name: 'DiagDesk',  tagline: 'Diagnostic Lab Platform',      color: '#0891B2', icon: 'biotech',          enabled: true },
-  { id: 'pharmdesk', name: 'PharmDesk', tagline: 'Pharmacy Management Platform', color: '#7C3AED', icon: 'local_pharmacy',   enabled: true },
+  { id: 'pharmdesk', name: 'PharmaDesk', tagline: 'Pharmacy Management Platform', color: '#7C3AED', icon: 'local_pharmacy',   enabled: true },
 ];
 
 export function getModuleConfig(): AppModuleConfig[] {
