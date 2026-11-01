@@ -18,10 +18,9 @@ const MEDIDESK_STAFF: DemoUser[] = [
 
 // ── DiagDesk role cards ───────────────────────────────────────────────────────
 const DIAGDESK_CLINICAL: DemoUser[] = [
-  { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com',        icon: 'manage_accounts', color: '#0891B2', desc: 'Dashboard · Inventory · Analytics' },
-  { role: 'doctor',       name: 'Doctor',        email: 'anita.sharma@lumina.com', icon: 'stethoscope',     color: '#0C4A6E', desc: 'Reports · Orders' },
-  { role: 'phlebotomist', name: 'Phlebotomist',  email: 'ravi.kumar@lumina.com',   icon: 'biotech',         color: '#0369A1', desc: 'Sample Collection' },
-  { role: 'patient',      name: 'Patient',        email: 'meera.iyer@lumina.com',   icon: 'person',          color: '#0284C7', desc: 'My Results · Reports' },
+  { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com',      icon: 'manage_accounts', color: '#0891B2', desc: 'Dashboard · Inventory · Analytics' },
+  { role: 'phlebotomist', name: 'Phlebotomist', email: 'ravi.kumar@lumina.com', icon: 'biotech',         color: '#0369A1', desc: 'Sample Collection' },
+  { role: 'patient',      name: 'Patient',      email: 'meera.iyer@lumina.com', icon: 'person',          color: '#0284C7', desc: 'My Results · Reports' },
 ];
 const DIAGDESK_STAFF: DemoUser[] = [
   { role: 'lab_tech',    name: 'Lab Technician', email: 'lab@lumina.com',  icon: 'science',       color: '#0369A1', desc: 'Registration · Reports' },
