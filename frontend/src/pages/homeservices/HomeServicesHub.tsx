@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
+import PatientsPanel      from './PatientsPanel';
+import StaffPanel         from './StaffPanel';
+import SchedulePanel      from './SchedulePanel';
+import CareRequestsPanel  from './CareRequestsPanel';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type VisitStatus = 'requested' | 'assigned' | 'en_route' | 'arrived' | 'in_service' | 'completed' | 'cancelled';
-type Tab = 'overview' | 'active' | 'all' | 'catalog';
+type Tab = 'overview' | 'active' | 'all' | 'catalog' | 'patients' | 'staff' | 'schedule' | 'requests';
 
 interface ServiceType {
   id: string; name: string; category: string;
@@ -60,6 +64,55 @@ const JOURNEY_STEPS: { key: VisitStatus; icon: string; label: string }[] = [
   { key: 'in_service', icon: 'healing',         label: 'In Service' },
   { key: 'completed',  icon: 'task_alt',        label: 'Done'       },
 ];
+
+// ── Visit Checklist Templates ─────────────────────────────────────────────────
+
+interface ChecklistTask { id: string; label: string; done: boolean }
+interface ChecklistCategory { name: string; tasks: ChecklistTask[] }
+
+const CHECKLIST_TEMPLATES: Record<string, ChecklistCategory[]> = {
+  blood_work: [
+    { name: 'Patient Verification',  tasks: [{ id:'bw1', label:'Verify patient identity & DOB', done:false }, { id:'bw2', label:'Confirm fasting status', done:false }, { id:'bw3', label:'Check for allergies / contraindications', done:false }] },
+    { name: 'Sample Collection',     tasks: [{ id:'bw4', label:'Label tubes with patient ID', done:false }, { id:'bw5', label:'Select correct tubes for ordered tests', done:false }, { id:'bw6', label:'Disinfect collection site & collect sample', done:false }, { id:'bw7', label:'Apply pressure dressing', done:false }] },
+    { name: 'Documentation',         tasks: [{ id:'bw8', label:'Record collection time in notes', done:false }, { id:'bw9', label:'Seal and bag samples for transport', done:false }] },
+  ],
+  physio: [
+    { name: 'Assessment',            tasks: [{ id:'ph1', label:'Review previous session notes', done:false }, { id:'ph2', label:'Assess range of motion & pain (0-10)', done:false }] },
+    { name: 'Treatment',             tasks: [{ id:'ph3', label:'Complete prescribed exercises', done:false }, { id:'ph4', label:'Apply manual therapy as needed', done:false }, { id:'ph5', label:'Apply heat/cold therapy if indicated', done:false }] },
+    { name: 'Patient Education',     tasks: [{ id:'ph6', label:'Teach home exercise program', done:false }, { id:'ph7', label:'Set goals for next session', done:false }] },
+  ],
+  doc_consult: [
+    { name: 'Vitals',                tasks: [{ id:'dc1', label:'Record blood pressure', done:false }, { id:'dc2', label:'Measure temperature & pulse rate', done:false }, { id:'dc3', label:'Check SpO₂', done:false }] },
+    { name: 'Examination',           tasks: [{ id:'dc4', label:'Review current medications', done:false }, { id:'dc5', label:'Complete physical examination', done:false }, { id:'dc6', label:'Review recent lab/radiology reports', done:false }] },
+    { name: 'Care Plan',             tasks: [{ id:'dc7', label:'Update care plan if needed', done:false }, { id:'dc8', label:'Write/update prescriptions', done:false }, { id:'dc9', label:'Schedule follow-up if required', done:false }] },
+  ],
+  wound_care: [
+    { name: 'Wound Assessment',      tasks: [{ id:'wc1', label:'Inspect for signs of infection', done:false }, { id:'wc2', label:'Measure wound dimensions', done:false }, { id:'wc3', label:'Assess surrounding skin condition', done:false }] },
+    { name: 'Dressing Change',       tasks: [{ id:'wc4', label:'Remove old dressing carefully', done:false }, { id:'wc5', label:'Clean wound with saline solution', done:false }, { id:'wc6', label:'Apply topical medication if prescribed', done:false }, { id:'wc7', label:'Apply fresh sterile dressing', done:false }] },
+    { name: 'Documentation',         tasks: [{ id:'wc8', label:'Photograph wound for records', done:false }, { id:'wc9', label:'Document wound condition & progress', done:false }] },
+  ],
+  iv_infusion: [
+    { name: 'Setup',                 tasks: [{ id:'iv1', label:'Verify medication order & dose', done:false }, { id:'iv2', label:'Check expiry date on IV solution', done:false }, { id:'iv3', label:'Prepare IV line & drip chamber', done:false }] },
+    { name: 'Administration',        tasks: [{ id:'iv4', label:'Insert IV cannula & verify position', done:false }, { id:'iv5', label:'Set infusion rate as prescribed', done:false }, { id:'iv6', label:'Monitor patient for first 10 minutes', done:false }] },
+    { name: 'Completion',            tasks: [{ id:'iv7', label:'Continue monitoring throughout infusion', done:false }, { id:'iv8', label:'Remove cannula & apply pressure bandage', done:false }, { id:'iv9', label:'Document infusion start/end times', done:false }] },
+  ],
+  ecg: [
+    { name: 'Preparation',           tasks: [{ id:'ec1', label:'Explain procedure to patient', done:false }, { id:'ec2', label:'Position patient supine & comfortably', done:false }, { id:'ec3', label:'Clean skin & prep electrode sites', done:false }] },
+    { name: 'Recording',             tasks: [{ id:'ec4', label:'Attach all 12 leads correctly', done:false }, { id:'ec5', label:'Ensure patient is still & relaxed', done:false }, { id:'ec6', label:'Record 12-lead ECG & check for artefacts', done:false }] },
+    { name: 'Reporting',             tasks: [{ id:'ec7', label:'Save / print ECG report', done:false }, { id:'ec8', label:'Note heart rate & rhythm', done:false }, { id:'ec9', label:'Flag any acute changes for urgent review', done:false }] },
+  ],
+  elder_care: [
+    { name: 'Morning Care',          tasks: [{ id:'el1', label:'Assist with hygiene & grooming', done:false }, { id:'el2', label:'Help with dressing as needed', done:false }, { id:'el3', label:'Prepare and serve breakfast', done:false }] },
+    { name: 'Medical',               tasks: [{ id:'el4', label:'Administer morning medications', done:false }, { id:'el5', label:'Check blood pressure & pulse', done:false }, { id:'el6', label:'Assess overall wellbeing & mood', done:false }] },
+    { name: 'Activities',            tasks: [{ id:'el7', label:'Assist with range-of-motion exercises', done:false }, { id:'el8', label:'Encourage light activity', done:false }] },
+    { name: 'Documentation',         tasks: [{ id:'el9', label:'Record all observations', done:false }, { id:'el10', label:'Update daily care log', done:false }] },
+  ],
+  post_op: [
+    { name: 'Wound Assessment',      tasks: [{ id:'po1', label:'Inspect surgical site for healing', done:false }, { id:'po2', label:'Check for infection signs (redness, discharge)', done:false }, { id:'po3', label:'Assess pain at incision site (0-10)', done:false }] },
+    { name: 'Care',                  tasks: [{ id:'po4', label:'Change surgical dressing if needed', done:false }, { id:'po5', label:'Review post-op medications compliance', done:false }] },
+    { name: 'Documentation',         tasks: [{ id:'po6', label:'Record wound healing status', done:false }, { id:'po7', label:'Document any complications or concerns', done:false }] },
+  ],
+};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -151,6 +204,9 @@ export default function HomeServicesHub() {
   const [feedbackComment, setFeedbackComment] = useState('');
   const [toast, setToast] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<VisitStatus | 'all'>('all');
+  const [checklistVisit, setChecklistVisit] = useState<HomeVisit | null>(null);
+  const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
+  const [checklistNotes, setChecklistNotes] = useState('');
 
   // Live tick every 15s for ETA countdown & service duration
   useEffect(() => {
@@ -204,6 +260,27 @@ export default function HomeServicesHub() {
 
   const svc = (id: string) => SERVICE_TYPES.find(s => s.id === id) ?? SERVICE_TYPES[0];
 
+  function openChecklist(v: HomeVisit) {
+    const tpl = CHECKLIST_TEMPLATES[v.serviceId] ?? CHECKLIST_TEMPLATES['doc_consult'];
+    setChecklist(tpl.map(cat => ({
+      name: cat.name,
+      tasks: cat.tasks.map(t => ({ ...t, done: false })),
+    })));
+    setChecklistNotes('');
+    setChecklistVisit(v);
+  }
+
+  function toggleTask(catIdx: number, taskId: string) {
+    setChecklist(prev => prev.map((cat, ci) =>
+      ci !== catIdx ? cat : {
+        ...cat,
+        tasks: cat.tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t),
+      }
+    ));
+  }
+
+  const checklistDone = checklist.every(cat => cat.tasks.every(t => t.done));
+
   const activeVisits  = visits.filter(v => ['en_route', 'arrived', 'in_service'].includes(v.status));
   const pendingVisits = visits.filter(v => ['requested', 'assigned'].includes(v.status));
   const completedVisits = visits.filter(v => v.status === 'completed');
@@ -214,10 +291,14 @@ export default function HomeServicesHub() {
   const filteredVisits = filterStatus === 'all' ? visits : visits.filter(v => v.status === filterStatus);
 
   const TABS: { id: Tab; label: string; icon: string; count?: number }[] = [
-    { id: 'overview', label: 'Overview',        icon: 'dashboard'                             },
-    { id: 'active',   label: 'Active Visits',   icon: 'directions_car', count: activeVisits.length + pendingVisits.length },
-    { id: 'all',      label: 'All Requests',    icon: 'list_alt',       count: visits.length  },
-    { id: 'catalog',  label: 'Service Catalog', icon: 'medical_services'                      },
+    { id: 'overview',  label: 'Overview',        icon: 'dashboard'                              },
+    { id: 'active',    label: 'Active Visits',   icon: 'directions_car', count: activeVisits.length + pendingVisits.length },
+    { id: 'all',       label: 'All Requests',    icon: 'list_alt',       count: visits.length   },
+    { id: 'catalog',   label: 'Services',        icon: 'medical_services'                       },
+    { id: 'patients',  label: 'Patients',        icon: 'groups'                                 },
+    { id: 'staff',     label: 'Staff',           icon: 'badge'                                  },
+    { id: 'schedule',  label: 'Schedule',        icon: 'calendar_month'                         },
+    { id: 'requests',  label: 'Care Requests',   icon: 'assignment'                             },
   ];
 
   return (
@@ -527,6 +608,15 @@ export default function HomeServicesHub() {
                         </div>
                       )}
 
+                      {/* Checklist button for in_service visits */}
+                      {v.status === 'in_service' && (
+                        <button onClick={() => openChecklist(v)}
+                          className="w-full py-2.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 mb-2 border-2 border-green-300 text-green-700 hover:bg-green-50 transition-colors">
+                          <span className="material-symbols-outlined text-[15px]">checklist</span>
+                          View Visit Checklist
+                        </button>
+                      )}
+
                       {/* Action */}
                       {meta.next && (
                         <button onClick={() => advance(v.id)}
@@ -704,6 +794,19 @@ export default function HomeServicesHub() {
               </div>
             </div>
           )}
+
+          {/* ══════════════════════ PATIENTS ══════════════════════ */}
+          {tab === 'patients' && <PatientsPanel />}
+
+          {/* ══════════════════════ STAFF ══════════════════════ */}
+          {tab === 'staff' && <StaffPanel />}
+
+          {/* ══════════════════════ SCHEDULE ══════════════════════ */}
+          {tab === 'schedule' && <SchedulePanel />}
+
+          {/* ══════════════════════ CARE REQUESTS ══════════════════════ */}
+          {tab === 'requests' && <CareRequestsPanel />}
+
         </div>
       </div>
 
@@ -758,6 +861,102 @@ export default function HomeServicesHub() {
               <span className="material-symbols-outlined text-[15px]">send</span>
               Submit Feedback
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Visit Checklist Modal ─────────────────────────────────────────── */}
+      {checklistVisit && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 flex-shrink-0">
+              <div>
+                <h3 className="text-[15px] font-black text-gray-900">Visit Checklist</h3>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  {svc(checklistVisit.serviceId).name} · {checklistVisit.patientName}
+                </p>
+              </div>
+              <button onClick={() => setChecklistVisit(null)} className="text-gray-400 hover:text-gray-600">
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* Progress bar */}
+            <div className="px-6 py-3 flex-shrink-0">
+              {(() => {
+                const all   = checklist.reduce((n, c) => n + c.tasks.length, 0);
+                const done  = checklist.reduce((n, c) => n + c.tasks.filter(t => t.done).length, 0);
+                const pct   = all > 0 ? Math.round((done / all) * 100) : 0;
+                return (
+                  <div>
+                    <div className="flex justify-between text-[10px] font-bold mb-1.5">
+                      <span className="text-gray-500">{done}/{all} tasks completed</span>
+                      <span style={{ color: checklistDone ? '#17A077' : '#D97706' }}>{pct}%</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-300"
+                        style={{ width: `${pct}%`, background: checklistDone ? '#17A077' : '#D97706' }} />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Task list */}
+            <div className="flex-1 overflow-auto px-6 space-y-4 pb-4">
+              {checklist.map((cat, ci) => (
+                <div key={cat.name} className="border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-2.5 flex items-center justify-between">
+                    <p className="text-[11px] font-black text-gray-700">{cat.name}</p>
+                    <span className="text-[10px] text-gray-400">
+                      {cat.tasks.filter(t => t.done).length}/{cat.tasks.length}
+                    </span>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {cat.tasks.map(task => (
+                      <label key={task.id}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${task.done ? 'border-green-500' : 'border-gray-300'}`}
+                          style={{ background: task.done ? '#17A077' : 'transparent' }}
+                          onClick={() => toggleTask(ci, task.id)}>
+                          {task.done && <span className="material-symbols-outlined text-[13px] text-white">check</span>}
+                        </div>
+                        <span className={`text-[12px] ${task.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                          {task.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* Notes */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
+                  Visit Notes & Observations
+                </label>
+                <textarea value={checklistNotes} onChange={e => setChecklistNotes(e.target.value)}
+                  placeholder="Enter any observations, concerns, or notes about this visit…"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-[12px] text-gray-700 outline-none resize-none h-20 focus:border-[#17A077] focus:bg-white" />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
+              <button onClick={() => setChecklistVisit(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-600 hover:bg-gray-50">
+                Save & Close
+              </button>
+              <button
+                onClick={() => { advance(checklistVisit.id); setChecklistVisit(null); }}
+                disabled={!checklistDone}
+                className="flex-1 py-2.5 rounded-xl text-white text-[13px] font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                style={{ background: '#17A077', boxShadow: checklistDone ? '0 4px 12px rgba(23,160,119,0.3)' : 'none' }}>
+                <span className="material-symbols-outlined text-[15px]">task_alt</span>
+                {checklistDone ? 'Complete & Sign Off' : `Complete All Tasks First`}
+              </button>
+            </div>
           </div>
         </div>
       )}
