@@ -15,6 +15,7 @@ import InvoiceManager       from './pages/InvoiceManager';
 import ReportManager        from './pages/ReportManager';
 import PathologistQueue     from './pages/PathologistQueue';
 import PharmacyDashboard    from './pages/PharmacyDashboard';
+import MediCircle           from './pages/MediCircle';
 import OPDQueue             from './pages/hospital/OPDQueue';
 import BedBoard             from './pages/hospital/BedBoard';
 import RadiologyModule      from './pages/hospital/RadiologyModule';
@@ -22,20 +23,20 @@ import MedicalHistory       from './pages/hospital/MedicalHistory';
 import ConsultationNotes    from './pages/hospital/ConsultationNotes';
 import { isModuleEnabled }  from './modules/hospital.config';
 
-// Redirect authenticated users away from /login to their role home
+// If authenticated redirect to role home, else show MediCircle module selector
+function RootRoute() {
+  const { user, role, loading } = useAuth();
+  if (loading) return null;
+  if (user && role) return <Navigate to={ROLE_HOME[role]} replace />;
+  return <MediCircle />;
+}
+
+// If authenticated redirect to role home, else show Login (module already selected)
 function LoginRoute() {
   const { user, role, loading } = useAuth();
   if (loading) return null;
   if (user && role) return <Navigate to={ROLE_HOME[role]} replace />;
   return <Login />;
-}
-
-// Redirect / to role home (or /login if not authenticated)
-function RootRoute() {
-  const { user, role, loading } = useAuth();
-  if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to={ROLE_HOME[role!]} replace />;
 }
 
 export default function App() {

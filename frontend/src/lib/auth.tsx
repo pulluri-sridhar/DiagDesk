@@ -43,6 +43,16 @@ const DEMO_USERS: Record<string, { role: Role; name: string; userId: string | nu
 
 const SESSION_KEY = 'diagdesk_session';
 
+export const MODULE_KEY = 'medicircle_module';
+export type AppModule = 'medidesk' | 'diagdesk';
+
+export function getSelectedModule(): AppModule {
+  return (localStorage.getItem(MODULE_KEY) as AppModule) || 'diagdesk';
+}
+export function setSelectedModule(mod: AppModule) {
+  localStorage.setItem(MODULE_KEY, mod);
+}
+
 // ── Session type ─────────────────────────────────────────────────────────────
 export interface DiagDeskUser {
   email:  string;

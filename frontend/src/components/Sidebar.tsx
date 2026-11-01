@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useAuth, type Role } from '../lib/auth';
+import { useAuth, getSelectedModule, type Role } from '../lib/auth';
 import { isModuleEnabled } from '../modules/hospital.config';
 
 const NAV_BY_ROLE: Record<Role, { to: string; icon: string; label: string }[]> = {
@@ -49,15 +49,6 @@ const ROLE_LABELS: Record<Role, string> = {
   pharmacist:   'Pharmacist',
 };
 
-const ROLE_COLORS: Record<Role, string> = {
-  admin:        '#17A077',
-  doctor:       '#0D9460',
-  phlebotomist: '#1A7260',
-  patient:      '#2A9174',
-  lab_tech:     '#0891B2',
-  pathologist:  '#7C3AED',
-  pharmacist:   '#D97706',
-};
 
 const HOSPITAL_NAV: { module: Parameters<typeof isModuleEnabled>[0]; to: string; icon: string; label: string }[] = [
   { module: 'OPD_QUEUE',          to: '/hospital/opd',                 icon: 'queue',           label: 'OPD Queue'        },
@@ -67,30 +58,35 @@ const HOSPITAL_NAV: { module: Parameters<typeof isModuleEnabled>[0]; to: string;
   { module: 'CONSULTATION_NOTES', to: '/hospital/consultation-notes',  icon: 'clinical_notes',  label: 'SOAP Notes'       },
 ];
 
+const MODULE_LABELS = { medidesk: 'MediDesk', diagdesk: 'DiagDesk' };
+const MODULE_COLORS = { medidesk: '#17A077', diagdesk: '#0891B2' };
+
 export default function Sidebar() {
   const { user, role } = useAuth();
+  const appModule = getSelectedModule();
 
   const baseNav = role ? NAV_BY_ROLE[role] : [];
-  const hospitalNav = (role === 'admin' || role === 'doctor')
+  const hospitalNav = appModule === 'medidesk' && (role === 'admin' || role === 'doctor')
     ? HOSPITAL_NAV.filter(h => isModuleEnabled(h.module)).map(({ to, icon, label }) => ({ to, icon, label }))
     : [];
   const nav = [...baseNav, ...hospitalNav];
+  const accentColor = MODULE_COLORS[appModule];
   const displayName = user?.name ?? user?.email ?? 'User';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-  const accentColor = role ? ROLE_COLORS[role] : '#17A077';
 
   function handleSignOut() {
-    console.log('[DiagDesk] Sign out clicked — clearing session');
     localStorage.removeItem('diagdesk_session');
-    console.log('[DiagDesk] Session cleared, redirecting…');
-    window.location.href = '/login';
+    window.location.href = '/';
   }
 
   return (
     <aside className="h-screen w-64 flex-col fixed left-0 top-0 border-r border-outline-variant bg-white flex py-lg z-50">
       {/* Logo */}
       <div className="px-lg mb-xl">
-        <h1 className="font-headline-md text-2xl font-extrabold tracking-tight" style={{ color: accentColor }}>DiagDesk</h1>
+        <p className="text-[9px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">MediCircle</p>
+        <h1 className="font-headline-md text-2xl font-extrabold tracking-tight" style={{ color: accentColor }}>
+          {MODULE_LABELS[appModule]}
+        </h1>
         <p className="font-label-caps text-[10px] text-on-surface-variant tracking-widest uppercase mt-xs">Mission Control</p>
       </div>
 
