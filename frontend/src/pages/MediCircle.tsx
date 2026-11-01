@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLE_HOME, setSelectedModule, type AppModule, type Role } from '../lib/auth';
-import { getModuleConfig } from '../lib/moduleConfig';
+import { getModuleConfig, DEFAULT_MODULE_CONFIG } from '../lib/moduleConfig';
 
 type RoleOption = { role: Role; name: string; email: string };
 
@@ -61,9 +61,19 @@ export default function MediCircle() {
   const { signIn } = useAuth();
   const navigate   = useNavigate();
 
-  const MODULES = getModuleConfig()
-    .filter(m => m.enabled)
-    .map(m => ({ ...m, ...MODULE_ROLES[m.id] }));
+  // Always show all system modules on login page — never filter by enabled.
+  // (Filtering by `enabled` here causes a lockout: an admin who accidentally
+  // disables a module via Module Settings can no longer log in to re-enable it.)
+  const savedConfig = getModuleConfig();
+  const MODULES = DEFAULT_MODULE_CONFIG.map(def => {
+    const saved = savedConfig.find(m => m.id === def.id);
+    return {
+      ...def,
+      name:    saved?.name    ?? def.name,
+      tagline: saved?.tagline ?? def.tagline,
+      ...MODULE_ROLES[def.id],
+    };
+  });
 
   const [selectedMod, setMod]     = useState<AppModule>('medidesk');
   const [dropOpen, setDropOpen]   = useState(false);
