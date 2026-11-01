@@ -18,6 +18,7 @@ const NAV_BY_ROLE: Record<Role, { to: string; icon: string; label: string }[]> =
     { to: '/doctor',             icon: 'stethoscope',      label: 'Doctor View'     },
     { to: '/phlebotomist',       icon: 'biotech',          label: 'Field Ops'       },
     { to: '/patients',           icon: 'manage_accounts',  label: 'Patient Records' },
+    { to: '/settings/modules',   icon: 'tune',             label: 'Module Settings' },
   ],
   doctor: [
     { to: '/doctor',    icon: 'assessment',     label: 'Reports'       },

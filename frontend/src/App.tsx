@@ -14,6 +14,7 @@ import InvoiceManager       from './pages/InvoiceManager';
 import ReportManager        from './pages/ReportManager';
 import PathologistQueue     from './pages/PathologistQueue';
 import PharmacyDashboard    from './pages/PharmacyDashboard';
+import ModuleSettings       from './pages/admin/ModuleSettings';
 import MediCircle           from './pages/MediCircle';
 import OPDQueue             from './pages/hospital/OPDQueue';
 import BedBoard             from './pages/hospital/BedBoard';
@@ -117,6 +118,12 @@ export default function App() {
           <Route path="/pharmacy" element={
             <ProtectedRoute allow={['pharmacist', 'admin']}>
               <PharmacyDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/settings/modules" element={
+            <ProtectedRoute allow="admin">
+              <ModuleSettings />
             </ProtectedRoute>
           } />
 

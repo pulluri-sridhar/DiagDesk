@@ -1,33 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLE_HOME, setSelectedModule, type AppModule, type Role } from '../lib/auth';
+import { getModuleConfig } from '../lib/moduleConfig';
 
 type RoleOption = { role: Role; name: string; email: string };
 
-const MODULES: {
-  id: AppModule; name: string; tagline: string; color: string; icon: string;
-  features: string[]; roles: RoleOption[];
-}[] = [
-  {
-    id: 'medidesk',
-    name: 'MediDesk',
-    tagline: 'Complete Hospital Management',
-    color: '#17A077',
-    icon: 'local_hospital',
+const MODULE_ROLES: Record<AppModule, { features: string[]; roles: RoleOption[] }> = {
+  medidesk: {
     features: ['OPD Queue & IPD Beds', 'Pharmacy & Prescriptions', 'Radiology & Lab', 'Medical History & SOAP Notes'],
     roles: [
-      { role: 'doctor',       name: 'Doctor',   email: 'anita.sharma@lumina.com' },
-      { role: 'phlebotomist', name: 'Nurse',     email: 'ravi.kumar@lumina.com'   },
-      { role: 'admin',        name: 'Admin',     email: 'admin@lumina.com'        },
-      { role: 'lab_tech',     name: 'Lab/PACS', email: 'lab@lumina.com'          },
+      { role: 'doctor',       name: 'Doctor',    email: 'anita.sharma@lumina.com' },
+      { role: 'phlebotomist', name: 'Nurse',      email: 'ravi.kumar@lumina.com'   },
+      { role: 'admin',        name: 'Admin',      email: 'admin@lumina.com'        },
+      { role: 'lab_tech',     name: 'Lab/PACS',  email: 'lab@lumina.com'          },
     ],
   },
-  {
-    id: 'diagdesk',
-    name: 'DiagDesk',
-    tagline: 'Diagnostic Lab Platform',
-    color: '#0891B2',
-    icon: 'biotech',
+  diagdesk: {
     features: ['Patient Registration & Orders', 'Sample Tracking & Results', 'Reports & Pathology', 'Inventory & Invoicing'],
     roles: [
       { role: 'admin',        name: 'Admin',        email: 'admin@lumina.com'      },
@@ -36,7 +24,7 @@ const MODULES: {
       { role: 'pathologist',  name: 'Pathologist',  email: 'path@lumina.com'       },
     ],
   },
-];
+};
 
 const DEMO_PASSWORD = 'Demo@1234';
 
@@ -57,6 +45,10 @@ const HIGHLIGHTS = [
 export default function MediCircle() {
   const { signIn } = useAuth();
   const navigate   = useNavigate();
+
+  const MODULES = getModuleConfig()
+    .filter(m => m.enabled)
+    .map(m => ({ ...m, ...MODULE_ROLES[m.id] }));
 
   const [selectedMod, setMod]     = useState<AppModule>('medidesk');
   const [dropOpen, setDropOpen]   = useState(false);
