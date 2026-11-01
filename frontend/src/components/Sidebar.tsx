@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useAuth, getSelectedModule, type Role } from '../lib/auth';
+import { useAuth, getSelectedModule, type Role, type AppModule } from '../lib/auth';
 import { isModuleEnabled } from '../modules/hospital.config';
 
 const NAV_BY_ROLE: Record<Role, { to: string; icon: string; label: string }[]> = {
@@ -63,15 +63,27 @@ const HOSPITAL_NAV: { module: Parameters<typeof isModuleEnabled>[0]; to: string;
 const MODULE_LABELS = { medidesk: 'MediDesk', diagdesk: 'DiagDesk', pharmdesk: 'PharmaDesk', homedesk: 'Home Services' };
 const MODULE_COLORS = { medidesk: '#17A077', diagdesk: '#0891B2', pharmdesk: '#7C3AED', homedesk: '#D97706' };
 
+// When one of these modules is active, show only its own nav regardless of role
+const MODULE_FIXED_NAV: Partial<Record<AppModule, { to: string; icon: string; label: string }[]>> = {
+  pharmdesk: [
+    { to: '/pharmacy',      icon: 'local_pharmacy',   label: 'Pharmacy Hub'    },
+    { to: '/settings/modules', icon: 'tune',          label: 'Module Settings' },
+  ],
+  homedesk: [
+    { to: '/home-services', icon: 'home_health',      label: 'Home Services'   },
+  ],
+};
+
 export default function Sidebar() {
   const { user, role } = useAuth();
   const appModule = getSelectedModule();
 
+  const fixedNav = MODULE_FIXED_NAV[appModule];
   const baseNav = role ? NAV_BY_ROLE[role] : [];
   const hospitalNav = appModule === 'medidesk' && (role === 'admin' || role === 'doctor')
     ? HOSPITAL_NAV.filter(h => isModuleEnabled(h.module)).map(({ to, icon, label }) => ({ to, icon, label }))
     : [];
-  const nav = [...baseNav, ...hospitalNav];
+  const nav = fixedNav ?? [...baseNav, ...hospitalNav];
   const accentColor = MODULE_COLORS[appModule];
   const displayName = user?.name ?? user?.email ?? 'User';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
